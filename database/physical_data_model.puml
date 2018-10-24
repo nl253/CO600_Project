@@ -1,0 +1,170 @@
+@startuml
+
+title Physical Data Model
+footer CO600 Project 2018
+
+' A user is anyone in the system that can log in (Administrator, and a regular user i.e. Student, Independent Learner and Content Creator)
+class User {
+  email      <b>VARCHAR(50) PRIMARY KEY CHECK(length(email) > 3 AND email LIKE "%__@__%.__%")</b>
+  -- other --
+  first_name <b>VARCHAR(50) NOT NULL CHECK(length(first_name) > 1)</b>
+  last_name  <b>VARCHAR(50) NOT NULL CHECK(length(last_name) > 1)</b> 
+  password   <b>VARCHAR(50) NOT NULL CHECK(length(password) > 2)</b>
+  info       <b>TEXT</b>
+  is_admin   <b>BOOL NOT NULL DEFAULT FALSE</b>
+}
+
+' Abstract representation of anything that has a creator & can be reported.
+class Content {
+  id      <b>INT PRIMARY KEY AUTOINCREMENT</b>
+  -- FK --
+  creator <b>REFERENCES User(email)</b>
+  is_blocked <b>BOOL NOT NULL DEFAULT FALSE</b>
+}
+
+' A question is associated with a test.
+' It may be either "closed" or "open". 
+class Question {
+  id             <b>INT PRIMARY KEY AUTOINCREMENT</b>
+  -- FK --
+  test_id        <b>REFERENCES Test(id)</b>
+  -- other --
+  question       <b>TEXT NOT NULL</b>
+  -- other --
+  correct_answer <b>TEXT DEFAULT NULL</b>
+}
+
+' A student may rate a lesson (and give a rating in [0, 5]).
+' The average of the ratings of all lessons is the rating of the module.
+class Rating {
+  id        <b>INT PRIMARY KEY AUTOINCREMENT</b>
+  -- FK --
+  rater     <b>REFERENCES User(email)</b>
+  content_id <b>REFERENCES Content(id)</b>
+  -- other --
+  stars     <b>BYTE NOT NULL CHECK(stars >= 0 AND stars <= 5)</b>
+}
+
+' Comments can be submitted to give feedback about content.
+' Because comments themselves are a type of content, this allows for commenting on comments, modules and lessons.
+class Comment {
+  id        <b>INT PRIMARY KEY AUTOINCREMENT</b>
+  -- FK --
+  about_item_id <b>REFERENCES Content(id)</b>
+  content_id    <b>REFERENCES Content(id)</b>
+}
+
+' A content creator may invite a student to take part in their module.
+class Invitation {
+  id            <b>INT PRIMARY KEY AUTOINCREMENT</b>
+  -- FK --
+  module_id     <b>REFERENCES Content(id)</b>
+  student_email <b>REFERENCES User(email)</b>
+  creator_email <b>REFERENCES User(email)</b>
+}
+
+
+' Feedback may be given to a student on their answer to an open question.
+class Feedback {
+  id          <b>INT PRIMARY KEY AUTOINCREMENT</b>
+  -- FK --
+  answer_id   <b>REFERENCES Answer(id)</b>
+  mark        <b>REAL CHECK(mark >= 0.0 AND mark <= 100.0)</b>
+  comment     <b>TEXT</b>
+}
+
+class Enrollment {
+  id            <b>INT PRIMARY KEY AUTOINCREMENT</b>
+  -- FK --
+  module_id     <b>REFERENCES Module(id)</b>
+  student_email <b>REFERENCES User(email)</b>
+}
+
+' A module is like a container (i.e. folder / directory) for lessons.
+class Module {
+  id         <b>INT PRIMARY KEY AUTOINCREMENT</b>
+  -- FK --
+  content_id <b>REFERENCES Content(id)</b>
+}
+
+' A lesson MUST BE associated with a module.
+' A lesson MUST have a content (stored as an HTML string).
+' A lesson may be marked as having a quiz made from definitions (automatically generated from the definitions).
+class Lesson {
+  id         <b>INT PRIMARY KEY AUTOINCREMENT</b>
+  -- FK --
+  module_id  <b>REFERENCES Module(id)</b>
+  -- other --
+  make_quiz  <b>BOOL NOT NULL DEFAULT FALSE</b>
+  content    <b>TEXT NOT NULL</b>
+}
+
+' An answer to an open question may BE given by a student enrolled in a module.
+class Answer {
+  id            <b>INT PRIMARY KEY AUTOINCREMENT</b>
+  -- FK --
+  student_email <b>REFERENCES User(email)</b>
+  question_id   <b>REFERENCES Question(id)</b>
+  -- other --
+  answer        <b>TEXT NOT NULL</b>
+}
+
+' The content creator may define terms in a lesson they created
+class Definition {
+  id         <b>INT PRIMARY KEY AUTOINCREMENT</b>
+  -- FK --
+  lesson_id <b>REFERENCES Lesson(id)</b>
+  -- other --
+  term       <b>VARCHAR(255) NOT NULL</b>
+  meaning    <b>TEXT NOT NULL</b>
+}
+
+' A user may report a piece of content (e.g. lesson, module, content) for breaking terms and conditions.
+class Report {
+  id         <b>INT PRIMARY KEY AUTOINCREMENT</b>
+  -- FK --
+  content_id <b>REFERENCES Content(id)</b>
+  author     <b>REFERENCES User(id)</b>
+  -- other --
+  issue      <b>VARCHAR(255) NOT NULL CHECK(issue in ("inappropriate content", "cotains mistakes"))</b>
+}
+
+' A test may be taken at the end of the module.
+class Test {
+  id           <b>INT PRIMARY KEY AUTOINCREMENT</b>
+  -- FK --
+  content_id    <b>REFERENCES Content(id)</b>
+  -- other --
+  duration_min <b>INT</b>
+  time_started <b>TIMESTAMP</b>
+}
+
+User -- "*" Content: creates >
+User -- "*" Report: writes >
+User -- "*" Invitation: receives >
+User -- "*" Invitation: sends >
+User -- "*" Answer: submits >
+User -- "*" Enrollment: has >
+User -- "*" Rating: gives >
+
+Definition "*" -- Lesson: has <
+
+Rating "*" -- Content: "given to" >
+Module -- Content: is >
+Module -- Enrollment: in <
+Invitation -- Module: to >
+Comment -- Content: is >
+Comment -- Content: "is about" >
+Lesson -- Content: is >
+Lesson -- Module: in >
+
+Feedback -- Answer: to >
+
+Report -- Content: about >
+
+Question "*" -- Test: comprise > 
+Question -- "*" Answer: has >
+
+Test -- Content: about > 
+
+@enduml
