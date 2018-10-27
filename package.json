@@ -17,7 +17,8 @@
     "http-errors": "~1.6.2",
     "morgan": "~1.9.0",
     "node-sass-middleware": "0.11.0",
-    "pug": "^2.0.3"
+    "sequelize": "^4.41.0",
+    "sqlite3": "^4.0.3"
   },
   "description": "CO600 final year group project.",
   "devDependencies": {
