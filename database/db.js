@@ -11,10 +11,8 @@ const path = require('path');
 const Sequelize = require('sequelize');
 
 // Or you can simply use a connection uri
-module.exports = function(URI) {
-  if (!URI) {
-    URI = `sqlite://${path.join(__dirname, 'db')}`;
-  }
+module.exports = (uri) => {
+  const URI = uri || `sqlite://${path.join(__dirname, 'db')}`;
   console.log(URI);
   return new Sequelize(URI);
 };
