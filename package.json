@@ -1,0 +1,52 @@
+{
+  "name": "co600",
+  "version": "0.0.1",
+  "description": "CO600 final year group project.",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./bin/www"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nl253/CO600_Project.git"
+  },
+  "keywords": [
+    "SQL",
+    "uni",
+    "node",
+    "javascript",
+    "education",
+    "learning",
+    "teaching",
+    "CRUD"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nl253/CO600_Project/issues"
+  },
+  "homepage": "https://github.com/nl253/CO600_Project",
+  "dependencies": {
+    "eslint": "^5.8.0",
+    "eslint-config-google": "^0.11.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-node": "^7.0.1",
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-security": "^1.4.0",
+    "pug": "^2.0.3",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.9",
+    "express": "~4.16.0",
+    "hbs": "~4.0.1",
+    "http-errors": "~1.6.2",
+    "morgan": "~1.9.0",
+    "node-sass-middleware": "0.11.0"
+  },
+  "devDependencies": {
+    "eslint-plugin-compat": "^2.6.2",
+    "eslint-plugin-filenames": "^1.3.2",
+    "eslint-plugin-jest": "^21.26.2",
+    "eslint-plugin-optimize-regex": "^1.1.6"
+  }
+}

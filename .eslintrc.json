@@ -3,15 +3,29 @@
     "browser": true,
     "commonjs": true,
     "es6": true,
-    "jest": true,
     "node": true,
+    "jest/globals": true,
     "shared-node-browser": true,
     "worker": true
   },
+  "plugins": [
+    "compat",
+    "filenames",
+    "jest",
+    "import",
+    "node",
+    "optimize-regex",
+    "security",
+    "promise"
+  ],
   "extends": [
     "eslint:recommended",
+    "plugin:compat/recommended",
+    "plugin:jest/recommended",
     "plugin:node/recommended",
     "plugin:security/recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
     "plugin:promise/recommended",
     "google"
   ],
@@ -41,12 +55,6 @@
     "ecmaVersion": 8,
     "sourceType": "module"
   },
-  "plugins": [
-    "filenames",
-    "promise",
-    "compat",
-    "security"
-  ],
   "rules": {
     "accessor-pairs": [
       2,

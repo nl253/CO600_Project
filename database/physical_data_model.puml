@@ -51,7 +51,7 @@ class Comment {
   id        <b>INT PRIMARY KEY AUTOINCREMENT</b>
   -- FK --
   about_item_id <b>REFERENCES Content(id)</b>
-  content_id    <b>REFERENCES Content(id)</b>
+  content_id    <b>NOT NULL UNIQUE REFERENCES Content(id)</b>
 }
 
 ' A content creator may invite a student to take part in their module.
@@ -84,7 +84,7 @@ class Enrollment {
 class Module {
   id         <b>INT PRIMARY KEY AUTOINCREMENT</b>
   -- FK --
-  content_id <b>REFERENCES Content(id)</b>
+  content_id <b>UNIQUE NOT NULL REFERENCES Content(id)</b>
 }
 
 ' A lesson MUST BE associated with a module.
