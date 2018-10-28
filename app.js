@@ -8,16 +8,14 @@ const sassMiddleware = require('node-sass-middleware');
 const indexRouter = require('./routes/index');
 const apiRouter = require('./routes/api');
 
-/*
-db.query('SELECT * from User').spread((results, metadata) => {
-  console.log(results);
-});
-*/
-
 const app = express();
 
+function rootPath(fileName) {
+  return path.join(__dirname, fileName);
+}
+
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', rootPath('views'));
 app.set('view engine', 'hbs');
 
 app.use(logger('dev'));
@@ -25,20 +23,18 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(sassMiddleware({
-  src: path.join(__dirname, 'public'),
-  dest: path.join(__dirname, 'public'),
-  indentedSyntax: true, // true = .sass and false = .scss
+  src: rootPath('public'),
+  dest: rootPath('public'),
+  indentedSyntax: false, // true = .sass and false = .scss
   sourceMap: true,
 }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(rootPath('public')));
 
 app.use('/api', apiRouter);
 app.use('/', indexRouter);
 
 // catch 404 and forward to error handler
-app.use((req, res, next) => {
-  next(createError(404));
-});
+app.use((req, res, next) => next(createError(404)));
 
 // error handler
 app.use((err, req, res, next) => {

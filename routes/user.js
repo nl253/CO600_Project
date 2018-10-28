@@ -1,3 +1,4 @@
+/* eslint-disable no-console,node/no-unsupported-features/node-builtins */
 /**
  * A word of caution:
  *
@@ -28,36 +29,57 @@
  *
  * This is similar to calling a method `user.unregister()`.
  *
+ * Passwords are SHA256 hashed before storing and before comparing.
+ *
  * @author Norbert
  */
+const crypto = require('crypto');
+const ValidationError = require('sequelize/lib/errors').ValidationError;
 const express = require('express');
 const router = express.Router();
 const db = require('../database/db.js')();
 
-router.post('/:email/register', async (req, res) => {
-  if (!('password' in req.body)) {
-    res.json({
-      msg: 'password not present in POST params',
-      status: 'ERROR',
-    });
-    return;
-  }
-  const {email} = req.params;
-  const {password} = req.body;
-  const sql = 'INSERT INTO User (email, password) VALUES (:email, :password)';
-  const replacements = {email, password};
-  const query = db.query(sql, {replacements});
-  query.then((rows) => res.json({
-    status: 'OK',
-    msg: `registered user ${email}`,
-  }));
-  query.catch((err) => res.json({
-    status: 'ERROR',
-    msg: `failed to register user ${email}, the user probably already has an account`,
-  }));
-});
+/**
+ * Compute SHA-256 of data. Use to avoid storing passwords in the
+ * db in plain text.
+ *
+ * @param {string} data
+ * @return {string}
+ */
+function sha256(data) {
+  const hash = crypto.createHash('sha256');
+  hash.update(data);
+  return hash.digest('base64').toString();
+}
 
-router.post('/:email/unregister', async (req, res) => {
+/**
+ * Produce a more informative error msg when using the REST API.
+ *
+ * @param {string} msg
+ * @param {BaseError} err
+ */
+function errMsg(msg, err) {
+  const status = 'ERROR';
+  if (err && (err instanceof ValidationError) && err.errors.length > 0) {
+    const error = err.errors[0];
+    let message = error.message;
+    if (err.fields.length > 0) {
+      const fields = err.fields.map((f) => f.toLocaleString())
+        .reduce((x, y) => `${x}, ${y}`);
+      message = `issue with ${fields}: ${message}`;
+    }
+    return {status, msg: `${msg}, error: ${message}`};
+  } else {
+    return {status, msg};
+  }
+}
+
+function msg(msg, result) {
+  const status = 'OK';
+  return result ? {status, msg, result} : {status, msg};
+}
+
+router.post('/:email/register', (eq, res) => {
   if (!('password' in req.body)) {
     res.json({
       msg: 'password not present in POST params',
@@ -66,22 +88,46 @@ router.post('/:email/unregister', async (req, res) => {
     return;
   }
   const email = req.params.email;
-  const {password} = req.body;
+  const password = sha256(req.body.password);
+  const sql = 'INSERT INTO User (email, password) VALUES (:email, :password)';
+  const replacements = {email, password};
+  db.query(sql, {replacements}).then((rows) => {
+    res.json(msg(`registered user ${email}`));
+  }).catch((err) => {
+    console.debug(err);
+    res.json(
+      errMsg(
+        `failed to register user ${email}, the user probably already has an account`,
+        err));
+  });
+});
+
+router.post('/:email/unregister', (req, res) => {
+  if (!('password' in req.body)) {
+    res.json({
+      msg: 'password not present in POST params',
+      status: 'ERROR',
+    });
+    return;
+  }
+  const email = req.params.email;
+  const password = sha256(req.body.password);
   const sql = 'DELETE FROM User WHERE email = :email AND password = :password';
   const replacements = {email, password};
-  const query = db.query(sql, {replacements});
-  query.then((rows) => res.json({
-    status: 'OK',
-    msg: `unregistered user ${email}`,
-  }));
-  query.catch((err) => res.json({
-    status: 'ERROR',
-    msg: `failed to unregistered user ${email}, the user probably does not exist`,
-  }));
+  db.query(sql, {replacements}).then((rows) => {
+    res.json({
+      status: 'OK',
+      msg: `unregistered user ${email}`,
+    });
+  }).catch((err) => {
+    console.debug(err);
+    res.json(errMsg(
+      `failed to unregistered user ${email}, the user probably does not exist`));
+  });
 });
 
 for (const action of ['register', 'unregister']) {
-  router.all(`/:email/${action}`, async (req, res) => {
+  router.all(`/:email/${action}`, (req, res) => {
     res.json({
       msg: `use POST to ${action}`,
       status: 'ERROR',
@@ -89,34 +135,28 @@ for (const action of ['register', 'unregister']) {
   });
 }
 
-router.get('/:email/:property', async (req, res) => {
+router.get('/:email/:property', (req, res) => {
   const sql = 'SELECT * FROM User WHERE email = :email';
   const {email, property} = req.params;
   const replacements = {email, property};
-  const query = db.query(sql, {replacements});
-
-  query.catch((err) => res.json({
-    status: 'ERROR',
-    msg: `failed to find ${property} of ${email}`,
-  }));
-
-  query.then((rows) => {
+  if (property === 'password') {
+    res.json(errMsg('cannot lookup password'));
+    return;
+  }
+  db.query(sql, {replacements}).catch((err) => {
+    console.debug(err);
+    res.json(errMsg(`failed to find ${property} of ${email}`, err));
+  }).then((rows) => {
     if (property in rows[0][0]) {
-      res.json({
-        status: 'OK',
-        msg: `found property ${property} of ${email}`,
-        result: rows[0][0][property],
-      });
+      res.json(
+        msg(`found property ${property} of ${email}`, rows[0][0][property]));
     } else {
-      res.json({
-        status: 'ERROR',
-        msg: `user does not have property ${property}`,
-      });
+      res.json(errMsg(`user does not have property ${property}`));
     }
   });
 });
 
-router.post('/:email/:property', async (req, res) => {
+router.post('/:email/:property', (req, res) => {
   const {email, property} = req.params;
   for (const needed of ['password', 'value']) {
     if (!(needed in req.body)) {
@@ -127,51 +167,54 @@ router.post('/:email/:property', async (req, res) => {
       return;
     }
   }
-  const {password, value} = req.body;
+
+  if (property === 'is_admin') {
+    res.json({
+      msg: `property is_admin cannot be set directly`,
+      status: 'ERROR',
+    });
+    return;
+  }
+
+  let value;
+
+  if (property === 'password') {
+    // sha passwords *before* inserting into the db
+    value = sha256(req.body.value);
+  } else {
+    value = req.body.value;
+  }
+  const password = sha256(req.body.password);
+
   const sql = 'UPDATE User SET :property = :value WHERE email = :email AND password = :password';
   const replacements = {email, property, password, value};
-  const query = db.query(sql, {replacements});
-
-  query.catch((err) =>
-    res.json({
-      status: 'ERROR',
-      msg: `failed to set property ${property} of user ${email} to ${value}`,
-    }));
-
-  query.then((rows) => res.json({
-    status: 'OK',
-    msg: `updated property ${property} of user ${email} to ${value}`,
-  }));
+  db.query(sql, {replacements}).catch((err) => {
+    console.debug(err);
+    res.json(errMsg(
+      `failed to set property ${property} of user ${email} to ${value} (likely because of bad format)`,
+      err));
+  }).then((rows) => {
+    res.json(msg(`updated property ${property} of user ${email} to ${value}`));
+  });
 });
 
-router.get('/:email', async (req, res) => {
+router.get('/:email', (req, res) => {
   const sql = 'SELECT * FROM User WHERE email = :email';
   const email = req.params.email;
   const replacements = {email};
-  const query = db.query(sql, {replacements});
-
-  query.catch((err) => res.json({
-    status: 'ERROR',
-    msg: `failed to find user with email ${email}`,
-  }));
-
-  query.then((rows) => {
+  db.query(sql, {replacements}).catch((err) => {
+    console.debug(err);
+    res.json(errMsg(`failed to find user with email ${email}`, err));
+  }).then((rows) => {
     if (rows[0].length >= 1) {
-      res.json({
-        status: 'OK',
-        msg: `found user ${email}`,
-        result: rows[0][0],
-      });
+      res.json(msg(`found user ${email}`, rows[0][0]));
     } else {
-      res.json({
-        status: 'ERROR',
-        msg: `failed to find user with email ${email}`,
-      });
+      res.json(msg(`failed to find user with email ${email}`));
     }
   });
 });
 
-router.all(/.*/, async (req, res) => {
+router.all(/.*/, (req, res) => {
   res.json({
     status: 'CONFUSED',
     msg: 'nothing here, try looking at routes',

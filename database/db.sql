@@ -5,11 +5,11 @@
 -- A user is anyone in the system that can log in 
 -- (Administrator, and a regular user i.e. Student, Independent Learner and Content Creator)
 CREATE TABLE IF NOT EXISTS User (
-  email      VARCHAR(100) PRIMARY KEY NOT NULL CHECK (length(email) > 3 AND email LIKE "%_@_%._%"),
+  email      VARCHAR(255) PRIMARY KEY NOT NULL CHECK (length(email) > 3 AND email LIKE "%_@_%._%"),
   -- other --
-  first_name VARCHAR(50) CHECK (length(first_name) > 1),
-  last_name  VARCHAR(50) CHECK (length(last_name) > 1),
-  password   VARCHAR(50) CHECK (length(password) > 2),
+  first_name VARCHAR(255) CHECK (length(first_name) > 1),
+  last_name  VARCHAR(255) CHECK (length(last_name) > 1),
+  password   VARCHAR(255) CHECK (length(password) > 2),
   info       TEXT,
   is_admin   BOOLEAN NOT NULL DEFAULT FALSE
 );
