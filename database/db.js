@@ -1,18 +1,21 @@
 /**
- * File description.
+ * This module exposes a connection the database.
  *
- * @copyright 2018
- * @author nl253
- * @see {@link  details and explanation}
- * @requires
+ * @author Norbert
  */
-
-const path = require('path');
+const join = require('path').join;
 const Sequelize = require('sequelize');
 
-// Or you can simply use a connection uri
+/**
+ * Get connection to the database.
+ *
+ * If you do not provide a URI, the development (sqlite) database will be used.
+ *
+ * @param {string} [uri]
+ * @return {Sequelize}
+ */
 module.exports = (uri) => {
-  const URI = uri || `sqlite://${path.join(__dirname, 'db')}`;
-  console.log(URI);
+  const URI = uri || `sqlite://${join(__dirname, 'db')}`;
+  console.info(`connected to ${URI}`);
   return new Sequelize(URI);
 };

@@ -10,6 +10,12 @@ const apiRouter = require('./routes/api');
 
 const app = express();
 
+/**
+ * Produce a path relative to this file (i.e. path relative to the root of the project).
+ *
+ * @param {string} fileName
+ * @return {string}
+ */
 function rootPath(fileName) {
   return path.join(__dirname, fileName);
 }
