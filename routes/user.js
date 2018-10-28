@@ -17,8 +17,7 @@ const {errMsg, msg, sha256} = require('./lib.js');
  * @return {boolean}
  */
 async function userExists(email, password) {
-  let sql;
-  let replacements;
+  let sql, replacements;
   if (password !== undefined) {
     sql = 'SELECT * FROM User WHERE email = :email AND password = :password';
     replacements = {email, password};
