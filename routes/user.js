@@ -1,85 +1,41 @@
-/* eslint-disable no-console,node/no-unsupported-features/node-builtins */
 /**
- * A word of caution:
- *
- * Although it would make sense to use DELETE, UPDATE and
- * PUT, sadly, they don't allow to extract data from the request body.
- * Whenever sensitive data needs to be sent
- * e.g. password or new value for a potentially sensitive property
- * (such as password), POST is used instead of get.
- *
- * I am using raw SQL here because I am comfortable with SQL and it means
- * I don't need to learn sequelize's syntax for defining, updating and
- * querying entities. The goal is to reduce complexity.
- *
- * The aim is to create a REST API. I try to make it feel like calling a method
- * in an object oriented programming language.
- *
- * E.g.:
- *
- * To set password on user `/<user_email>/<property>` and sent the `value` in
- * POST request body.
- *
- * This is similar to calling a setter.
- *
- * E.g.:
- *
- * To unregister i.e. delete account, simply "call" unregister on the entity
- * `/<user_email>/unregister` and pass `password` in POST request body.
- *
- * This is similar to calling a method `user.unregister()`.
- *
- * Passwords are SHA256 hashed before storing and before comparing.
+ * This module implements the User model and operations on users such as
+ * updating fields, deleting users, creating new users in the database.
  *
  * @author Norbert
  */
-const crypto = require('crypto');
-const ValidationError = require('sequelize/lib/errors').ValidationError;
-const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
 const db = require('../database/db.js')();
+const {errMsg, msg, sha256} = require('./lib.js');
+
 
 /**
- * Compute SHA-256 of data. Use to avoid storing passwords in the
- * db in plain text.
+ * Check if the user exists.
  *
- * @param {string} data
- * @return {string}
+ * @param {string} email
+ * @param {string} [password]
+ * @return {boolean}
  */
-function sha256(data) {
-  const hash = crypto.createHash('sha256');
-  hash.update(data);
-  return hash.digest('base64').toString();
-}
-
-/**
- * Produce a more informative error msg when using the REST API.
- *
- * @param {string} msg
- * @param {BaseError} err
- */
-function errMsg(msg, err) {
-  const status = 'ERROR';
-  if (err && (err instanceof ValidationError) && err.errors.length > 0) {
-    const error = err.errors[0];
-    let message = error.message;
-    if (err.fields.length > 0) {
-      const fields = err.fields.map((f) => f.toLocaleString())
-        .reduce((x, y) => `${x}, ${y}`);
-      message = `issue with ${fields}: ${message}`;
-    }
-    return {status, msg: `${msg}, error: ${message}`};
+async function userExists(email, password) {
+  let sql;
+  let replacements;
+  if (password !== undefined) {
+    sql = 'SELECT * FROM User WHERE email = :email AND password = :password';
+    replacements = {email, password};
   } else {
-    return {status, msg};
+    sql = 'SELECT * FROM User WHERE email = :email';
+    replacements = {email};
   }
+  return await db.query(sql, {replacements}).then((rows) => {
+    return rows[0].length > 0;
+  }).catch((err) => {
+    console.debug(err);
+    return false;
+  });
 }
 
-function msg(msg, result) {
-  const status = 'OK';
-  return result ? {status, msg, result} : {status, msg};
-}
 
-router.post('/:email/register', (eq, res) => {
+router.post('/:email/register', async (req, res) => {
   if (!('password' in req.body)) {
     res.json({
       msg: 'password not present in POST params',
@@ -89,20 +45,22 @@ router.post('/:email/register', (eq, res) => {
   }
   const email = req.params.email;
   const password = sha256(req.body.password);
+  if (await userExists(email, password)) {
+    res.json(
+      errMsg(`user with email ${email} and this password already exists`));
+    return;
+  }
   const sql = 'INSERT INTO User (email, password) VALUES (:email, :password)';
   const replacements = {email, password};
   db.query(sql, {replacements}).then((rows) => {
     res.json(msg(`registered user ${email}`));
   }).catch((err) => {
     console.debug(err);
-    res.json(
-      errMsg(
-        `failed to register user ${email}, the user probably already has an account`,
-        err));
+    res.json(errMsg(`failed to register user ${email}`, err));
   });
 });
 
-router.post('/:email/unregister', (req, res) => {
+router.post('/:email/unregister', async (req, res) => {
   if (!('password' in req.body)) {
     res.json({
       msg: 'password not present in POST params',
@@ -112,6 +70,13 @@ router.post('/:email/unregister', (req, res) => {
   }
   const email = req.params.email;
   const password = sha256(req.body.password);
+
+  if (!await userExists(email, password)) {
+    res.json(
+      errMsg(`user with email ${email} and this password does not exist`));
+    return;
+  }
+
   const sql = 'DELETE FROM User WHERE email = :email AND password = :password';
   const replacements = {email, password};
   db.query(sql, {replacements}).then((rows) => {
@@ -135,14 +100,18 @@ for (const action of ['register', 'unregister']) {
   });
 }
 
-router.get('/:email/:property', (req, res) => {
-  const sql = 'SELECT * FROM User WHERE email = :email';
+router.get('/:email/:property', async (req, res) => {
   const {email, property} = req.params;
-  const replacements = {email, property};
+  if (!await userExists(email)) {
+    res.json(errMsg(`user with email ${email} does not exist`));
+    return;
+  }
   if (property === 'password') {
     res.json(errMsg('cannot lookup password'));
     return;
   }
+  const sql = 'SELECT * FROM User WHERE email = :email';
+  const replacements = {email, property};
   db.query(sql, {replacements}).catch((err) => {
     console.debug(err);
     res.json(errMsg(`failed to find ${property} of ${email}`, err));
@@ -156,17 +125,8 @@ router.get('/:email/:property', (req, res) => {
   });
 });
 
-router.post('/:email/:property', (req, res) => {
+router.post('/:email/:property', async (req, res) => {
   const {email, property} = req.params;
-  for (const needed of ['password', 'value']) {
-    if (!(needed in req.body)) {
-      res.json({
-        msg: `${needed} not present in POST request params`,
-        status: 'ERROR',
-      });
-      return;
-    }
-  }
 
   if (property === 'is_admin') {
     res.json({
@@ -176,15 +136,27 @@ router.post('/:email/:property', (req, res) => {
     return;
   }
 
-  let value;
-
-  if (property === 'password') {
-    // sha passwords *before* inserting into the db
-    value = sha256(req.body.value);
-  } else {
-    value = req.body.value;
+  for (const needed of ['password', 'value']) {
+    if (!(needed in req.body)) {
+      res.json(
+        errMsg(`${needed} not present in POST request params but is required`));
+      return;
+    }
   }
-  const password = sha256(req.body.password);
+
+  let {value, password} = req.body;
+  password = sha256(password);
+
+  // sha passwords *before* inserting into the db
+  if (property === 'password') {
+    value = sha256(value);
+  }
+
+  if (!await userExists(email, password)) {
+    res.json(
+      errMsg(`user with email ${email} and this password does not exist`));
+    return;
+  }
 
   const sql = 'UPDATE User SET :property = :value WHERE email = :email AND password = :password';
   const replacements = {email, property, password, value};
@@ -194,20 +166,27 @@ router.post('/:email/:property', (req, res) => {
       `failed to set property ${property} of user ${email} to ${value} (likely because of bad format)`,
       err));
   }).then((rows) => {
+    console.log(rows);
     res.json(msg(`updated property ${property} of user ${email} to ${value}`));
   });
 });
 
-router.get('/:email', (req, res) => {
-  const sql = 'SELECT * FROM User WHERE email = :email';
+router.get('/:email', async (req, res) => {
   const email = req.params.email;
+  if (!await userExists(email)) {
+    res.json(errMsg(`user with email ${email} does not exist`));
+    return;
+  }
   const replacements = {email};
+  const sql = 'SELECT * FROM User WHERE email = :email';
   db.query(sql, {replacements}).catch((err) => {
     console.debug(err);
     res.json(errMsg(`failed to find user with email ${email}`, err));
   }).then((rows) => {
     if (rows[0].length >= 1) {
-      res.json(msg(`found user ${email}`, rows[0][0]));
+      let result = rows[0][0];
+      delete result.password; // don't show the password
+      res.json(msg(`found user ${email}`, result));
     } else {
       res.json(msg(`failed to find user with email ${email}`));
     }

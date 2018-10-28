@@ -8,6 +8,13 @@ const express = require('express');
 const router = express.Router();
 const usersRouter = require('./user');
 
+router.all('/users', (req, res) => {
+  res.json({
+    status: 'ERROR',
+    msg: 'did you mean \'user\'?',
+  });
+});
+
 router.use('/user', usersRouter);
 
 router.all('/', (req, res) => {
