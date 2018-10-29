@@ -23,6 +23,11 @@ $ npm run start
 $ npm run test
 ```
 
+## Documentation
+
+We plan to document public functions (i.e. functions that are exported) using the standard docstring syntax.
+This will allow us to generate documentation from the code using [JSDoc](http://usejsdoc.org/).
+
 **NOTE**
 
 Tests are recognised by the file name. Jest uses the following rules:
