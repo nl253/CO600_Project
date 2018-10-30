@@ -2,11 +2,13 @@ const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const session = require('cookie-session');
 const logger = require('morgan');
 const sassMiddleware = require('node-sass-middleware');
 
 const indexRouter = require('./routes/index');
 const apiRouter = require('./routes/api');
+const SECRET = 'U\x0bQ*kf\x1bb$Z\x13\x03\x15w\'- f\x0fn1\x0f\\\x106V\'M~\x07';
 
 const app = express();
 
@@ -27,10 +29,14 @@ app.set('view engine', 'hbs');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
-app.use(cookieParser());
+app.use(cookieParser(SECRET));
+app.use(session({keys: [SECRET]}));
+
 app.use(sassMiddleware({
   src: rootPath('public'),
   dest: rootPath('public'),
+  debug: false,
+  outputStyle: 'compressed',
   indentedSyntax: false, // true = .sass and false = .scss
   sourceMap: true,
 }));

@@ -2,7 +2,7 @@
 
 -- NOTE this *should* be runnable in Postgres but hasn't been tested as of 27/10/19
 
--- A user is anyone in the system that can log in 
+-- A user is anyone in the system that can log in
 -- (Administrator, and a regular user i.e. Student, Independent Learner and Content Creator)
 CREATE TABLE IF NOT EXISTS User (
   email      VARCHAR(255) PRIMARY KEY NOT NULL CHECK (length(email) > 3 AND email LIKE "%_@_%._%"),
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS Comment (
 CREATE TABLE IF NOT EXISTS Invitation (
   id        INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   -- FK --
-  module_id NOT NULL REFERENCES Module (id) ON UPDATE CASCADE ON DELETE CASCADE,
+  module NOT NULL REFERENCES Module (name) ON UPDATE CASCADE ON DELETE CASCADE,
   student   NOT NULL REFERENCES User (email) ON UPDATE CASCADE ON DELETE CASCADE,
   creator   REFERENCES User (email) ON UPDATE CASCADE
 );
@@ -85,15 +85,17 @@ CREATE TABLE IF NOT EXISTS Feedback (
 CREATE TABLE IF NOT EXISTS Enrollment (
   id            INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   -- FK --
-  module_id     NOT NULL REFERENCES Module (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  module     NOT NULL REFERENCES Module (name) ON DELETE CASCADE ON UPDATE CASCADE,
   student_email NOT NULL REFERENCES User (email) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 -- A module is like a container (i.e. folder / directory) for lessons.
 CREATE TABLE IF NOT EXISTS Module (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  name       VARCHAR(255) NOT NULL PRIMARY KEY,
   -- FK --
-  content_id UNIQUE NOT NULL REFERENCES Content (id) ON DELETE CASCADE ON UPDATE CASCADE
+  content_id UNIQUE NOT NULL REFERENCES Content (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  -- other --
+  field      VARCHAR(255)
 );
 
 -- A lesson MUST BE associated with a module.
@@ -102,7 +104,7 @@ CREATE TABLE IF NOT EXISTS Module (
 CREATE TABLE IF NOT EXISTS Lesson (
   id        INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   -- FK --
-  module_id REFERENCES Module (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  module REFERENCES Module (name) ON DELETE CASCADE ON UPDATE CASCADE,
   -- other --
   make_quiz BOOLEAN NOT NULL DEFAULT FALSE,
   content   TEXT NOT NULL
