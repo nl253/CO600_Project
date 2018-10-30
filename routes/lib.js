@@ -229,9 +229,65 @@ function getCredentials(req) {
   }
 }
 
+/**
+ * Insert a new content record into the database, return a promise of id of the record.
+ *
+ * @param {string} creator i.e. an email
+ * @return {Promise<number>} [lastId]
+ */
+function insertContent(creator) {
+  const sql = `INSERT INTO Content (creator)
+               VALUES (:creator)`;
+  return db.query(sql, {replacements: {creator}}).catch(err => {
+    return undefined;
+    // return errMsg(
+    //   `failed to insert new content for content creator ${creator}, ${err} has occured`);
+  }).then(rows => {
+    const [_, stmt] = rows;
+    console.log(rows);
+    return stmt.lastID;
+  });
+}
+
+/**
+ * Insert a new module record into the database, return true if it succeeded, false otherwise.
+ *
+ * @param {string} module
+ * @param {number} contentId
+ * @return {Promise<boolean>} if it succeeded
+ */
+function insertModule(module, contentId) {
+  const sql = `INSERT INTO Module (name, content_id)
+               VALUES (:module, :contentId)`;
+  return db.query(sql, {replacements: {module, contentId}}).catch(err => {
+    console.debug(err);
+    return false;
+  }).then(rows => {
+    console.log(rows);
+    return true;
+  });
+}
+
+/**
+ * Check if the module exists by querying the database.
+ *
+ * @param {string} module
+ * @return {Promise<boolean>}
+ */
+function moduleExists(module) {
+  let sql = 'SELECT * FROM Module WHERE name = :module';
+  let replacements = {module};
+  return db.query(sql, {replacements})
+    .then((rows) => rows[0].length > 0)
+    .catch((err) => false);
+}
+
 module.exports = {
   msg,
   getType,
+  insertModule,
+  insertContent,
+  moduleExists,
   isOfType,
   errMsg,
   sha256,
