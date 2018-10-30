@@ -56,6 +56,8 @@ router.post('/:email/login', async (req, res) => {
 
 /**
  * Clears the session cookies for the user that is currently logged in.
+ *
+ * Requires someone to be logged in.
  */
 router.post('/:email/logout', async (req, res) => {
   if (!await isLoggedIn(req)) {
@@ -134,16 +136,12 @@ router.post('/:email/unregister', async (req, res) => {
  * If an API user tries to perform these actions, show suggestion that they should use POST not GET.
  */
 for (const action of ['register', 'unregister', 'login', 'logout']) {
-  router.get(`/:email/${action}`, (req, res) => {
-    res.json({
-      msg: `use POST to ${action}`,
-      status: 'ERROR',
-    });
-  });
+  router.get(`/:email/${action}`,
+    (req, res) => res.json(errMsg(`use POST to ${action}`)));
 }
 
 /**
- * Query the database for a user's attribute (i.e. a property such as: email, id etc.).
+ * Queries the database for a user's attribute (i.e. a property such as: email, id etc.).
  *
  * Doesn't require authentication.
  */
@@ -232,12 +230,8 @@ router.post('/:email/:property', async (req, res) => {
 /**
  * If an API user tries to query the database for user's info with POST suggest using GET.
  */
-router.post('/:email', async (req, res) => {
-  res.json({
-    msg: `use GET to retrieve info about user ${req.params.email}`,
-    status: 'ERROR',
-  });
-});
+router.post('/:email', async (req, res) => res.json(
+  errMsg(`use GET to retrieve info about user ${req.params.email}`)));
 
 router.get('/:email', async (req, res) => {
   const email = req.params.email;
@@ -256,13 +250,13 @@ router.get('/:email', async (req, res) => {
       delete result.password; // don't show the password
       res.json(msg(`found user ${email}`, result));
     } else {
-      res.json(msg(`failed to find user with email ${email}`));
+      res.json(errMsg(`failed to find user with email ${email}`));
     }
   });
 });
 
 /**
- * If none of the above match, show help.
+ * If none of the above match, shows help.
  */
 router.all(/.*/, (req, res) => {
   res.json({

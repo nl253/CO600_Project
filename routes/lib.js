@@ -185,7 +185,7 @@ async function isLoggedIn(req) {
  *
  * @param {string} email
  * @param {string} [password] unhashed password
- * @return {boolean}
+ * @return {Promise<boolean>}
  */
 async function userExists(email, password) {
   let sql, replacements;

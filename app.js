@@ -35,7 +35,7 @@ app.use(session({keys: [SECRET]}));
 app.use(sassMiddleware({
   src: rootPath('public'),
   dest: rootPath('public'),
-  debug: true,
+  debug: false,
   outputStyle: 'compressed',
   indentedSyntax: false, // true = .sass and false = .scss
   sourceMap: true,

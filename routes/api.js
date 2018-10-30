@@ -10,7 +10,7 @@
  * (such as password), POST is used instead of get.
  *
  * I am using raw SQL here because I am comfortable with SQL and it means
- * I don't need to learn sequelize's syntax for defining, updating and
+ * I don't need to learn sequelize'mod syntax for defining, updating and
  * querying entities. The goal is to reduce complexity.
  *
  * The aim is to create a REST API. I try to make it feel like calling a method
@@ -36,16 +36,16 @@
  */
 const express = require('express');
 const router = express.Router();
-const usersRouter = require('./user');
 
-router.all('/users', (req, res) => {
-  res.json({
-    status: 'ERROR',
-    msg: 'did you mean \'user\'?',
+for (const mod of ['user', 'module']) {
+  router.all(`/${mod}s`, (req, res) => {
+    res.json({
+      status: 'ERROR',
+      msg: `did you mean '${mod}'?`,
+    });
   });
-});
-
-router.use('/user', usersRouter);
+  router.use(`/${mod}`, require(`./${mod}.js`));
+}
 
 router.all('/', (req, res) => {
   res.json({
