@@ -75,7 +75,7 @@ function sha256(data) {
  *   password: 'pass123',
  * }
  *
- * @param {*} json JavaScript object
+ * @param {*} json JSON-compatible value (int, float, str, array, obj, null, bool)
  * @param {*} schema
  * @return {boolean} if json matches schema
  */
@@ -90,6 +90,9 @@ function validateJSON(json, schema) {
   }
 
   let typeName = getType(json);
+  if (typeName.endsWith('?')) {
+    typeName = typeName.slice(0, typeName.length - 1);
+  }
 
   // if json is an array then the size of the schema and the array must match
   // all items in corresponding indicies must be valid
@@ -111,12 +114,11 @@ function validateJSON(json, schema) {
         return false;
       }
     }
-
     return true;
-
-  } else {
-    return typeName === schema;
   }
+
+  // handles Number, Boolean, String
+  return typeName === schema;
 }
 
 /**
