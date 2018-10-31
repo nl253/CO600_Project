@@ -7,8 +7,6 @@
  * @author Norbert
  */
 const {spawn} = require('child_process');
-const os = require('os');
-
 const faker = require('faker');
 
 /**
@@ -31,7 +29,7 @@ axios.defaults.baseURL = `http://${HOST}:${PORT}/api`;
 const instance = axios.create();
 
 const {
-  validateJSON,
+  isOfType,
 } = require('./lib.js');
 
 
@@ -42,14 +40,8 @@ let serverProcess;
  * Starts a child process with the express server running and serving.
  */
 beforeAll(() => {
-  if (os.type().toLowerCase() === 'linux') {
-    spawn('pkill', ['node']);
-  } else {
-    console.warn(
-      `you seem to be on ${os.type()}, make sure that no other node processes are running`);
-  }
-  // return; // FOR NOW
-  console.info('testing REST API, starting server');
+  console.info('testing the user mode in REST API, starting server');
+  // return;
   serverProcess = spawn('npm', ['run', 'start']);
   const start = new Date().getSeconds();
   // wait WAIT_SEC seconds to load the server
@@ -62,8 +54,8 @@ beforeAll(() => {
  * Kills the child process with the express server running and serving.
  */
 afterAll(() => {
-  // return; // FOR NOW
-  console.info('finished testing REST API, killing server');
+  console.info('finished testing the user model in REST API, killing server');
+  // return;
   serverProcess.kill('SIGKILL');
 });
 
@@ -88,7 +80,7 @@ function testGET(url, schema = {}) {
     return expect(instance.get(url)
       .then((res) => {
         const data = res.data;
-        const isOK = validateJSON(data, schema);
+        const isOK = isOfType(data, schema);
         if (!isOK) {
         }
         return isOK;
@@ -120,7 +112,7 @@ function testPOST(url, schema, postData) {
   test(msg, () => {
     expect.assertions(1);
     return expect(instance.post(url, postData)
-      .then((res) => validateJSON(res.data, schema))
+      .then((res) => isOfType(res.data, schema))
       .catch((err) => {
         console.info(err);
         return err;
@@ -154,7 +146,6 @@ for (const route of ['/', '/user', '/module']) {
  * 3. set attribute
  * 4. get attribute (expect a value)
  * 5. un-register
- *
  */
 for (let i = 0; i < NO_RUNS; i++) {
   /** @type {string} */

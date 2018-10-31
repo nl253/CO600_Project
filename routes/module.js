@@ -27,7 +27,7 @@ const {
   insertModule,
   moduleExists,
   errMsg,
-  validateJSON,
+  isOfType,
   getCredentials,
   userExists,
 } = require('./lib.js');
@@ -48,27 +48,25 @@ for (const act of ['create', 'delete']) {
 router.post('/:module/create', async (req, res) => {
   const module = req.params.module;
   if (await moduleExists(module)) {
-    res.json(errMsg(`module ${module} already exists`));
-    return;
+    return res.json(errMsg(`module ${module} already exists`));
   }
   const maybeCredentials = getCredentials(req);
   if (maybeCredentials === undefined || maybeCredentials === null) {
-    res.json(errMsg(
+    return res.json(errMsg(
       'failed to authenticate, you need to provide password in cookies or request body'));
-    return;
   }
   const {email, password} = maybeCredentials;
   if (await userExists(email, password)) {
     const lastId = await insertContent(email);
     if (insertModule(module, lastId)) {
-      res.json(msg(
+      return res.json(msg(
         `inserted new module ${module} and linked it to content #${lastId}`));
     } else {
-      res.json(errMsg(
+      return res.json(errMsg(
         `failed to insert new module ${module} and link it to content #${lastId}`));
     }
   } else {
-    res.json(errMsg(
+    return res.json(errMsg(
       `failed to authenticate user with email ${email} and this password`));
   }
 });
@@ -83,23 +81,20 @@ router.post('/:module/delete', async (req, res) => {
 
   // check if module exists
   if (!await moduleExists(module)) {
-    res.json(errMsg(`module ${module} does not exist`));
-    return;
+    return res.json(errMsg(`module ${module} does not exist`));
   }
 
   const maybeCredentials = getCredentials(req);
   if (maybeCredentials === undefined || maybeCredentials === null) {
-    res.json(errMsg(
+    return res.json(errMsg(
       'failed to authenticate, you need to provide password in cookies or request body'));
-    return;
   }
   const {email, password} = maybeCredentials;
 
   // check if the credentials correspond to an existing user
   if (!await userExists(email, password)) {
-    res.json(errMsg(
+    return res.json(errMsg(
       `failed to authenticate user with email ${email} and this password`));
-    return;
   }
 
   const sql = `SELECT id, email, name
@@ -135,7 +130,7 @@ router.post('/:module/delete', async (req, res) => {
  * If an API user tries to query the database for modules's info with POST suggest using GET.
  */
 router.post('/:module', (req, res) => {
-  res.json(
+  return res.json(
     errMsg(`use GET to retrieve info about module ${req.params.module}`));
 });
 
@@ -149,30 +144,26 @@ router.post('/:module/:property', async (req, res) => {
 
   // check if module exists
   if (!await moduleExists(module)) {
-    res.json(errMsg(`module ${module} does not exist`));
-    return;
+    return res.json(errMsg(`module ${module} does not exist`));
   }
 
-  if (!validateJSON(req.body, {value: '*'})) {
-    res.json(errMsg(`you need to pass 'value' in request body`));
-    return;
+  if (!isOfType(req.body, {value: '*'})) {
+    return res.json(errMsg(`you need to pass 'value' in request body`));
   }
 
   const value = req.body.value;
 
   const maybeCredentials = getCredentials(req);
   if (maybeCredentials === undefined || maybeCredentials === null) {
-    res.json(errMsg(
+    return res.json(errMsg(
       'failed to authenticate, you need to provide password in cookies or request body'));
-    return;
   }
   const {email, password} = maybeCredentials;
 
   // check if the credentials correspond to an existing user
   if (!await userExists(email, password)) {
-    res.json(errMsg(
+    return res.json(errMsg(
       `failed to authenticate user with email ${email} and this password`));
-    return;
   }
 
   const sql = `SELECT *
@@ -185,7 +176,7 @@ router.post('/:module/:property', async (req, res) => {
 
   // check if this user is the creator of the module
   db.query(sql, {replacements}).catch(err => {
-    res.json(errMsg(
+    return res.json(errMsg(
       `failed to authenticate, user with email ${email} and this password is not the creator of module ${module}`));
   }).then(rows => {
     console.log(rows);
@@ -195,13 +186,13 @@ router.post('/:module/:property', async (req, res) => {
       const replacements = {module, value};
       db.query(sql, {replacements})
         .catch(err => {
-          res.json(errMsg(
+          return res.json(errMsg(
             `failed to change value of ${property} in module ${module}`));
         })
         .then(rows => res.json(
           msg(`updated property ${property} of module ${module} to ${value}`)));
     } else {
-      res.json(errMsg(
+      return res.json(errMsg(
         `failed to authenticate, user with email ${email} and this password is not the creator of module ${module}`));
     }
   });
@@ -215,8 +206,7 @@ router.post('/:module/:property', async (req, res) => {
 router.get('/:module/:property', async (req, res) => {
   const {module, property} = req.params;
   if (!await moduleExists(module)) {
-    res.json(errMsg(`module ${module} does not exist`));
-    return;
+    return res.json(errMsg(`module ${module} does not exist`));
   }
   const replacements = {module};
   const sql = `SELECT *
@@ -231,14 +221,15 @@ router.get('/:module/:property', async (req, res) => {
       if (rows[0].length >= 1) {
         let result = rows[0][0];
         if (property in result) {
-          res.json(msg(`found module ${module} with property ${property}`,
-            result[property]));
+          return res.json(
+            msg(`found module ${module} with property ${property}`,
+              result[property]));
         } else {
-          res.json(errMsg(
+          return res.json(errMsg(
             `could not locate property ${property} on module ${module}`));
         }
       } else {
-        res.json(errMsg(`failed to find module ${module}`));
+        return res.json(errMsg(`failed to find module ${module}`));
       }
     });
 });
@@ -247,7 +238,7 @@ router.get('/:module/:property', async (req, res) => {
  * Suggest using GET when an API user uses POST instead of GET to get a module's property.
  */
 router.post('/:module', async (req, res) => {
-  res.json(errMsg('use GET to retrieve info about a module'));
+  return res.json(errMsg('use GET to retrieve info about a module'));
 });
 
 /**
@@ -258,8 +249,7 @@ router.post('/:module', async (req, res) => {
 router.get('/:module', async (req, res) => {
   const module = req.params.module;
   if (!await moduleExists(module)) {
-    res.json(errMsg(`module ${module} does not exist`));
-    return;
+    return res.json(errMsg(`module ${module} does not exist`));
   }
   const replacements = {module};
   const sql = `SELECT id, name, field, email, is_blocked
@@ -269,13 +259,13 @@ router.get('/:module', async (req, res) => {
                         ON m.content_id = c.id AND u.email = c.creator
                WHERE m.name = :module`;
   db.query(sql, {replacements}).catch((err) => {
-    res.json(errMsg(`failed to find module ${module}`, err));
+    return res.json(errMsg(`failed to find module ${module}`, err));
   }).then((rows) => {
     if (rows[0].length >= 1) {
       let result = rows[0][0];
-      res.json(msg(`found module ${module}`, result));
+      return res.json(msg(`found module ${module}`, result));
     } else {
-      res.json(errMsg(`failed to find module ${module}`));
+      return res.json(errMsg(`failed to find module ${module}`));
     }
   });
 });
@@ -284,7 +274,7 @@ router.get('/:module', async (req, res) => {
  * If none of the above match, shows help.
  */
 router.all(/.*/, (req, res) => {
-  res.json({
+  return res.json({
     status: 'CONFUSED',
     msg: 'nothing here, try looking at routes',
     routes: {

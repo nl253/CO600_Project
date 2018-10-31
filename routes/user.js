@@ -14,7 +14,7 @@ const {
   msg,
   errMsg,
   sha256,
-  validateJSON,
+  isOfType,
   getCredentials,
   isLoggedIn,
   userExists,
@@ -29,13 +29,12 @@ const {
 router.post('/:email/login', async (req, res) => {
   if (await isLoggedIn(req)) {
     const email = req.params.email;
-    res.json(
+    return res.json(
       errMsg(`user with email ${email} is already logged in`));
-    return;
   }
   const maybeCredentials = getCredentials(req);
   if (maybeCredentials === undefined || maybeCredentials === null) {
-    res.json(
+    return res.json(
       errMsg(
         'failed to authenticate, you need to provide password in cookies or request body'));
   }
@@ -43,12 +42,12 @@ router.post('/:email/login', async (req, res) => {
 
   if (await userExists(email, password)) {
     req.session.user = {email, password};
-    res.json(
+    return res.json(
       msg(
         `successfully authenticated user with email ${email}`));
 
   } else {
-    res.json(
+    return res.json(
       errMsg(
         `failed to authenticate, no matching user with email ${email} and this password`));
   }
@@ -61,12 +60,11 @@ router.post('/:email/login', async (req, res) => {
  */
 router.post('/:email/logout', async (req, res) => {
   if (!await isLoggedIn(req)) {
-    res.json(
+    return res.json(
       errMsg(`not logged in`));
-    return;
   }
   delete req.session.user;
-  res.json(
+  return res.json(
     msg(`user ${req.params.email} logged out`));
 });
 
@@ -76,23 +74,21 @@ router.post('/:email/logout', async (req, res) => {
  * Requires credentials to be passed in the request params and body.
  */
 router.post('/:email/register', async (req, res) => {
-  if (!validateJSON(req.body, {password: 'String'})) {
-    res.json(errMsg('password not present in POST params'));
-    return;
+  if (!isOfType(req.body, {password: 'String'})) {
+    return res.json(errMsg('password not present in POST params'));
   }
   const email = req.params.email;
   const password = sha256(req.body.password);
   if (await userExists(email, password)) {
-    res.json(
+    return res.json(
       errMsg(`user with email ${email} and this password already exists`));
-    return;
   }
   const sql = 'INSERT INTO User (email, password) VALUES (:email, :password)';
   const replacements = {email, password};
-  db.query(sql, {replacements}).then((rows) => {
-    res.json(msg(`registered user ${email}`));
+  return db.query(sql, {replacements}).then((rows) => {
+    return res.json(msg(`registered user ${email}`));
   }).catch((err) => {
-    res.json(errMsg(`failed to register user ${email}`, err));
+    return res.json(errMsg(`failed to register user ${email}`, err));
   });
 });
 
@@ -104,30 +100,28 @@ router.post('/:email/register', async (req, res) => {
 router.post('/:email/unregister', async (req, res) => {
   let maybeCredentials = getCredentials(req);
   if (maybeCredentials === undefined || maybeCredentials === null) {
-    res.json({
+    return res.json({
       msg: 'not logged in and password not present in POST params',
       status: 'ERROR',
     });
-    return;
   }
   const {email, password} = maybeCredentials;
 
   if (!await userExists(email, password)) {
-    res.json(
+    return res.json(
       errMsg(
         `failed to unregister because user with email ${email} and this password does not exist`));
-    return;
   }
 
   const sql = 'DELETE FROM User WHERE email = :email AND password = :password';
   const replacements = {email, password};
-  db.query(sql, {replacements}).then((rows) => {
-    res.json({
+  return db.query(sql, {replacements}).then((rows) => {
+    return res.json({
       status: 'OK',
       msg: `unregistered user ${email}`,
     });
   }).catch((err) => {
-    res.json(errMsg(
+    return res.json(errMsg(
       `failed to unregistered user ${email}, the user probably does not exist`));
   });
 });
@@ -148,23 +142,21 @@ for (const action of ['register', 'unregister', 'login', 'logout']) {
 router.get('/:email/:property', async (req, res) => {
   const {email, property} = req.params;
   if (!await userExists(email)) {
-    res.json(errMsg(`user with email ${email} does not exist`));
-    return;
+    return res.json(errMsg(`user with email ${email} does not exist`));
   }
   if (property === 'password') {
-    res.json(errMsg('cannot lookup password'));
-    return;
+    return res.json(errMsg('cannot lookup password'));
   }
   const sql = 'SELECT * FROM User WHERE email = :email';
   const replacements = {email, property};
   db.query(sql, {replacements}).catch((err) => {
-    res.json(errMsg(`failed to find ${property} of ${email}`, err));
+    return res.json(errMsg(`failed to find ${property} of ${email}`, err));
   }).then((rows) => {
     if (property in rows[0][0]) {
-      res.json(
+      return res.json(
         msg(`found property ${property} of ${email}`, rows[0][0][property]));
     } else {
-      res.json(errMsg(`user does not have property ${property}`));
+      return res.json(errMsg(`user does not have property ${property}`));
     }
   });
 });
@@ -179,34 +171,30 @@ router.post('/:email/:property', async (req, res) => {
   const property = req.params.property;
 
   if (property === 'is_admin') {
-    res.json({
+    return res.json({
       msg: `property is_admin cannot be set directly`,
       status: 'ERROR',
     });
-    return;
   }
 
   const maybeCredentials = getCredentials(req);
 
   if (maybeCredentials === undefined || maybeCredentials === null) {
-    res.json({
+    return res.json({
       msg: 'not logged in and password not present in POST params',
       status: 'ERROR',
     });
-    return;
   }
 
   const {email, password} = maybeCredentials;
 
   if (!await userExists(email, password)) {
-    res.json(
+    return res.json(
       errMsg(`user with email ${email} and this password does not exist`));
-    return;
   }
 
-  if (!validateJSON(req.body, {value: 'String'})) {
-    res.json(errMsg('replacement value not specified in request body'));
-    return;
+  if (!isOfType(req.body, {value: 'String'})) {
+    return res.json(errMsg('replacement value not specified in request body'));
   }
 
   let {value} = req.body;
@@ -218,12 +206,13 @@ router.post('/:email/:property', async (req, res) => {
 
   const sql = 'UPDATE User SET :property = :value WHERE email = :email AND password = :password';
   const replacements = {email, property, password, value};
-  db.query(sql, {replacements}).catch((err) => {
-    res.json(errMsg(
+  return db.query(sql, {replacements}).catch((err) => {
+    return res.json(errMsg(
       `failed to set property ${property} of user ${email} to ${value} (likely because of bad format)`,
       err));
   }).then((rows) => {
-    res.json(msg(`updated property ${property} of user ${email} to ${value}`));
+    return res.json(
+      msg(`updated property ${property} of user ${email} to ${value}`));
   });
 });
 
@@ -237,20 +226,19 @@ router.get('/:email', async (req, res) => {
   const email = req.params.email;
 
   if (!await userExists(email)) {
-    res.json(errMsg(`user with email ${email} does not exist`));
-    return;
+    return res.json(errMsg(`user with email ${email} does not exist`));
   }
   const replacements = {email};
   const sql = 'SELECT * FROM User WHERE email = :email';
-  db.query(sql, {replacements}).catch((err) => {
-    res.json(errMsg(`failed to find user with email ${email}`, err));
+  return db.query(sql, {replacements}).catch((err) => {
+    return res.json(errMsg(`failed to find user with email ${email}`, err));
   }).then((rows) => {
     if (rows[0].length >= 1) {
       let result = rows[0][0];
       delete result.password; // don't show the password
-      res.json(msg(`found user ${email}`, result));
+      return res.json(msg(`found user ${email}`, result));
     } else {
-      res.json(errMsg(`failed to find user with email ${email}`));
+      return res.json(errMsg(`failed to find user with email ${email}`));
     }
   });
 });
@@ -259,7 +247,7 @@ router.get('/:email', async (req, res) => {
  * If none of the above match, shows help.
  */
 router.all(/.*/, (req, res) => {
-  res.json({
+  return res.json({
     status: 'CONFUSED',
     msg: 'nothing here, try looking at routes',
     routes: {

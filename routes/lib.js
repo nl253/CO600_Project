@@ -9,6 +9,38 @@ const ValidationError = require('sequelize/lib/errors').ValidationError;
 const db = require('../database/db.js')();
 
 /**
+ * Pretty print data.
+ *
+ * @param {*} data
+ * @return {string}
+ */
+function pprint(data) {
+  let s;
+  if (data instanceof Array) {
+    s = '[' + data.join(', ') + ']';
+  } else if ((data instanceof Date) || (data instanceof RegExp)) {
+    s = data.toString();
+  } else if (data instanceof Map) {
+    s = 'Map {' + Array.from(data.entries())
+      .map(pair => `${pair[0]}: ${pair[1]}`)
+      .join(', ') + '}';
+  } else if (data instanceof Set) {
+    s = 'Set { ' + Array.from(data.values()).join(', ') + '}';
+  } else if (data === null) {
+    s = 'null';
+  } else if (data === undefined) {
+    s = 'undefined';
+  } else if (data instanceof Object) {
+    s = '{' + Array.from(Object.entries(data))
+      .map(pair => `${pair[0]}: ${pair[1]}`)
+      .join(', ') + '}';
+  } else {
+    s = data.toString();
+  }
+  return s;
+}
+
+/**
  * Format response message when it's OK.
  *
  * @param {string} msg
@@ -60,91 +92,67 @@ function sha256(data) {
   return hash.digest('base64').toString();
 }
 
-/**
- * Validate JSON according to schema.
- *
- * E.g.:
- *
- * const schema = {
- *   email: 'String',
- *   password: 'String',
- * }
- *
- * const json = {
- *   email: 'if50@kent.ac.uk',
- *   password: 'pass123',
- * }
- *
- * @param {*} json JSON-compatible value (int, float, str, array, obj, null, bool)
- * @param {*} schema
- * @return {boolean} if json matches schema
- */
-function validateJSON(json, schema) {
-  // NOTE: do NOT use Array.reduce here because it's buggy
-  // it causes stack overflow presumably of objects with circular references
-  if (schema === '*') {
-    return true;
-  } else if ((json === null || json === undefined) &&
-    isOfType(schema, 'String') && schema.endsWith('?')) {
-    return true;
-  }
-
-  let typeName = getType(json);
-  if (typeName.endsWith('?')) {
-    typeName = typeName.slice(0, typeName.length - 1);
-  }
-
-  // if json is an array then the size of the schema and the array must match
-  // all items in corresponding indicies must be valid
-  if (typeName === 'Array') {
-    if (!getType(schema) === 'Array') {
-      return false;
-    }
-    for (let i = 0; i < schema.length; i++) {
-      if (!validateJSON(json[i], schema[i])) {
-        return false;
-      }
-    }
-    return true;
-  } else if (typeName === 'Object') {
-
-    // all schema keys in json and all json values valid
-    for (const key in schema) {
-      if (!(key in json) || !validateJSON(json[key], schema[key])) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  // handles Number, Boolean, String
-  return typeName === schema;
-}
 
 /**
- * Get the type of data.
+ * Guess the type of data.
  *
  * NOTE: expect the type to be *capitalised* as in: "Array", "Object", "Number" etc.
  * NOTE: `null` will return "null" and undefined will return "undefined".
  *
  * @param {*} data
- * @return {string}
+ * @return {string|Array|Object} type info
  */
-function getType(data) {
+function guessType(data) {
   if (data === undefined) {
     return 'undefined';
   } else if (data === null) {
     return 'null';
   } else if (Array.isArray(data)) {
-    return 'Array';
-  } else if (data instanceof Number) {
-    return 'Number';
-  } else if (data instanceof String) {
-    return 'String';
-  } else if (data.constructor) {
+    return data.map(guessType);
+  } else if (data instanceof Map) {
+    const typeObj = {};
+    for (const key in data) {
+      typeObj[key] = guessType(data.get(key));
+    }
+    return typeObj;
+  } else if (data.constructor.name.toLowerCase() !== 'object') {
     return data.constructor.name;
-  } else {
-    return 'Object';
+  } else if (data.constructor !== undefined && data.constructor.name ===
+    'String') {
+    return 'String';
+  } else if (data.constructor !== undefined && data.constructor.name ===
+    'Number') {
+    return 'Number';
+  } else if (data instanceof Set) {
+    return 'Set';
+  } else if (data instanceof URL) {
+    return 'URL';
+  } else if (data instanceof Promise) {
+    return 'Promise';
+  } else if (data instanceof Error) {
+    return 'Error';
+  } else if (data instanceof Buffer) {
+    return 'Buffer';
+  } else if (data instanceof Int8Array) {
+    return 'Int8Array';
+  } else if (data instanceof Int16Array) {
+    return 'Int16Array';
+  } else if (data instanceof Int32Array) {
+    return 'Int32Array';
+  } else if (data instanceof Float32Array) {
+    return 'Float32Array';
+  } else if (data instanceof Float64Array) {
+    return 'Float64Array';
+  } else if (data instanceof URL) {
+    return 'URL';
+  } else if (data instanceof Date) {
+    return 'Date';
+  } else { // fallback to Object
+    const typeObj = {};
+    for (const key in data) {
+      typeObj[key] = guessType(data[key]);
+    }
+    return typeObj;
   }
 }
 
@@ -152,11 +160,36 @@ function getType(data) {
  * Check if data is of specified type.
  *
  * @param {*} data
- * @param {string} type
- * @return {boolean}
+ * @param {string|object|array} type
+ * @return {boolean} whether type matches data
  */
 function isOfType(data, type) {
-  return getType(data) === type;
+  if (type === '*') {
+    return true;
+  } else if (data === null) {
+    return type.constructor !== undefined && type.constructor.name ===
+      'String' && (type.endsWith('?') || type === 'null');
+  } else if (data === undefined) {
+    return type.constructor !== undefined && type.constructor.name ===
+      'String' && (type.endsWith('?') || type === 'undefined');
+  }
+
+  if (type.constructor !== undefined && type.constructor.name === 'String') {
+    const guess = guessType(data);
+    return guess.constructor !== undefined && guess.constructor.name ===
+      'String' && (guess === type ||
+        (type.endsWith('?') && type.slice(0, type.length - 1) === guess));
+  }
+
+  if (!(type instanceof Object)) return false;
+
+  for (const key in type) {
+    if (!(key in data && isOfType(data[key], type[key]))) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /**
@@ -170,7 +203,7 @@ async function isLoggedIn(req) {
   if (req.session === null) {
     return false;
   } else if ('user' in req.session) {
-    if (validateJSON(req.session.user,
+    if (isOfType(req.session.user,
       {email: 'String', password: 'String'})) {
       return await userExists(req.session.user.email,
         req.session.user.password);
@@ -214,17 +247,17 @@ async function userExists(email, password) {
  * @return {{password: String, email: String}} [credentials]
  */
 function getCredentials(req) {
-  if (validateJSON(req.params, {email: 'String'}) &&
-    validateJSON(req.body, {password: 'String'})) {
+  if (isOfType(req.params, {email: 'String'}) &&
+    isOfType(req.body, {password: 'String'})) {
     return {password: sha256(req.body.password), email: req.params.email};
   }
 
-  if (validateJSON(req.body, {email: 'String'}) &&
-    validateJSON(req.body, {password: 'String'})) {
+  if (isOfType(req.body, {email: 'String'}) &&
+    isOfType(req.body, {password: 'String'})) {
     return {password: sha256(req.body.password), email: req.body.email};
   }
 
-  if (validateJSON(req.session, {
+  if (isOfType(req.session, {
     user: {email: 'String', password: 'String'},
   })) {
     return {password: req.session.user.password, email: req.session.user.email};
@@ -286,15 +319,15 @@ function moduleExists(module) {
 
 module.exports = {
   msg,
-  getType,
   insertModule,
   insertContent,
   moduleExists,
-  isOfType,
+  guessType,
   errMsg,
   sha256,
-  validateJSON,
   isLoggedIn,
   getCredentials,
+  isOfType,
+  pprint,
   userExists,
 };

@@ -1,34 +1,29 @@
 const faker = require('faker');
 const api = require('./lib.js');
 
+
 /**
- * Tests validateJSON by looking if json matches the schema.
+ * Tests isOfType by looking if data matches the type.
  *
- * @param {*} json
- * @param {*} schema
+ * @param {*} data
+ * @param {String|Object|Array} type
  */
-function testValidateJSON(json, schema) {
-  let s = '';
-  for (const key of Object.keys(schema)) {
-    s += `  => ${key}: ${schema[key]}\n`;
-  }
-  test(`json matches schema\n${s}`, () => expect(
-    api.validateJSON(json, schema)).toBe(true));
+function testIsOfType(data, type) {
+  test(`data ${api.pprint(data)} matches type ${api.pprint(type)}`,
+    () => expect(api.isOfType(data, type)).toBe(true));
 }
 
 /**
- * Tests validateJSON by looking if json DOES NOT match the schema.
+ * Tests isOfType by looking if data DOES NOT match the type.
  *
- * @param {*} json
- * @param {*} schema
+ * @param {*} data
+ * @param {String|Object|Array} type
  */
-function testNegValidateJSON(json, schema) {
-  let s = '';
-  for (const key of Object.keys(schema)) {
-    s += `  => ${key}: ${schema[key]}\n`;
-  }
-  test(`json doesn't match schema\n${s}`, () => expect(
-    api.validateJSON(json, schema)).toBe(false));
+function testNotOfType(data, type) {
+  test(
+    `data ${api.pprint(data)} doesn't match type ${api.pprint(type)}`,
+    () => expect(
+      api.isOfType(data, type)).toBe(false));
 }
 
 /**
@@ -38,15 +33,15 @@ function testNegValidateJSON(json, schema) {
 for (let i = 0; i < 10; i++) {
   const a = faker.random.number();
   const b = faker.random.number();
-  testValidateJSON({a, b}, {});
-  testNegValidateJSON({}, {a, b});
+  testIsOfType({a, b}, {});
+  testNotOfType({}, {a, b});
 }
 
 /**
  * Test if it works on nested objects.
  */
 for (let i = 0; i < 10; i++) {
-  testValidateJSON({
+  testIsOfType({
     id: faker.random.number(),
     email: faker.internet.email(),
     other: {
@@ -68,10 +63,9 @@ for (let i = 0; i < 10; i++) {
     '*',
     'Number?',
     'String?',
-    'Object?',
-    'Map?',
+    'Date?',
     'Set?']) {
-    testValidateJSON({
+    testIsOfType({
       a: faker.random.number(),
       b: {
         inner: null,
@@ -92,115 +86,102 @@ for (let i = 0; i < 10; i++) {
 for (let i = 0; i < 50; i++) {
   const email = faker.internet.email();
   const id = faker.random.number();
-  testNegValidateJSON({id, email}, {id, email});
+  testNotOfType({id, email}, {id, email});
 }
 
-testValidateJSON([1, 'a'], ['Number', 'String']);
-testValidateJSON([null, undefined], ['Number?', 'String?']);
-testValidateJSON(null, 'null');
-testValidateJSON(undefined, 'undefined');
+testIsOfType([1, 'a'], ['Number', 'String']);
+testIsOfType([null, undefined], ['Number?', 'String?']);
+testIsOfType(null, 'null');
+testIsOfType(null, '*');
+testIsOfType(undefined, 'undefined');
+testIsOfType(undefined, '*');
 
 /**
  * Null matches any schema that ends with '?'. But it will reject if you don't have it.
  */
-for (const type of ['Object', 'String', 'Array']) {
-  testNegValidateJSON(null, type);
-  testValidateJSON(null, type + '?');
+for (const type of ['String', 'Boolean', 'Number', 'Date', 'Set']) {
+  testNotOfType(null, type);
+  testIsOfType(null, type + '?');
 }
-testNegValidateJSON({firstName: null, lastName: null},
+testNotOfType({firstName: null, lastName: null},
   {firstName: 'String', lastName: 'String'});
-testValidateJSON({firstName: null, lastName: null},
+testIsOfType({firstName: null, lastName: null},
   {firstName: 'String?', lastName: 'String?'});
 
 /**
  * Specifying `?` at the end of a type means it MIGHT be `null` or `undefined`.
  */
-for (const type of ['String', 'Object', 'Number', 'Array']) {
-  testValidateJSON(null, `${type}?`);
-  testValidateJSON(undefined, `${type}?`);
+for (const type of ['String', 'Number', 'Boolean', 'Date', 'Set']) {
+  testIsOfType(null, `${type}?`);
+  testIsOfType(undefined, `${type}?`);
 }
 
+
 /**
- * Check that `getType` correctly guesses type of data by comparing the result to expected.
+ * Check that `guessType` correctly guesses type of data by comparing the result to expected.
  *
  * @param {*} data
  * @param {string} expected
  */
-function testGetType(data, expected) {
-  let s;
-  if (data instanceof Array) {
-    s = '[' + data.join(', ') + ']';
-  } else if (data instanceof Date) {
-    s = data.toString();
-  } else if (data instanceof RegExp) {
-    s = data.toString();
-  } else if (data instanceof Map) {
-    s = 'Map {' + Array.from(data.keys()).join(', ') + '}';
-  } else if (data instanceof Set) {
-    s = 'Set { ' + Array.from(data.values()).join(', ') + '}';
-  } else if (data === null) {
-    s = 'null';
-  } else if (data === undefined) {
-    s = 'undefined';
-  } else if (data instanceof Object) {
-    s = '{' + Array.from(Object.keys(data)).join(', ') + '}';
-  } else {
-    s = data.toString();
-  }
-  test(`getType correctly guesses type of ${s} to be ${expected}`, () => {
-    expect(api.getType(data)).toBe(expected);
-  });
+function testGuessType(data, expected) {
+  test(
+    `guessType correctly guesses type of ${api.pprint(
+      data)} to be ${data instanceof
+    String ? data : api.pprint(data)}`,
+    () => {
+      expect(api.guessType(data)).toEqual(expected);
+    });
 }
 
 for (let i = 0; i < 20; i++) {
-  testGetType(faker.random.word(), 'String');
-  testGetType(new RegExp(faker.random.word()), 'RegExp');
-  testGetType(faker.internet.email(), 'String');
-  testGetType(faker.internet.password(), 'String');
-  testGetType(faker.random.number(), 'Number');
-  testGetType(new Number(faker.finance.amount()).valueOf(), 'Number');
-  testGetType(faker.finance.amount().toString(), 'String');
-  testGetType(faker.random.number().toString(), 'String');
-  testGetType(faker.date.recent(), 'Date');
-  testGetType(faker.date.recent().toString(), 'String');
-  testGetType(faker.random.boolean(), 'Boolean');
-  testGetType(faker.random.boolean().toString(), 'String');
-  let array = [];
-  for (let i = 0; i < faker.random.number(10); i++) {
-    array.push(
-      faker.random.boolean() ? faker.random.number() : faker.random.word());
-  }
-  testGetType(array, 'Array');
-  let obj = {};
-  for (let i = 0; i < faker.random.number(10); i++) {
-    obj[faker.random.word()] = faker.random.boolean() ?
-      faker.random.number() :
-      faker.random
-        .word();
-  }
-  testGetType(obj, 'Object');
+  testGuessType(faker.random.word(), 'String');
+  testGuessType(new RegExp(faker.random.word()), 'RegExp');
+  testGuessType(faker.internet.email(), 'String');
+  testGuessType(faker.internet.password(), 'String');
+  testGuessType(faker.random.number(), 'Number');
+  testGuessType(new Number(faker.finance.amount()).valueOf(), 'Number');
+  testGuessType(faker.finance.amount().toString(), 'String');
+  testGuessType(faker.random.number().toString(), 'String');
+  testGuessType(faker.date.recent(), 'Date');
+  testGuessType(faker.date.recent().toString(), 'String');
+  testGuessType(faker.random.boolean(), 'Boolean');
+  testGuessType(faker.random.boolean().toString(), 'String');
+  // let array = [];
+  // for (let i = 0; i < faker.random.number(10); i++) {
+  //   array.push(
+  //     faker.random.boolean() ? faker.random.number() : faker.random.word());
+  // }
+  // testGuessType(array, 'Array');
+  // let obj = {};
+  // for (let i = 0; i < faker.random.number(10); i++) {
+  //   obj[faker.random.word()] = faker.random.boolean() ?
+  //     faker.random.number() :
+  //     faker.random
+  //       .word();
+  // }
+  // testGuessType(obj, 'Object');
 }
 
 // literals
-testGetType('', 'String');
-testGetType(0, 'Number');
-testGetType(0.0, 'Number');
-testGetType('0', 'String');
-testGetType('0.0', 'String');
-testGetType([], 'Array');
-testGetType({}, 'Object');
+testGuessType('', 'String');
+testGuessType(0, 'Number');
+testGuessType(0.0, 'Number');
+testGuessType('0', 'String');
+testGuessType('0.0', 'String');
+testGuessType([], []);
+testGuessType({}, {});
 
 // constructors
 for (const pair of [
   [new Date(), 'Date'],
   [new Set(), 'Set'],
-  [new Map(), 'Map'],
-  [new Object(), 'Object'],
-  [new Array(), 'Array'],
+  [new Map(), {}],
+  [new Object(), {}],
+  [new Array(), []],
   [new Number(), 'Number'],
   [new RegExp(), 'RegExp'],
   [new String(), 'String'],
 ]) {
   const [data, type] = pair;
-  testGetType(data, type);
+  testGuessType(data, type);
 }
