@@ -60,8 +60,12 @@ typings/
 # next.js build output
 .next
 
-# compiled CSS files
+# compiled CSS files 
 public/stylesheets/**/*.css
 
 # source maps
 public/stylesheets/**/*.map
+
+# test results
+tests-*.json
+*results.json
