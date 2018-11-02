@@ -1,9 +1,20 @@
-const faker = require('faker');
+/**
+ * Tests for utility functions in `./lib.js`.
+ *
+ * @author Norbert
+ */
 const api = require('./lib.js');
 
+const faker = require('faker');
+
+const randWord = faker.random.word;
+const randDate = faker.date.recent;
+const randEmail = faker.internet.email;
+const randNum = faker.random.number;
+const {maybe} = require('./testUtils');
 
 /**
- * Tests isOfType by looking if data matches the type.
+ * Tests `isOfType` by looking if data matches the type.
  *
  * @param {*} data
  * @param {String|Object|Array} type
@@ -14,7 +25,7 @@ function testIsOfType(data, type) {
 }
 
 /**
- * Tests isOfType by looking if data DOES NOT match the type.
+ * Tests `isOfType` by looking if data DOES NOT match the type.
  *
  * @param {*} data
  * @param {String|Object|Array} type
@@ -27,12 +38,12 @@ function testNotOfType(data, type) {
 }
 
 /**
- * It's valid when all k-v pairs in the schema are satisfied but MAY also have extra stuff in it.
- * Therefore, every object matches an empty-object schema.
+ * It's valid when all k-v pairs in the type are satisfied but MAY also have extra stuff in it.
+ * Therefore, every object matches an empty-object type.
  */
 for (let i = 0; i < 10; i++) {
-  const a = faker.random.number();
-  const b = faker.random.number();
+  const a = randNum();
+  const b = randNum();
   testIsOfType({a, b}, {});
   testNotOfType({}, {a, b});
 }
@@ -42,10 +53,10 @@ for (let i = 0; i < 10; i++) {
  */
 for (let i = 0; i < 10; i++) {
   testIsOfType({
-    id: faker.random.number(),
-    email: faker.internet.email(),
+    id: randNum(),
+    email: randEmail(),
     other: {
-      secret: faker.random.number(),
+      secret: randNum(),
     },
   }, {
     id: 'Number',
@@ -66,7 +77,7 @@ for (let i = 0; i < 10; i++) {
     'Date?',
     'Set?']) {
     testIsOfType({
-      a: faker.random.number(),
+      a: randNum(),
       b: {
         inner: null,
       },
@@ -79,13 +90,12 @@ for (let i = 0; i < 10; i++) {
   }
 }
 
-
 /**
- * The schema cannot be just any arbitrary strings.
+ * The type cannot be just any arbitrary strings.
  */
 for (let i = 0; i < 50; i++) {
-  const email = faker.internet.email();
-  const id = faker.random.number();
+  const email = randEmail();
+  const id = randNum();
   testNotOfType({id, email}, {id, email});
 }
 
@@ -97,7 +107,7 @@ testIsOfType(undefined, 'undefined');
 testIsOfType(undefined, '*');
 
 /**
- * Null matches any schema that ends with '?'. But it will reject if you don't have it.
+ * Null matches any type that ends with '?'. But it will reject if you don't have it.
  */
 for (const type of ['String', 'Boolean', 'Number', 'Date', 'Set']) {
   testNotOfType(null, type);
@@ -116,7 +126,6 @@ for (const type of ['String', 'Number', 'Boolean', 'Date', 'Set']) {
   testIsOfType(undefined, `${type}?`);
 }
 
-
 /**
  * Check that `guessType` correctly guesses type of data by comparing the result to expected.
  *
@@ -134,28 +143,28 @@ function testGuessType(data, expected) {
 }
 
 for (let i = 0; i < 20; i++) {
-  testGuessType(faker.random.word(), 'String');
-  testGuessType(new RegExp(faker.random.word()), 'RegExp');
-  testGuessType(faker.internet.email(), 'String');
+  testGuessType(randWord(), 'String');
+  testGuessType(new RegExp(randWord()), 'RegExp');
+  testGuessType(randEmail(), 'String');
   testGuessType(faker.internet.password(), 'String');
-  testGuessType(faker.random.number(), 'Number');
+  testGuessType(randNum(), 'Number');
   testGuessType(new Number(faker.finance.amount()).valueOf(), 'Number');
   testGuessType(faker.finance.amount().toString(), 'String');
-  testGuessType(faker.random.number().toString(), 'String');
-  testGuessType(faker.date.recent(), 'Date');
-  testGuessType(faker.date.recent().toString(), 'String');
-  testGuessType(faker.random.boolean(), 'Boolean');
-  testGuessType(faker.random.boolean().toString(), 'String');
+  testGuessType(randNum().toString(), 'String');
+  testGuessType(randDate(), 'Date');
+  testGuessType(randDate().toString(), 'String');
+  testGuessType(maybe(), 'Boolean');
+  testGuessType(maybe().toString(), 'String');
   // let array = [];
-  // for (let i = 0; i < faker.random.number(10); i++) {
+  // for (let i = 0; i < randNum(10); i++) {
   //   array.push(
-  //     faker.random.boolean() ? faker.random.number() : faker.random.word());
+  //     faker.random.boolean() ? randNum() : faker.random.word());
   // }
   // testGuessType(array, 'Array');
   // let obj = {};
-  // for (let i = 0; i < faker.random.number(10); i++) {
+  // for (let i = 0; i < randNum(10); i++) {
   //   obj[faker.random.word()] = faker.random.boolean() ?
-  //     faker.random.number() :
+  //     randNum() :
   //     faker.random
   //       .word();
   // }
@@ -170,6 +179,29 @@ testGuessType('0', 'String');
 testGuessType('0.0', 'String');
 testGuessType([], []);
 testGuessType({}, {});
+
+testIsOfType({
+  status: 'OK',
+  msg: 'found user Irma_Ziemann89@gmail.com',
+  result: {
+    email: 'Irma_Ziemann89@gmail.com',
+    firstName: null,
+    lastName: null,
+    isAdmin: false,
+    info: null,
+    createdAt: '2018-11-02T21:44:41.150Z',
+    updatedAt: '2018-11-02T21:44:41.728Z',
+  },
+}, {
+  status: 'String',
+  msg: 'String',
+  result: {
+    email: 'String',
+    firstName: 'String?',
+    lastName: 'String?',
+    info: 'String?',
+  },
+});
 
 // constructors
 for (const pair of [

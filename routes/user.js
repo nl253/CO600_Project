@@ -9,48 +9,50 @@
  * @author Norbert
  */
 const router = require('express').Router();
-const db = require('../database/db.js')();
 const {
-  msg,
+  AlreadyLoggedIn,
+  AuthFailedErr,
+  BadMethodErr,
+  MissingDataErr,
+  NoPermissionErr,
+  NoSuchUser,
+  NotLoggedIn,
+  UserExistsErr,
   errMsg,
-  sha256,
-  isOfType,
   getCredentials,
-  isLoggedIn,
-  userExists,
-} = require('./lib.js');
+  isOfType,
+  log,
+  msg,
+  sha256,
+  suggestRoutes,
+} = require('./lib');
 
+const {User} = require('../database/db.js');
 
 /**
  * Logs a user in.
  *
  * Requires credentials to be passed in the request params and body.
  */
-router.post('/:email/login', async (req, res) => {
-  if (await isLoggedIn(req)) {
-    const email = req.params.email;
-    return res.json(
-      errMsg(`user with email ${email} is already logged in`));
+router.post('/:email/login', (req, res) => {
+  if (!(req.session.user === undefined || req.session.user === null)) {
+    const err = new AlreadyLoggedIn(req.params.email);
+    return res.status(err.code || 400).json(errMsg(err));
   }
-  const maybeCredentials = getCredentials(req);
-  if (maybeCredentials === undefined || maybeCredentials === null) {
-    return res.json(
-      errMsg(
-        'failed to authenticate, you need to provide password in cookies or request body'));
-  }
-  const {email, password} = maybeCredentials;
+  const {email} = req.params;
 
-  if (await userExists(email, password)) {
-    req.session.user = {email, password};
-    return res.json(
-      msg(
-        `successfully authenticated user with email ${email}`));
-
-  } else {
-    return res.json(
-      errMsg(
-        `failed to authenticate, no matching user with email ${email} and this password`));
-  }
+  return getCredentials(req)
+    .then(cs => User.findOne({where: cs}))
+    .then(result => result === null ?
+      Promise.reject(new AuthFailedErr(email)) :
+      result)
+    .then(result => result.dataValues)
+    .then(user => {
+      req.session.user = user;
+      return res.json(
+        msg(`successfully authenticated user with email ${email}`));
+    })
+    .catch(err => res.status(err.code || 400).json(errMsg(err)));
 });
 
 /**
@@ -59,13 +61,12 @@ router.post('/:email/login', async (req, res) => {
  * Requires someone to be logged in.
  */
 router.post('/:email/logout', async (req, res) => {
-  if (!await isLoggedIn(req)) {
-    return res.json(
-      errMsg(`not logged in`));
+  if (req.session.user === null || req.session.user === undefined) {
+    const err = new NotLoggedIn(req.params.email);
+    return res.status(err.code).json(errMsg(err));
   }
   delete req.session.user;
-  return res.json(
-    msg(`user ${req.params.email} logged out`));
+  return res.json(msg(`user ${req.params.email} logged out`));
 });
 
 /**
@@ -73,65 +74,55 @@ router.post('/:email/logout', async (req, res) => {
  *
  * Requires credentials to be passed in the request params and body.
  */
-router.post('/:email/register', async (req, res) => {
-  if (!isOfType(req.body, {password: 'String'})) {
-    return res.json(errMsg('password not present in POST params'));
-  }
-  const email = req.params.email;
-  const password = sha256(req.body.password);
-  if (await userExists(email, password)) {
-    return res.json(
-      errMsg(`user with email ${email} and this password already exists`));
-  }
-  const sql = 'INSERT INTO User (email, password) VALUES (:email, :password)';
-  const replacements = {email, password};
-  return db.query(sql, {replacements}).then((rows) => {
-    return res.json(msg(`registered user ${email}`));
-  }).catch((err) => {
-    return res.json(errMsg(`failed to register user ${email}`, err));
-  });
-});
+router.post('/:email/register', (req, res) =>
+  getCredentials(req)
+    .then(credentials => User.findOne({where: credentials}))
+    .then(result => result !== null ?
+      Promise.reject(new UserExistsErr()) :
+      getCredentials(req))
+    .then(credentials => credentials.email)
+    .then(email => {
+      const queryParams = {email};
+      const columns = new Set(Object.keys(User.attributes));
+      // don't look for email in body: it's supplied in the params
+      columns.delete('email');
+      for (const param in req.body) {
+        if (columns.has(param)) {
+          queryParams[param] = param === 'password' ?
+            sha256(req.body[param]) :
+            req.body[param];
+        }
+      }
+      return queryParams;
+    })
+    .then(queryParams => User.create(queryParams))
+    .then(() => res.json(msg(`created user ${req.params.email}`)))
+    .catch(err => res.status(err.code || 400).json(errMsg(err))));
 
 /**
+ * TODO unregister User
+ *
  * Removes a user from the database.
  *
  * Requires authentication OR credentials passed in the request params and body.
  */
-router.post('/:email/unregister', async (req, res) => {
-  let maybeCredentials = getCredentials(req);
-  if (maybeCredentials === undefined || maybeCredentials === null) {
-    return res.json({
-      msg: 'not logged in and password not present in POST params',
-      status: 'ERROR',
-    });
-  }
-  const {email, password} = maybeCredentials;
-
-  if (!await userExists(email, password)) {
-    return res.json(
-      errMsg(
-        `failed to unregister because user with email ${email} and this password does not exist`));
-  }
-
-  const sql = 'DELETE FROM User WHERE email = :email AND password = :password';
-  const replacements = {email, password};
-  return db.query(sql, {replacements}).then((rows) => {
-    return res.json({
-      status: 'OK',
-      msg: `unregistered user ${email}`,
-    });
-  }).catch((err) => {
-    return res.json(errMsg(
-      `failed to unregistered user ${email}, the user probably does not exist`));
-  });
-});
+router.post('/:email/unregister', (req, res) =>
+  getCredentials(req)
+    .then(cs => User.findOne({where: cs}))
+    .then(user => user === null ? Promise.reject(new UserExistsErr()) : user)
+    .then(user => user.destroy())
+    .then(() => res.json(msg(`successfully unregistered the user`)))
+    .catch(err => res.status(err.code || 400).json(errMsg(err))));
 
 /**
  * If an API user tries to perform these actions, show suggestion that they should use POST not GET.
  */
 for (const action of ['register', 'unregister', 'login', 'logout']) {
   router.get(`/:email/${action}`,
-    (req, res) => res.json(errMsg(`use POST to ${action}`)));
+    (req, res) => {
+      const err = new BadMethodErr(action, 'POST');
+      return res.status(err.code || 400).json(errMsg(err));
+    });
 }
 
 /**
@@ -139,131 +130,100 @@ for (const action of ['register', 'unregister', 'login', 'logout']) {
  *
  * Doesn't require authentication.
  */
-router.get('/:email/:property', async (req, res) => {
-  const {email, property} = req.params;
-  if (!await userExists(email)) {
-    return res.json(errMsg(`user with email ${email} does not exist`));
-  }
+router.get('/:email/:property', (req, res) => {
+  let {property, email} = req.params;
   if (property === 'password') {
-    return res.json(errMsg('cannot lookup password'));
+    let err = new NoPermissionErr('lookup password');
+    return res.status(err.code || 400).json(errMsg(err));
   }
-  const sql = 'SELECT * FROM User WHERE email = :email';
-  const replacements = {email, property};
-  db.query(sql, {replacements}).catch((err) => {
-    return res.json(errMsg(`failed to find ${property} of ${email}`, err));
-  }).then((rows) => {
-    if (property in rows[0][0]) {
-      return res.json(
-        msg(`found property ${property} of ${email}`, rows[0][0][property]));
-    } else {
-      return res.json(errMsg(`user does not have property ${property}`));
-    }
-  });
+  return User
+    .findOne({where: {email}})
+    .then(result => result === null ?
+      Promise.reject(new NoSuchUser(email)) :
+      result)
+    .then(result => result.dataValues)
+    .then(user => res.json(msg(`found ${email}'s ${property}`, user[property])))
+    .catch(err => res.status(err.code || 400).json(errMsg(err)));
 });
 
 /**
- * Modifies a user's property (e.g. email, first_name etc.).
+ * Modifies a user's property (e.g. email, firstName etc.).
  *
  * Requires the user to be logged in or that the password is in request body.
  */
-router.post('/:email/:property', async (req, res) => {
+router.post('/:email/:property', (req, res) => {
 
-  const property = req.params.property;
+  const {property, email} = req.params;
 
-  if (property === 'is_admin') {
-    return res.json({
-      msg: `property is_admin cannot be set directly`,
-      status: 'ERROR',
-    });
+  if (property === 'isAdmin') {
+    let err = new NoPermissionErr('set property isAdmin in the User table');
+    return res.status(err.code || 400).json(errMsg(err));
   }
 
-  const maybeCredentials = getCredentials(req);
-
-  if (maybeCredentials === undefined || maybeCredentials === null) {
-    return res.json({
-      msg: 'not logged in and password not present in POST params',
-      status: 'ERROR',
-    });
+  if (!(property in User.attributes)) {
+    let err = new NoPermissionErr('set property isAdmin in the User table');
+    return res.status(err.code || 400).json(errMsg(err));
   }
 
-  const {email, password} = maybeCredentials;
-
-  if (!await userExists(email, password)) {
-    return res.json(
-      errMsg(`user with email ${email} and this password does not exist`));
-  }
-
-  if (!isOfType(req.body, {value: 'String'})) {
-    return res.json(errMsg('replacement value not specified in request body'));
-  }
-
-  let {value} = req.body;
-
-  // sha passwords *before* inserting into the db
-  if (property === 'password') {
-    value = sha256(value);
-  }
-
-  const sql = 'UPDATE User SET :property = :value WHERE email = :email AND password = :password';
-  const replacements = {email, property, password, value};
-  return db.query(sql, {replacements}).catch((err) => {
-    return res.json(errMsg(
-      `failed to set property ${property} of user ${email} to ${value} (likely because of bad format)`,
-      err));
-  }).then((rows) => {
-    return res.json(
-      msg(`updated property ${property} of user ${email} to ${value}`));
-  });
+  return getCredentials(req)
+    .then(cs =>
+      !isOfType(req.body, {value: 'String?'}) ?
+        new MissingDataErr('replacement value', 'request body') :
+        User.findOne({where: cs}))
+    .then(user => user === null ? Promise.reject(new NoSuchUser(email)) : user)
+    .then(user => {
+      console.debug(user);
+      const queryParams = {};
+      queryParams[property] = property === 'password' ?
+        sha256(req.body.value) :
+        req.body.value;
+      return user.update(queryParams);
+    })
+    .then(() => res.json(msg(`updated ${property} in user ${email}`)))
+    .catch(err => res.status(err.code || 400)
+      .json(errMsg(err)));
 });
 
 /**
  * If an API user tries to query the database for user's info with POST suggest using GET.
  */
-router.post('/:email', async (req, res) => res.json(
-  errMsg(`use GET to retrieve info about user ${req.params.email}`)));
-
-router.get('/:email', async (req, res) => {
-  const email = req.params.email;
-
-  if (!await userExists(email)) {
-    return res.json(errMsg(`user with email ${email} does not exist`));
-  }
-  const replacements = {email};
-  const sql = 'SELECT * FROM User WHERE email = :email';
-  return db.query(sql, {replacements}).catch((err) => {
-    return res.json(errMsg(`failed to find user with email ${email}`, err));
-  }).then((rows) => {
-    if (rows[0].length >= 1) {
-      let result = rows[0][0];
-      delete result.password; // don't show the password
-      return res.json(msg(`found user ${email}`, result));
-    } else {
-      return res.json(errMsg(`failed to find user with email ${email}`));
-    }
-  });
+router.post('/:email', (req, res) => {
+  const err = new BadMethodErr(`retrieve info about user ${req.params.email}`,
+    'GET');
+  return res.status(err.code || 400).json(err.msgJSON || err.message);
 });
+
+router.get('/:email', (req, res) =>
+  User
+    .findByPk(req.params.email)
+    .then(result => result === null ?
+      Promise.reject(new NoSuchUser(req.params.email)) : result)
+    .then(result => result.dataValues)
+    .then(user => JSON.parse(JSON.stringify(user)))
+    .then(userInfo => {
+      // don't send hashed password (sensitive data)
+      delete userInfo.password;
+      return userInfo;
+    })
+    .then(user => res.json(msg(`found user ${req.params.email}`, user)))
+    .catch(err => res.status(err.code || 400)
+      .json(errMsg(err))));
 
 /**
  * If none of the above match, shows help.
  */
-router.all(/.*/, (req, res) => {
-  return res.json({
-    status: 'CONFUSED',
-    msg: 'nothing here, try looking at routes',
-    routes: {
-      GET: {
-        ':email': 'to lookup a single user (the user must exist)',
-        ':email/:property': 'to lookup a property of a single user (the user must exist)',
-      },
-      POST: {
-        ':email/register': 'to register a single user (the user must not have an account)',
-        ':email/unregister': 'to unregister a single user (the user must be registered)',
-        ':email/logout': 'to log out (the user must be logged in)',
-        ':email/login': 'to authenticate (`password` needs to be set in cookies or request body)',
-        ':email/:property': 'to set property to value in a single user (`value` needs to be set in request body)',
-      },
-    },
-  });
+suggestRoutes(router, /.*/, {
+  GET: {
+    ':email': 'to lookup a single user (the user must exist)',
+    ':email/:property': 'to lookup a property of a single user (the user must exist)',
+  },
+  POST: {
+    ':email/register': 'to register a single user (the user must not have an account)',
+    ':email/unregister': 'to unregister a single user (the user must be registered)',
+    ':email/logout': 'to log out (the user must be logged in)',
+    ':email/login': 'to authenticate (`password` needs to be set in cookies or request body)',
+    ':email/:property': 'to set property to value in a single user (`value` needs to be set in request body)',
+  },
 });
 
 module.exports = router;
