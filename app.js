@@ -1,10 +1,17 @@
+/**
+ * Entry into the application.
+ *
+ * @author Norbert
+ */
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
-const session = require('cookie-session');
+const session = require('express-session');
+const FileStore = require('session-file-store')(session);
 const logger = require('morgan');
 const sassMiddleware = require('node-sass-middleware');
+const cors = require('cors');
 
 const indexRouter = require('./routes/index');
 const apiRouter = require('./routes/api');
@@ -12,11 +19,13 @@ const SECRET = 'U\x0bQ*kf\x1bb$Z\x13\x03\x15w\'- f\x0fn1\x0f\\\x106V\'M~\x07';
 
 const app = express();
 
+app.use(cors());
+
 /**
  * Produce a path relative to this file (i.e. path relative to the root of the project).
  *
- * @param {string} fileName
- * @return {string}
+ * @param {String} fileName
+ * @return {String} path relative to project root
  */
 function rootPath(fileName) {
   return path.join(__dirname, fileName);
@@ -28,18 +37,26 @@ app.set('view engine', 'hbs');
 
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({extended: false}));
+app.use(
+  express.urlencoded({
+    extended: false,
+  }),
+);
 app.use(cookieParser(SECRET));
-app.use(session({keys: [SECRET]}));
+app.use(session(
+  {store: new FileStore({path: rootPath('sessions')}), secret: SECRET}));
 
-app.use(sassMiddleware({
-  src: rootPath('public'),
-  dest: rootPath('public'),
-  debug: false,
-  outputStyle: 'compressed',
-  indentedSyntax: false, // true = .sass and false = .scss
-  sourceMap: true,
-}));
+app.use(
+  sassMiddleware({
+    src: rootPath('public'),
+    dest: rootPath('public'),
+    debug: false,
+    outputStyle: 'compressed',
+    indentedSyntax: false, // true = .sass and false = .scss
+    sourceMap: true,
+  }),
+);
+
 app.use(express.static(rootPath('public')));
 
 app.use('/api', apiRouter);
@@ -56,7 +73,7 @@ app.use((err, req, res, next) => {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  return res.render('error');
 });
 
 module.exports = app;

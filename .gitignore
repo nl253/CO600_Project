@@ -54,14 +54,25 @@ typings/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
+# Dotenv environment variables file
 .env
 
-# next.js build output
+# Next.js build output
 .next
 
-# compiled CSS files
+# Compiled CSS files 
 public/stylesheets/**/*.css
 
-# source maps
+# Source maps
 public/stylesheets/**/*.map
+
+# Test results
+tests-*.json
+*results.json
+
+# Session files
+sessions/
+
+# Generated API documentation
+doc/
+docs/

@@ -5,15 +5,71 @@
  * @author Norbert
  */
 const crypto = require('crypto');
-const ValidationError = require('sequelize/lib/errors').ValidationError;
-const db = require('../database/db.js')();
+const {join, resolve} = require('path');
+const {ValidationError} = require('sequelize/lib/errors');
+let winston = require('winston');
+
+const log = winston.createLogger({
+  level: 'debug',
+  format: winston.format.simple(),
+  transports: [
+    new winston.transports.Console(),
+    // Write all logs error (and below) to `/warnings.log`.
+    new winston.transports.File({
+      filename: resolve(join(__dirname + '/../warnings.log')),
+    }),
+  ],
+});
+
+/**
+ * Pretty print data.
+ *
+ * @param {*} data
+ * @return {string}
+ */
+function pprint(data) {
+  if (data instanceof Array) {
+    return `[${data.join(', ')}]`;
+  }
+
+  if (data === null) {
+    return 'null';
+  }
+
+  if (data === undefined) {
+    return 'undefined';
+  }
+
+  if ((data instanceof Date) || (data instanceof RegExp)) {
+    return data.toString();
+  }
+
+  if (data instanceof Map) {
+    return `Map {${Array.from(data.entries())
+      .map((pair) => `${pair[0]}: ${pair[1]}`)
+      .join(', ')}}`;
+  }
+
+  if (data instanceof Set) {
+    return `Set {${Array.from(data.values())
+      .join(', ')}}`;
+  }
+
+  if (data instanceof Object) {
+    return `{${Array.from(Object.entries(data))
+      .map((pair) => `${pair[0]}: ${pair[1]}`)
+      .join(', ')}}`;
+  }
+
+  return data.toString();
+}
 
 /**
  * Format response message when it's OK.
  *
- * @param {string} msg
+ * @param {String} msg
  * @param {*} [result]
- * @return {{status: string, msg: string}}
+ * @return {{status: String, msg: String}}
  */
 function msg(msg, result) {
   const status = 'OK';
@@ -23,36 +79,49 @@ function msg(msg, result) {
 /**
  * Produce a more informative error msg when using the REST API.
  *
- * @param {string} msg
- * @param {Error} [err]
- * @return {{status: string, msg: string}}
+ * @param {ValidationError|RestAPIErr|Error|String} [err]
+ * @return {{status: String, msg: String}}
  */
-function errMsg(msg, err) {
+function errMsg(err) {
   const status = 'ERROR';
-  if ((err !== undefined) && (err instanceof ValidationError) &&
-    err.errors.length > 0) {
-    const error = err.errors[0];
-    let message = error.message;
-    if (err.fields.length > 0) {
-      const fields = err.fields.map((f) => f.toLocaleString())
-        .reduce((x, y) => `${x}, ${y}`);
-      message = `issue with ${fields}: ${message}`;
-    }
-    return {status, msg: `${msg}, error: ${message}`};
-  } else if (err) {
-    return {status, msg: `${msg}, error: ${err.message}`};
-  } else {
-    return {status, msg};
+  if (err === undefined || err === null) {
+    return {status, msg: 'failure'};
   }
 
+  if (err instanceof RestAPIErr) {
+    return err.msgJSON;
+  }
+
+  if (err instanceof ValidationError) {
+    let noErrs = err.errors.length;
+
+    if (noErrs === 0) {
+      return {status, msg: `validation error: ${err.message}`};
+    }
+
+    if (noErrs > 1) {
+      return {
+        status,
+        msg: `validation errors: ${err.errors.map(e => e.message).join(', ')}`,
+      };
+    }
+
+    return {status, msg: `validation error: ${err.errors[0].message}`};
+  }
+
+  if (err instanceof Error) {
+    return {status, msg: `error: ${err.message}`};
+  }
+
+  // if err is String (cannot check with instanceof)
+  return {status, msg: err.toString()};
 }
 
 /**
- * Compute SHA-256 of data. Use to avoid storing passwords in the
- * db in plain text.
+ * Compute SHA-256 of data. Use to avoid storing passwords in the db in plain text.
  *
- * @param {string} data
- * @return {string}
+ * @param {String} data
+ * @return {String} hashed value
  */
 function sha256(data) {
   const hash = crypto.createHash('sha256');
@@ -61,238 +130,351 @@ function sha256(data) {
 }
 
 /**
- * Validate JSON according to schema.
+ * Guess the type of data.
  *
- * E.g.:
+ * NOTE expect the type to be *capitalised* as in: "Array", "Object", "Number" etc.
+ * NOTE `null` will return "null" and undefined will return "undefined".
  *
- * const schema = {
- *   email: 'String',
- *   password: 'String',
- * }
- *
- * const json = {
- *   email: 'if50@kent.ac.uk',
- *   password: 'pass123',
- * }
- *
- * @param {*} json JavaScript object
- * @param {*} schema
- * @return {boolean} if json matches schema
+ * @param {*} data
+ * @return {String|Array|Object} type info
  */
-function validateJSON(json, schema) {
-  // NOTE: do NOT use Array.reduce here because it's buggy
-  // it causes stack overflow presumably of objects with circular references
-  if (schema === '*') {
-    return true;
-  } else if ((json === null || json === undefined) &&
-    isOfType(schema, 'String') && schema.endsWith('?')) {
-    return true;
+function guessType(data) {
+
+  if (data === undefined) return 'undefined';
+  if (data === null) return 'null';
+  if (Array.isArray(data)) return data.map(guessType);
+
+  if (data instanceof Map) {
+    const typeObj = {};
+    for (const key in data) {
+      typeObj[key] = guessType(data.get(key));
+    }
+    return typeObj;
   }
 
-  let typeName = getType(json);
-
-  // if json is an array then the size of the schema and the array must match
-  // all items in corresponding indicies must be valid
-  if (typeName === 'Array') {
-    if (!getType(schema) === 'Array') {
-      return false;
-    }
-    for (let i = 0; i < schema.length; i++) {
-      if (!validateJSON(json[i], schema[i])) {
-        return false;
-      }
-    }
-    return true;
-  } else if (typeName === 'Object') {
-
-    // all schema keys in json and all json values valid
-    for (const key in schema) {
-      if (!(key in json) || !validateJSON(json[key], schema[key])) {
-        return false;
-      }
-    }
-
-    return true;
-
-  } else {
-    return typeName === schema;
+  if (data.constructor.name !== 'Object') {
+    return data.constructor.name;
   }
+
+  if (data.constructor !== undefined && data.constructor.name === 'String') {
+    return 'String';
+  }
+
+  if (data.constructor !== undefined && data.constructor.name === 'Number') {
+    return 'Number';
+  }
+
+  if (data instanceof Set) return 'Set';
+  if (data instanceof URL) return 'URL';
+  if (data instanceof Promise) return 'Promise';
+  if (data instanceof Error) return 'Error';
+  if (data instanceof Buffer) return 'Buffer';
+  if (data instanceof Int8Array) return 'Int8Array';
+  if (data instanceof Int16Array) return 'Int16Array';
+  if (data instanceof Int32Array) return 'Int32Array';
+  if (data instanceof Float32Array) return 'Float32Array';
+  if (data instanceof Float64Array) return 'Float64Array';
+  if (data instanceof URL) return 'URL';
+  if (data instanceof Date) return 'Date';
+
+  // fallback to Object
+  const typeObj = {};
+
+  for (const key in data) {
+    typeObj[key] = guessType(data[key]);
+  }
+
+  return typeObj;
 }
 
 /**
- * Get the type of data.
+ * Suggest routes when an API user types something like `/`, `/module` or `/content`.
  *
- * NOTE: expect the type to be *capitalised* as in: "Array", "Object", "Number" etc.
- * NOTE: `null` will return "null" and undefined will return "undefined".
- *
- * @param {*} data
- * @return {string}
+ * @param {express.Router} router
+ * @param {String|RegExp|Array<String>|Array<RegExp>} path
+ * @param {String|Object|Number|Array} routes
+ * @return {void}
  */
-function getType(data) {
-  if (data === undefined) {
-    return 'undefined';
-  } else if (data === null) {
-    return 'null';
-  } else if (Array.isArray(data)) {
-    return 'Array';
-  } else if (data instanceof Number) {
-    return 'Number';
-  } else if (data instanceof String) {
-    return 'String';
-  } else if (data.constructor) {
-    return data.constructor.name;
-  } else {
-    return 'Object';
-  }
+function suggestRoutes(router, path, routes) {
+  return router.all(path, (req, res) => res.json(
+    {status: 'CONFUSED', msg: 'nothing here, see the routes', routes}));
 }
 
 /**
  * Check if data is of specified type.
  *
  * @param {*} data
- * @param {string} type
- * @return {boolean}
+ * @param {String|Object|Array} type
+ * @return {Boolean} whether type matches data
  */
 function isOfType(data, type) {
-  return getType(data) === type;
-}
+  if (type === '*') return true;
 
-/**
- * Check if the user is logged in by looking at the content of session and
- * checking if the credentials stored in them match an existing record.
- *
- * @param req http request (see Express docs)
- * @return {boolean}
- */
-async function isLoggedIn(req) {
-  if (req.session === null) {
-    return false;
-  } else if ('user' in req.session) {
-    if (validateJSON(req.session.user,
-      {email: 'String', password: 'String'})) {
-      return await userExists(req.session.user.email,
-        req.session.user.password);
-    } else {
+  if (data === null) {
+    return type.constructor !== undefined && type.constructor.name ===
+      'String' && (type.endsWith('?') || type === 'null');
+  }
+
+  if (data === undefined) {
+    return type.constructor !== undefined && type.constructor.name ===
+      'String' && (type.endsWith('?') || type === 'undefined');
+  }
+
+  if (type.constructor !== undefined && type.constructor.name === 'String') {
+    const guess = guessType(data);
+    return guess.constructor !== undefined && guess.constructor.name ===
+      'String' && (guess === type ||
+        (type.endsWith('?') && type.slice(0, type.length - 1) === guess));
+  }
+
+  if (!(type instanceof Object)) return false;
+
+  for (const key in type) {
+    if (!(key in data && isOfType(data[key], type[key]))) {
       return false;
     }
-  } else {
-    return false;
   }
+
+  return true;
 }
 
 /**
- * Check if the user exists by querying the database.
+ * Retrieves credentials by trying the request body, params and then the cookies.
+ * The function may return undefined but if it doesn't you are guaranteed to have
+ * an email and password.
  *
- * @param {string} email
- * @param {string} [password] unhashed password
- * @return {Promise<boolean>}
- */
-async function userExists(email, password) {
-  let sql, replacements;
-  if (password !== undefined && password !== null) {
-    sql = 'SELECT * FROM User WHERE email = :email AND password = :password';
-    replacements = {email, password};
-  } else {
-    sql = 'SELECT * FROM User WHERE email = :email';
-    replacements = {email};
-  }
-  return await db.query(sql, {replacements})
-    .then((rows) => {
-      return rows[0].length > 0;
-    })
-    .catch((err) => {
-      return false;
-    });
-}
-
-/**
- * Retrieves credentials by trying the POST & GET params and then the cookies.
+ * FIXME getCredentials
  *
- * @param req http request (see Express docs)
- * @return {{password: String, email: String}} [credentials]
+ * @param {express.Request} req http request (see Express docs)
+ * @return {Promise<{password: String, email: String}>} credentials with SHA256 hashed password
  */
 function getCredentials(req) {
-  if (validateJSON(req.params, {email: 'String'}) &&
-    validateJSON(req.body, {password: 'String'})) {
-    return {password: sha256(req.body.password), email: req.params.email};
+  let email;
+  let password;
+  if ('email' in req.params) {
+    email = req.params.email;
+  } else if ('email' in req.session) {
+    email = req.session.email;
+  } else if ('email' in req.body) {
+    email = req.body.email;
+  } else {
+    return Promise.reject(new NoCredentialsErr());
   }
 
-  if (validateJSON(req.body, {email: 'String'}) &&
-    validateJSON(req.body, {password: 'String'})) {
-    return {password: sha256(req.body.password), email: req.body.email};
+  if ('password' in req.body) {
+    password = sha256(req.body.password);
+  } else if ('password' in req.session) {
+    password = req.session;
+  } else {
+    return Promise.reject(new NoCredentialsErr());
   }
 
-  if (validateJSON(req.session, {
-    user: {email: 'String', password: 'String'},
-  })) {
-    return {password: req.session.user.password, email: req.session.user.email};
+  return Promise.resolve({email, password});
+}
+
+
+class RestAPIErr extends Error {
+  /**
+   * @param {String} msg
+   * @param {Number} [code]
+   * @param params
+   */
+  constructor(msg, code, ...params) {
+    // Pass remaining arguments (including vendor specific ones) to parent constructor
+    super(msg, ...params);
+    this._code = code || 400;
+    // Maintains proper stack trace for where our error was thrown (only available on V8)
+    if (Error.captureStackTrace) Error.captureStackTrace(this, RestAPIErr);
+  }
+
+  /**
+   * @return {Number}
+   */
+  get code() {
+    return this._code;
+  }
+
+  /**
+   * @return {{status: String, msg: String}}
+   */
+  get msgJSON() {
+    return errMsg(this.message);
+  }
+}
+
+class BadMethodErr extends RestAPIErr {
+  /**
+   * @param {String} action
+   * @param {String} suggestedMethod
+   */
+  constructor(action, suggestedMethod) {
+    super(`to ${action} use ${suggestedMethod.toUpperCase()}`, 405);
+  }
+}
+
+class NoSuchRecord extends RestAPIErr {
+  /**
+   *
+   * @param {String} tableName
+   * @param {Object|Array<String>} attrs
+   */
+  constructor(tableName, attrs = {}) {
+    let msg = `failed to find a matching ${tableName.toLowerCase()}`;
+    if (Object.keys(attrs).length > 0) {
+      msg += ' with fields: ';
+      msg += Array.isArray(attrs) ?
+        attrs.join(', ') :
+        Object.entries(attrs).map(pair => `${pair[0]} = ${pair[1]}`).join(', ');
+    }
+    super(msg, 404);
+  }
+}
+
+class TypoErr extends RestAPIErr {
+  constructor(suggestion) {
+    super(`did you mean '${suggestion}'?`, 400);
+  }
+}
+
+class AlreadyExistsErr extends RestAPIErr {
+  /**
+   * @param {String} table
+   * @param {...String} [attrs] name of overlapping attribute
+   */
+  constructor(table, ...attrs) {
+    super(
+      `cannot create a new ${table.toLowerCase()} because ${attrs.length > 0 ?
+        attrs.join(', ') :
+        'it'} overlap${attrs.length !== 0 ?
+        's' :
+        ''} with an existing ${table.toLowerCase()}`, 409);
+  }
+}
+
+class UserExistsErr extends AlreadyExistsErr {
+  constructor(...attrs) {
+    super('User', 'email', ...attrs);
+  }
+}
+
+class InvalidRequestErr extends RestAPIErr {
+  /**
+   * @param {String} table
+   * @param {String} attr
+   */
+  constructor(table, attr) {
+    super(`invalid request for ${table.toLowerCase()}'s ${attr}`, 400);
+  }
+}
+
+class MissingDataErr extends RestAPIErr {
+  /**
+   * @param {String} missing
+   * @param {String} where
+   * @param {...String} params
+   */
+  constructor(missing, where, ...params) {
+    super(`${missing} from ${where}`, 400, ...params);
+  }
+}
+
+class NoPermissionErr extends RestAPIErr {
+  /**
+   * @param {String} toDo
+   * @param {String} [likelyCause]
+   * @param  params
+   */
+  constructor(toDo, likelyCause, ...params) {
+    super(likelyCause !== undefined
+      ?
+      `no permission to ${toDo} (the likely cause is ${likelyCause})`
+      :
+      `no permission to ${toDo}`, 403, ...params);
+  }
+}
+
+class NoCredentialsErr extends MissingDataErr {
+  /**
+   * @param {...String} params
+   */
+  constructor(...params) {
+    super('credentials', 'cookies, GET params or request body', ...params);
+  }
+}
+
+class AlreadyLoggedIn extends RestAPIErr {
+  /**
+   * @param {String} email
+   * @param params
+   */
+  constructor(email, ...params) {
+    super(`the user ${email} is alredy logged in`, 409, ...params);
   }
 }
 
 /**
- * Insert a new content record into the database, return a promise of id of the record.
- *
- * @param {string} creator i.e. an email
- * @return {Promise<number>} [lastId]
+ * DO NOT use this if authentication fails. For that purpose use AuthFailedErr.
+ * This is when looking users up for instance by using their emails.
  */
-function insertContent(creator) {
-  const sql = `INSERT INTO Content (creator)
-               VALUES (:creator)`;
-  return db.query(sql, {replacements: {creator}}).catch(err => {
-    return undefined;
-    // return errMsg(
-    //   `failed to insert new content for content creator ${creator}, ${err} has occured`);
-  }).then(rows => {
-    const [_, stmt] = rows;
-    console.log(rows);
-    return stmt.lastID;
-  });
+class NoSuchUser extends NoSuchRecord {
+  /**
+   * @param {String} email
+   * @param {...String} attrs
+   */
+  constructor(email, ...attrs) {
+    super('User', ...attrs);
+  }
 }
 
-/**
- * Insert a new module record into the database, return true if it succeeded, false otherwise.
- *
- * @param {string} module
- * @param {number} contentId
- * @return {Promise<boolean>} if it succeeded
- */
-function insertModule(module, contentId) {
-  const sql = `INSERT INTO Module (name, content_id)
-               VALUES (:module, :contentId)`;
-  return db.query(sql, {replacements: {module, contentId}}).catch(err => {
-    console.debug(err);
-    return false;
-  }).then(rows => {
-    console.log(rows);
-    return true;
-  });
+class NotLoggedIn extends RestAPIErr {
+  /**
+   * @param {String} email
+   * @param params
+   */
+  constructor(email, ...params) {
+    super(`the user ${email} is not logged in`, 400, ...params);
+  }
 }
 
-/**
- * Check if the module exists by querying the database.
- *
- * @param {string} module
- * @return {Promise<boolean>}
- */
-function moduleExists(module) {
-  let sql = 'SELECT * FROM Module WHERE name = :module';
-  let replacements = {module};
-  return db.query(sql, {replacements})
-    .then((rows) => rows[0].length > 0)
-    .catch((err) => false);
+class AuthFailedErr extends NoSuchRecord {
+  /**
+   * @param {String} email
+   */
+  constructor(email) {
+    super('User', {email, password: '<hidden>'});
+  }
+}
+
+class NotImplYetErr extends RestAPIErr {
+  /**
+   * @param {String} feature
+   */
+  constructor(feature) {
+    super(`${feature} is not implemented yet`, 501);
+  }
 }
 
 module.exports = {
-  msg,
-  getType,
-  insertModule,
-  insertContent,
-  moduleExists,
-  isOfType,
+  AlreadyLoggedIn,
+  AuthFailedErr,
+  BadMethodErr,
+  InvalidRequestErr,
+  MissingDataErr,
+  NoCredentialsErr,
+  NoPermissionErr,
+  NoSuchRecord,
+  NoSuchUser,
+  NotImplYetErr,
+  NotLoggedIn,
+  TypoErr,
+  UserExistsErr,
   errMsg,
-  sha256,
-  validateJSON,
-  isLoggedIn,
   getCredentials,
-  userExists,
+  guessType,
+  isOfType,
+  log,
+  msg,
+  pprint,
+  sha256,
+  suggestRoutes,
 };

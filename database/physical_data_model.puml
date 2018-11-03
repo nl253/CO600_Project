@@ -1,170 +1,123 @@
 @startuml
-
-title Physical Data Model
-footer CO600 Project 2018
-
-' A user is anyone in the system that can log in (Administrator, and a regular user i.e. Student, Independent Learner and Content Creator)
 class User {
-  email      <b>VARCHAR(50) PRIMARY KEY CHECK(length(email) > 3 AND email LIKE "%__@__%.__%")</b>
+  <i>email</i>
   -- other --
-  first_name <b>VARCHAR(50) NOT NULL CHECK(length(first_name) > 1)</b>
-  last_name  <b>VARCHAR(50) NOT NULL CHECK(length(last_name) > 1)</b> 
-  password   <b>VARCHAR(50) NOT NULL CHECK(length(password) > 2)</b>
-  info       <b>TEXT</b>
-  is_admin   <b>BOOL NOT NULL DEFAULT FALSE</b>
+  firstName
+  lastName
+  password
+  info
+  isAdmin
 }
 
-' Abstract representation of anything that has a creator & can be reported.
-class Content {
-  id      <b>INT PRIMARY KEY AUTOINCREMENT</b>
+class Module {
+  <i>id</i>
   -- FK --
-  creator <b>REFERENCES User(email)</b>
-  is_blocked <b>BOOL NOT NULL DEFAULT FALSE</b>
+  author
+  -- other --
+  tested
+  summary
 }
 
-' A question is associated with a test.
-' It may be either "closed" or "open". 
-class Question {
-  id             <b>INT PRIMARY KEY AUTOINCREMENT</b>
+class Lesson {
+  <i>id</i>
   -- FK --
-  test_id        <b>REFERENCES Test(id)</b>
+  module
   -- other --
-  question       <b>TEXT NOT NULL</b>
-  -- other --
-  correct_answer <b>TEXT DEFAULT NULL</b>
+  quized
+  content
 }
 
-' A student may rate a lesson (and give a rating in [0, 5]).
-' The average of the ratings of all lessons is the rating of the module.
 class Rating {
-  id        <b>INT PRIMARY KEY AUTOINCREMENT</b>
   -- FK --
-  rater     <b>REFERENCES User(email)</b>
-  content_id <b>REFERENCES Content(id)</b>
+  <i>rater</i>
+  <i>lesson</i>
   -- other --
-  stars     <b>BYTE NOT NULL CHECK(stars >= 0 AND stars <= 5)</b>
+  stars
 }
 
-' Comments can be submitted to give feedback about content.
-' Because comments themselves are a type of content, this allows for commenting on comments, modules and lessons.
-class Comment {
-  id        <b>INT PRIMARY KEY AUTOINCREMENT</b>
-  -- FK --
-  about_item_id <b>REFERENCES Content(id)</b>
-  content_id    <b>NOT NULL UNIQUE REFERENCES Content(id)</b>
-}
-
-' A content creator may invite a student to take part in their module.
 class Invitation {
-  id            <b>INT PRIMARY KEY AUTOINCREMENT</b>
   -- FK --
-  module_id     <b>REFERENCES Content(id)</b>
-  student_email <b>REFERENCES User(email)</b>
-  creator_email <b>REFERENCES User(email)</b>
-}
-
-
-' Feedback may be given to a student on their answer to an open question.
-class Feedback {
-  id          <b>INT PRIMARY KEY AUTOINCREMENT</b>
-  -- FK --
-  answer_id   <b>REFERENCES Answer(id)</b>
-  mark        <b>REAL CHECK(mark >= 0.0 AND mark <= 100.0)</b>
-  comment     <b>TEXT</b>
+  <i>module</i>
+  <i>student</i>
+  <i>creator</i>
 }
 
 class Enrollment {
-  id            <b>INT PRIMARY KEY AUTOINCREMENT</b>
   -- FK --
-  module_id     <b>REFERENCES Module(id)</b>
-  student_email <b>REFERENCES User(email)</b>
+  <i>module</i>
+  <i>student</i>
 }
 
-' A module is like a container (i.e. folder / directory) for lessons.
-class Module {
-  id         <b>INT PRIMARY KEY AUTOINCREMENT</b>
+class Comment {
+  <i>id</i>
   -- FK --
-  content_id <b>UNIQUE NOT NULL REFERENCES Content(id)</b>
+  module
+  lesson
+  author
+  parent
 }
 
-' A lesson MUST BE associated with a module.
-' A lesson MUST have a content (stored as an HTML string).
-' A lesson may be marked as having a quiz made from definitions (automatically generated from the definitions).
-class Lesson {
-  id         <b>INT PRIMARY KEY AUTOINCREMENT</b>
+class OpenQuestion {
+  <i>id</i>
   -- FK --
-  module_id  <b>REFERENCES Module(id)</b>
+  module
   -- other --
-  make_quiz  <b>BOOL NOT NULL DEFAULT FALSE</b>
-  content    <b>TEXT NOT NULL</b>
+  question
 }
 
-' An answer to an open question may BE given by a student enrolled in a module.
 class Answer {
-  id            <b>INT PRIMARY KEY AUTOINCREMENT</b>
   -- FK --
-  student_email <b>REFERENCES User(email)</b>
-  question_id   <b>REFERENCES Question(id)</b>
+  <i>student</i>
+  <i>questionId</i>
   -- other --
-  answer        <b>TEXT NOT NULL</b>
+  answer
+  comment
+  mark
 }
 
-' The content creator may define terms in a lesson they created
-class Definition {
-  id         <b>INT PRIMARY KEY AUTOINCREMENT</b>
-  -- FK --
-  lesson_id <b>REFERENCES Lesson(id)</b>
-  -- other --
-  term       <b>VARCHAR(255) NOT NULL</b>
-  meaning    <b>TEXT NOT NULL</b>
-}
-
-' A user may report a piece of content (e.g. lesson, module, content) for breaking terms and conditions.
 class Report {
-  id         <b>INT PRIMARY KEY AUTOINCREMENT</b>
+  <i>id</i>
   -- FK --
-  content_id <b>REFERENCES Content(id)</b>
-  author     <b>REFERENCES User(id)</b>
+  lesson
+  module
+  author
   -- other --
-  issue      <b>VARCHAR(255) NOT NULL CHECK(issue in ("inappropriate content", "cotains mistakes"))</b>
+  issue
 }
 
-' A test may be taken at the end of the module.
-class Test {
-  id           <b>INT PRIMARY KEY AUTOINCREMENT</b>
+class Definition {
   -- FK --
-  content_id    <b>REFERENCES Content(id)</b>
+  <i>lessonId</i>
   -- other --
-  duration_min <b>INT</b>
-  time_started <b>TIMESTAMP</b>
+  <i>term</i>
+  meaning
 }
 
-User -- "*" Content: creates >
-User -- "*" Report: writes >
-User -- "*" Invitation: receives >
-User -- "*" Invitation: sends >
-User -- "*" Answer: submits >
-User -- "*" Enrollment: has >
-User -- "*" Rating: gives >
+class QuizQuestion {
+  -- FK --
+  <i>lessonId</i>
+  -- other --
+  <i>question</i>
+  correctAnswer
+}
 
-Definition "*" -- Lesson: has <
-
-Rating "*" -- Content: "given to" >
-Module -- Content: is >
-Module -- Enrollment: in <
-Invitation -- Module: to >
-Comment -- Content: is >
-Comment -- Content: "is about" >
-Lesson -- Content: is >
-Lesson -- Module: in >
-
-Feedback -- Answer: to >
-
-Report -- Content: about >
-
-Question "*" -- Test: comprise > 
-Question -- "*" Answer: has >
-
-Test -- Content: about > 
-
+Definition "*" -- Lesson : has <
+QuizQuestion "*" -- Lesson : has <
+Report "*" -- Lesson : >
+Report "*" -- Module : >
+Report "*" -- User : by > 
+Answer -- User : by >
+Answer -- OpenQuestion : to >
+OpenQuestion "*" -- Module : "about content of" >
+Comment "*" -- Comment : to >
+Comment "*" - User : makes < 
+Comment "*" -- Lesson
+Enrollment -- Module : in >
+Enrollment - User : of >
+Invitation -- Module : to >
+Invitation - User : for >
+Rating -- Lesson : of >
+Rating "*" - User : by >
+Lesson "*" -- Module : in >
+Module "*" -- User : by >
 @enduml
