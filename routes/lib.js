@@ -190,7 +190,7 @@ function guessType(data) {
 /**
  * Suggest routes when an API user types something like `/`, `/module` or `/content`.
  *
- * @param {Router} router
+ * @param {express.Router} router
  * @param {String|RegExp|Array<String>|Array<RegExp>} path
  * @param {String|Object|Number|Array} routes
  * @return {void}
@@ -245,7 +245,7 @@ function isOfType(data, type) {
  *
  * FIXME getCredentials
  *
- * @param {Request} req http request (see Express docs)
+ * @param {express.Request} req http request (see Express docs)
  * @return {Promise<{password: String, email: String}>} credentials with SHA256 hashed password
  */
 function getCredentials(req) {

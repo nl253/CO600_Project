@@ -12,11 +12,12 @@
  * @author Norbert
  */
 const testUtils = require('./testUtils');
-const NO_RUNS = 100;
+const faker = require('faker');
+const maybe = faker.random.boolean;
+const NO_RUNS = 10;
 const {
   afterAll: after,
   beforeAll: before,
-  maybe,
   randUser,
   testGET,
   testPOST,

@@ -7,11 +7,16 @@ const api = require('./lib.js');
 
 const faker = require('faker');
 
+/** @return {String} */
 const randWord = faker.random.word;
+/** @return {Date} */
 const randDate = faker.date.recent;
+/** @return {String} */
 const randEmail = faker.internet.email;
+/** @return {Number} */
 const randNum = faker.random.number;
-const {maybe} = require('./testUtils');
+/** @return {Boolean} */
+const maybe = faker.random.boolean;
 
 /**
  * Tests `isOfType` by looking if data matches the type.

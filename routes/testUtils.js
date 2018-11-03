@@ -4,11 +4,10 @@ const {join, resolve} = require('path');
 
 // 3rd Party
 const faker = require('faker');
+const axios = require('axios');
 
 // Project
 const {isOfType} = require('./lib');
-
-const axios = require('axios');
 
 const PORT = 3000;
 const HOST = '127.0.0.1';
@@ -21,29 +20,22 @@ const instance = axios.create();
 
 let winston = require('winston');
 
+/**
+ * This logger is meant to be used by all `./*.test.js` files.
+ *
+ * @type {winston.Logger}
+ */
 const log = winston.createLogger({
   level: 'info',
   format: winston.format.simple(),
   transports: [
     new winston.transports.Console(),
-    // Write all logs error (and below) to `/warnings.log`.
+    // Write all logs error (and below) to `/tests.log`.
     new winston.transports.File({
       filename: resolve(join(__dirname + '/../tests.log')),
     }),
   ],
 });
-
-/**
- * Draws a boolean from the uniform distribution.
- *
- * @return {string} random boolean
- */
-const maybe = faker.random.boolean;
-const randWord = faker.random.word;
-const randDate = faker.date.recent;
-const randEmail = faker.internet.email;
-const randPassword = faker.internet.password;
-const randNum = faker.random.number;
 
 /**
  * Starts a child process with the express server running and serving.
@@ -70,66 +62,79 @@ function afterAll() {
   this.serverProcess.kill('SIGKILL');
 }
 
+/**
+ * @param {String} s
+ * @param {Number} len
+ * @return {string}
+ */
+function truncate(s, len = process.stdout.columns - 5) {
+  return s.length >= len ? `${s.slice(0, len - 3)} ...` : s;
+}
 
 /**
- * Tests a GET request by firing it to url and verifying output against type.
- *
  * @param {String} url
- * @param {Object} type
+ * @param {String} method
+ * @param {Object} [typeSpec]
+ * @param {Object} params
+ * @return {string}
  */
-function testGET(url, type) {
-  let msg = `GET ${axios.defaults.baseURL}${url}`;
-  if (type !== undefined && type !== null && type instanceof Object) {
-    const pairs = Object.entries(type);
-    if (pairs.length > 0) {
-      msg += ' has fields:\n';
-      for (const pair of pairs) {
-        const [key, val] = pair;
-        msg += `  => ${key}: ${val}\n`;
-      }
+function makeMsg(url, method, typeSpec = {}, params = {}) {
+  const testMarker = '[test]';
+  let msg = `${testMarker} ${method.toUpperCase()} ${axios.defaults.baseURL}${url}`;
+  if (typeSpec === null || typeSpec === undefined ||
+    (typeSpec instanceof Object && Object.keys(typeSpec).length === 0)) {
+    return msg;
+  }
+  if (params !== null && params !== undefined && params instanceof
+    Object && Object.keys(params).length > 0) {
+    msg += `\n\n    with ${method.toUpperCase()} params:`;
+    const longestParamLen = Object.keys(params)
+      .reduce((cur, p) => p.length >= cur ? p.length : cur, 0);
+    for (const param in params) {
+      msg += `\n    => ${param.padEnd(longestParamLen)} ${params[param]}`;
     }
   }
-  test(msg, () => {
+  const longestKeyLen = Object.keys(typeSpec)
+    .reduce((cur, k) => k.length >= cur ? k.length : cur, 0);
+  msg += '\n\n    has properties:\n';
+  for (const pair of Object.entries(typeSpec)) {
+    let [key, val] = pair;
+    val = val.toString();
+    msg += `    => ${key.padEnd(longestKeyLen)} ${truncate(val)}\n`;
+  }
+  return msg;
+}
+
+
+/**
+ * Tests a GET request by firing it to url and verifying output against typeSpec.
+ *
+ * @param {String} url
+ * @param {Object} typeSpec
+ */
+function testGET(url, typeSpec) {
+  test(makeMsg(url, 'GET', typeSpec), () => {
     expect.assertions(1);
     return expect(instance.get(url)
-      .then((res) => {
-        return isOfType(res.data, type);
-      })
-      .catch((err) => {
-        return err;
-      })).resolves.toBe(true);
+      .then((res) => isOfType(res.data, typeSpec))
+      .catch((err) => err)).resolves.toBe(true);
   });
 }
 
 /**
- * Tests a POST request by firing it with postData to url and verifying output against type.
+ * Tests a POST request by firing it with postData to url and verifying output against typeSpec.
  *
  * @param {String} url
- * @param {String|Array<String>|Object} type
+ * @param {String|Array<String>|Object} typeSpec
  * @param {Object} postData
  */
-function testPOST(url, type, postData) {
-  let msg = `POST ${axios.defaults.baseURL}${url}`;
-  if (type !== undefined && type !== null && type instanceof Object) {
-    const pairs = Object.entries(type);
-    if (pairs.length > 0) {
-      msg += ' has fields:\n';
-      for (const pair of pairs) {
-        const [key, val] = pair;
-        msg += `  => ${key}: ${val}\n`;
-      }
-    }
-  }
-  test(msg, () => {
+function testPOST(url, typeSpec, postData) {
+  test(makeMsg(url, 'POST', typeSpec, postData), () => {
     expect.assertions(1);
     return expect(
       instance.post(url, postData)
-        .then((res) => {
-          return isOfType(res.data, type);
-        })
-        .catch((err) => {
-          return false;
-        })).resolves.toBe(true);
+        .then((res) => isOfType(res.data, typeSpec))
+        .catch((err) => false)).resolves.toBe(true);
   });
 }
 
@@ -149,9 +154,9 @@ function testSuggest(url) {
  */
 function randUser() {
   /** @type {String} */
-  const email = randEmail();
+  const email = faker.internet.email();
   /** @type {String} */
-  const password = randPassword();
+  const password = faker.internet.password();
   /** @type {String} */
   const firstName = faker.name.firstName();
   /** @type {String} */
@@ -174,13 +179,7 @@ module.exports = {
   PORT,
   afterAll,
   beforeAll,
-  maybe,
-  randDate,
-  randEmail,
-  randNum,
-  randPassword,
   randUser,
-  randWord,
   testGET,
   testPOST,
   testSuggest,

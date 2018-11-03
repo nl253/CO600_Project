@@ -13,6 +13,8 @@
  * 6. check that it cascaded by seeing if the content exists
  */
 const testUtils = require('./testUtils');
+const faker = require('faker');
+const maybe = faker.random.boolean;
 
 const {
   afterAll: after,

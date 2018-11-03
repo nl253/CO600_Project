@@ -100,8 +100,6 @@ router.post('/:email/register', (req, res) =>
     .catch(err => res.status(err.code || 400).json(errMsg(err))));
 
 /**
- * TODO unregister User
- *
  * Removes a user from the database.
  *
  * Requires authentication OR credentials passed in the request params and body.
