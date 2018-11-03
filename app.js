@@ -52,7 +52,8 @@ app.use(
     dest: rootPath('public'),
     debug: false,
     outputStyle: 'compressed',
-    indentedSyntax: false, // true = .sass and false = .scss
+    // true = .sass and false = .scss
+    indentedSyntax: false,
     sourceMap: true,
   }),
 );

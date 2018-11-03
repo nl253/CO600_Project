@@ -61,7 +61,19 @@ function pprint(data) {
       .join(', ')}}`;
   }
 
-  return data.toString();
+  if (data.constructor && data.constructor.name) {
+    return data.constructor.name;
+  }
+
+  if (data.toString) {
+    return data.toString();
+  }
+
+  if (data.__proto__constructor && data.__proto__constructor.name) {
+    return data.__proto__constructor.name;
+  }
+
+  return '<unknown>';
 }
 
 /**
@@ -243,8 +255,6 @@ function isOfType(data, type) {
  * The function may return undefined but if it doesn't you are guaranteed to have
  * an email and password.
  *
- * FIXME getCredentials
- *
  * @param {express.Request} req http request (see Express docs)
  * @return {Promise<{password: String, email: String}>} credentials with SHA256 hashed password
  */
@@ -252,23 +262,31 @@ function getCredentials(req) {
   let email;
   let password;
   if ('email' in req.params) {
+    log.debug('found email in request params');
     email = req.params.email;
-  } else if ('email' in req.session) {
-    email = req.session.email;
+  } else if (req.session.user && 'email' in req.session.user) {
+    log.debug('found email in session');
+    email = req.session.user.email;
   } else if ('email' in req.body) {
+    log.debug('found email in request body');
     email = req.body.email;
   } else {
+    log.debug('failed to find credentials (email not found)');
     return Promise.reject(new NoCredentialsErr());
   }
 
   if ('password' in req.body) {
+    log.debug('found password in request body');
     password = sha256(req.body.password);
-  } else if ('password' in req.session) {
-    password = req.session;
+  } else if (req.session.user && 'password' in req.session.user) {
+    log.debug('found password in session');
+    password = req.session.user.password;
   } else {
+    log.debug('failed to find credentials (password not found)');
     return Promise.reject(new NoCredentialsErr());
   }
 
+  log.debug(`found credentials: ${pprint({email, password})}`);
   return Promise.resolve({email, password});
 }
 
@@ -316,7 +334,7 @@ class NoSuchRecord extends RestAPIErr {
   /**
    *
    * @param {String} tableName
-   * @param {Object|Array<String>} attrs
+   * @param {Object|Array<String>} [attrs]
    */
   constructor(tableName, attrs = {}) {
     let msg = `failed to find a matching ${tableName.toLowerCase()}`;
@@ -374,7 +392,7 @@ class MissingDataErr extends RestAPIErr {
    * @param {...String} params
    */
   constructor(missing, where, ...params) {
-    super(`${missing} from ${where}`, 400, ...params);
+    super(`missing ${missing} in ${where}`, 400, ...params);
   }
 }
 
@@ -398,17 +416,18 @@ class NoCredentialsErr extends MissingDataErr {
    * @param {...String} params
    */
   constructor(...params) {
-    super('credentials', 'cookies, GET params or request body', ...params);
+    super('credentials', 'request body', ...params);
   }
 }
 
 class AlreadyLoggedIn extends RestAPIErr {
   /**
-   * @param {String} email
+   * @param {String} [email]
    * @param params
    */
   constructor(email, ...params) {
-    super(`the user ${email} is alredy logged in`, 409, ...params);
+    super(`the user ${email ? email + ' ' : ''}is already logged in`, 409,
+      ...params);
   }
 }
 
@@ -418,30 +437,40 @@ class AlreadyLoggedIn extends RestAPIErr {
  */
 class NoSuchUser extends NoSuchRecord {
   /**
-   * @param {String} email
+   * @param {String} [email]
    * @param {...String} attrs
    */
   constructor(email, ...attrs) {
-    super('User', ...attrs);
+    if (email !== undefined && email !== null) {
+      super('User', ...attrs);
+    } else {
+      super('User', {email}, ...attrs);
+    }
   }
 }
 
 class NotLoggedIn extends RestAPIErr {
   /**
-   * @param {String} email
+   * @param {String} [email]
    * @param params
    */
-  constructor(email, ...params) {
-    super(`the user ${email} is not logged in`, 400, ...params);
+  constructor(email = undefined, ...params) {
+    super(email !== undefined && email !== null ?
+      `the user ${email} is not logged in` :
+      `the user is not logged in`, 400, ...params);
   }
 }
 
 class AuthFailedErr extends NoSuchRecord {
   /**
-   * @param {String} email
+   * @param {String} [email]
    */
-  constructor(email) {
-    super('User', {email, password: '<hidden>'});
+  constructor(email = undefined) {
+    if (email === undefined || email === null) {
+      super('User');
+    } else {
+      super('User', {email, password: '<hidden>'});
+    }
   }
 }
 
