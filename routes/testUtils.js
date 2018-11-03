@@ -7,7 +7,7 @@ const faker = require('faker');
 const axios = require('axios');
 
 // Project
-const {isOfType} = require('./lib');
+const {isOfType, pprint} = require('./lib');
 
 const PORT = 3000;
 const HOST = '127.0.0.1';
@@ -26,7 +26,7 @@ let winston = require('winston');
  * @type {winston.Logger}
  */
 const log = winston.createLogger({
-  level: 'info',
+  level: 'debug',
   format: winston.format.simple(),
   transports: [
     new winston.transports.Console(),
@@ -68,7 +68,9 @@ function afterAll() {
  * @return {string}
  */
 function truncate(s, len = process.stdout.columns - 5) {
-  return s.length >= len ? `${s.slice(0, len - 3)} ...` : s;
+  return s !== null && s !== undefined ?
+    s.length >= len ? `${s.slice(0, len - 3)} ...` : s :
+    s;
 }
 
 /**
@@ -91,7 +93,8 @@ function makeMsg(url, method, typeSpec = {}, params = {}) {
     const longestParamLen = Object.keys(params)
       .reduce((cur, p) => p.length >= cur ? p.length : cur, 0);
     for (const param in params) {
-      msg += `\n    => ${param.padEnd(longestParamLen)} ${params[param]}`;
+      msg += `\n    => ${param.padEnd(longestParamLen)} ${truncate(
+        params[param], 40)}`;
     }
   }
   const longestKeyLen = Object.keys(typeSpec)
@@ -100,7 +103,7 @@ function makeMsg(url, method, typeSpec = {}, params = {}) {
   for (const pair of Object.entries(typeSpec)) {
     let [key, val] = pair;
     val = val.toString();
-    msg += `    => ${key.padEnd(longestKeyLen)} ${truncate(val)}\n`;
+    msg += `    => ${key.padEnd(longestKeyLen)} ${truncate(val, 30)}\n`;
   }
   return msg;
 }
@@ -115,9 +118,22 @@ function makeMsg(url, method, typeSpec = {}, params = {}) {
 function testGET(url, typeSpec) {
   test(makeMsg(url, 'GET', typeSpec), () => {
     expect.assertions(1);
-    return expect(instance.get(url)
-      .then((res) => isOfType(res.data, typeSpec))
-      .catch((err) => err)).resolves.toBe(true);
+    return expect(
+      instance
+        .get(url)
+        .then((res) => {
+          log.debug(`response to GET request to ${url}:`);
+          log.debug(pprint(res));
+          log.debug('response data:');
+          log.debug(pprint(res.data));
+          return isOfType(res.data, typeSpec);
+        })
+        .catch((err) => {
+          log.warn(`error ${err} occurred due to GET request to ${url}:`);
+          log.warn(pprint(err));
+          log.warn(`error message: ${err.msgJSON || err.message}`);
+          return false;
+        })).resolves.toBe(true);
   });
 }
 
@@ -132,9 +148,21 @@ function testPOST(url, typeSpec, postData) {
   test(makeMsg(url, 'POST', typeSpec, postData), () => {
     expect.assertions(1);
     return expect(
-      instance.post(url, postData)
-        .then((res) => isOfType(res.data, typeSpec))
-        .catch((err) => false)).resolves.toBe(true);
+      instance
+        .post(url, postData)
+        .then((res) => {
+          log.debug(`response to POST request to ${url}:`);
+          log.debug(pprint(res));
+          log.debug('response data:');
+          log.debug(pprint(res.data));
+          return isOfType(res.data, typeSpec);
+        })
+        .catch((err) => {
+          log.warn(`error ${err} occurred due to GET request to ${url}:`);
+          log.warn(pprint(err));
+          log.warn(`error message: ${err.msgJSON || err.message}`);
+          return false;
+        })).resolves.toBe(true);
   });
 }
 

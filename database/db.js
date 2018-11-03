@@ -84,6 +84,7 @@ const User = sequelize.define('User', {
 
 const Module = sequelize.define('Module', {
   name: {type: STRING, allowNull: false, primaryKey: true},
+  topic: STRING,
   author: {
     type: STRING,
     references: {model: User, key: 'email'},
