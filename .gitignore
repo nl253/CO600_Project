@@ -72,3 +72,7 @@ tests-*.json
 
 # Session files
 sessions/
+
+# Generated API documentation
+doc/
+docs/
