@@ -1,3 +1,5 @@
+
+
 <p>
   <nav class="navbar">
         <div class="navbar-brand">
@@ -40,27 +42,29 @@
         </div>
 
         <div class="navbar-end">
-            <div class="navbar-item">
-                <div class="control has-icons-left">
-                    <input class="input is-success is-small" type="text" placeholder="email">
-                    <span class="icon is-small is-left">
-                        <i class="fa fa-envelope"></i>
-                    </span>
+            
+            <form action="/api/user/.../login" method='post' >
+                <div class="navbar-item">
+                    <div class="control has-icons-left">
+                        <input name="email" class="input is-success is-small" id="email" type="text" placeholder="email">
+                        <span class="icon is-small is-left">
+                            <i class="fa fa-envelope"></i>
+                        </span>
+                    </div>
                 </div>
-            </div>
-            <div class="navbar-item">
-                <div class="control has-icons-left">
-                    <input class="input is-success is-small" type="password" placeholder="password">
-                    <span class="icon is-small is-left">
-                        <i class="fa fa-lock"></i>
-                    </span>
+                <div class="navbar-item">
+                    <div class="control has-icons-left">
+                        <input name="password" class="input is-success is-small" id="password" type="password" placeholder="password">
+                        <span class="icon is-small is-left">
+                            <i class="fa fa-lock"></i>
+                        </span>
+                    </div>
                 </div>
-            </div>
-            <a href="" class="navbar-item">
-                <button class="button is-primary is-small">
-                    <strong>Login</strong>
-                </button>
-            </a>
+                <div class="navbar-item">
+                    <input type="submit" onclick="collectVariable" value="Login" class="button is-primary is-small">
+                </div>
+            </form>
+            
             
         </div>
      </nav>
@@ -144,3 +148,21 @@
         </div>
     </div>
 </p>
+
+<script>
+
+    function collectVariable {
+
+        fetch(`/api/user/${document.getElementById("email").value}/`).then(response => {
+            if (response.status >= 400){
+                alert(response.json().msg);
+            } else {
+                window.location = "/api/userProfile"
+            }
+        }).catch(errorCatch => {
+            alert(errorCatch.message);
+        })
+    } 
+
+    
+</script>
