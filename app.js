@@ -3,9 +3,25 @@
  *
  * @author Norbert
  */
-const createError = require('http-errors');
+const {join, resolve} = require('path');
+const {mkdirSync, existsSync} = require('fs');
+
+/**
+ * Produce a path relative to this file (i.e. path relative to the root of the project).
+ *
+ * @param {String} fileName
+ * @return {String} path relative to project root
+ */
+function rootPath(fileName) {
+  return resolve(join(__dirname, fileName));
+}
+
+for (const dir of ['logs', 'sessions'].map(rootPath)) {
+  if (!existsSync(dir)) mkdirSync(dir);
+}
+
 const express = require('express');
-const path = require('path');
+const createError = require('http-errors');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
@@ -20,16 +36,6 @@ const SECRET = 'U\x0bQ*kf\x1bb$Z\x13\x03\x15w\'- f\x0fn1\x0f\\\x106V\'M~\x07';
 const app = express();
 
 app.use(cors());
-
-/**
- * Produce a path relative to this file (i.e. path relative to the root of the project).
- *
- * @param {String} fileName
- * @return {String} path relative to project root
- */
-function rootPath(fileName) {
-  return path.resolve(path.join(__dirname, fileName));
-}
 
 // view engine setup
 app.set('views', rootPath('views'));
@@ -68,6 +74,7 @@ app.use((req, res, next) => next(createError(404)));
 
 // error handler
 app.use((err, req, res, next) => {
+  /** @namespace res.locals */
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

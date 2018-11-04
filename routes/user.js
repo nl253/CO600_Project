@@ -21,9 +21,7 @@ const {
   NotLoggedIn,
   UserExistsErr,
   errMsg,
-  guessType,
   getCredentials,
-  isOfType,
   log,
   msg,
   pprint,
@@ -128,7 +126,7 @@ router.post('/unregister', (req, res) => {
       return email;
     })
     .then(email => res.json(
-      msg(`successfully unregistered the user ${email}`)))
+      msg(`successfully unregistered user ${email}`)))
     .catch(err => res.status(err.code || 400).json(errMsg(err)));
 });
 
@@ -262,16 +260,16 @@ router.get('/', (req, res) => {
     return ok(queryParams);
   }).then(queryParams => User.findAll({limit: 100, where: queryParams}))
     .then(results => {
-      log.debug(`located matching ${results.length} users:`);
+      log.debug(`located matching ${results.length} users`);
       return results.map(u => u.dataValues);
     })
     .then(users => {
       const clones = users.map(u => JSON.parse(JSON.stringify(u)));
-      log.debug('cloned found users:');
-      log.debug(clones);
+      log.debug('extracted info from found users');
       return clones;
     })
     .then(clones => {
+      log.debug('removing passwords from user-info objects');
       for (const c in clones) {
         delete clones[c].password;
       }

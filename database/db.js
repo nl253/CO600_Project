@@ -9,19 +9,42 @@ const {join, resolve} = require('path');
 const Sequelize = require('sequelize');
 const winston = require('winston');
 
+/**
+ * This is a logger for the database that logs all queries.
+ *
+ * @type {winston.Logger}
+ */
 const log = winston.createLogger({
   level: 'debug',
-  format: winston.format.simple(),
+  format: winston.format.combine(
+    winston.format.label({label: 'DATABASE'}),
+    winston.format.prettyPrint(),
+    winston.format.printf(
+      info => `${info.level && info.level.trim() !== '' ?
+        ('[' + info.level.toUpperCase() + ']').padEnd(10) :
+        ''}${info.label ?
+        (info.label + ' ::').padEnd(12) :
+        ''}${info.message}`),
+  ),
   transports: [
-    new winston.transports.File({filename: resolve(join(__dirname, 'db.log'))}),
+    new winston.transports.Console(),
+    new winston.transports.File({
+      level: 'warn',
+      filename: resolve(join(__dirname, '..', 'logs', 'db.log')),
+    }),
   ],
 });
 
 const {STRING, TEXT, INTEGER, TINYINT, BOOLEAN, REAL} = Sequelize;
 
+let datbasePath = resolve(join(__dirname, 'db'));
+
 const sequelize = new Sequelize({
+
   dialect: 'sqlite',
-  storage: resolve(join(__dirname, 'db')),
+
+  storage: datbasePath,
+
   // Specify options, which are used when sequelize.define is called.
   //
   // The following example:
