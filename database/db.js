@@ -19,8 +19,10 @@ const log = winston.createLogger({
 
 const {STRING, TEXT, INTEGER, TINYINT, BOOLEAN, REAL} = Sequelize;
 
-const sequelize = new Sequelize(`sqlite://${join(__dirname, 'db')}`, {
-
+const sequelize = new Sequelize({
+  dialect: 'sqlite',
+  operatorsAliases: false,
+  storage: join(__dirname, 'db'),
   // Specify options, which are used when sequelize.define is called.
   //
   // The following example:
