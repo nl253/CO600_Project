@@ -4,7 +4,7 @@
  * @author Norbert
  */
 
-const {join} = require('path');
+const {join, resolve} = require('path');
 
 const Sequelize = require('sequelize');
 const winston = require('winston');
@@ -13,7 +13,7 @@ const log = winston.createLogger({
   level: 'debug',
   format: winston.format.simple(),
   transports: [
-    new winston.transports.File({filename: join(__dirname, 'db.log')}),
+    new winston.transports.File({filename: resolve(join(__dirname, 'db.log'))}),
   ],
 });
 
@@ -21,8 +21,7 @@ const {STRING, TEXT, INTEGER, TINYINT, BOOLEAN, REAL} = Sequelize;
 
 const sequelize = new Sequelize({
   dialect: 'sqlite',
-  operatorsAliases: false,
-  storage: join(__dirname, 'db'),
+  storage: resolve(join(__dirname, 'db')),
   // Specify options, which are used when sequelize.define is called.
   //
   // The following example:

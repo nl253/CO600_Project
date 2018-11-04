@@ -28,7 +28,7 @@ app.use(cors());
  * @return {String} path relative to project root
  */
 function rootPath(fileName) {
-  return path.join(__dirname, fileName);
+  return path.resolve(path.join(__dirname, fileName));
 }
 
 // view engine setup

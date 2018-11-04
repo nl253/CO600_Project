@@ -32,7 +32,7 @@ const log = winston.createLogger({
     new winston.transports.Console(),
     // Write all logs error (and below) to `/tests.log`.
     new winston.transports.File({
-      filename: resolve(join(__dirname + '/../tests.log')),
+      filename: resolve(join(__dirname + '..', 'tests.log')),
     }),
   ],
 });
