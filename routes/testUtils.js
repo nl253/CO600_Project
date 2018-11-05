@@ -18,21 +18,30 @@ axios.defaults.baseURL = `http://${HOST}:${PORT}/api`;
 // loads axios and includes config from the defaults
 const instance = axios.create();
 
-let winston = require('winston');
+const winston = require('winston');
 
 /**
- * This logger is meant to be used by all `./*.test.js` files.
+ * This is a logger for the database that logs all queries.
  *
  * @type {winston.Logger}
  */
 const log = winston.createLogger({
   level: 'debug',
-  format: winston.format.simple(),
+  format: winston.format.combine(
+    winston.format.label({label: 'TESTS'}),
+    winston.format.prettyPrint(),
+    winston.format.printf(
+      info => `${info.level && info.level.trim() !== '' ?
+        ('[' + info.level.toUpperCase() + ']').padEnd(10) :
+        ''}${info.label ?
+        (info.label + ' ::').padEnd(12) :
+        ''}${info.message}`),
+  ),
   transports: [
     new winston.transports.Console(),
-    // Write all logs error (and below) to `/tests.log`.
     new winston.transports.File({
-      filename: resolve(join(__dirname + '..', 'tests.log')),
+      level: 'warn',
+      filename: resolve(join(__dirname, '..', 'logs', 'tests.log')),
     }),
   ],
 });
@@ -122,15 +131,14 @@ function testGET(url, typeSpec) {
       instance
         .get(url)
         .then((res) => {
-          log.debug(`response to GET request to ${url}:`);
-          log.debug(pprint(res));
-          log.debug('response data:');
-          log.debug(pprint(res.data));
+          log.debug(`response to GET request to ${url}: ${pprint(res)}`);
+          log.debug(`response data: ${pprint(res.data)}`);
           return isOfType(res.data, typeSpec);
         })
         .catch((err) => {
-          log.warn(`error ${err} occurred due to GET request to ${url}:`);
-          log.warn(pprint(err));
+          log.warn(
+            `error ${err} occurred due to GET request to ${url}: ${pprint(
+              err)}`);
           log.warn(`error message: ${err.msgJSON || err.message}`);
           return false;
         })).resolves.toBe(true);
@@ -151,15 +159,14 @@ function testPOST(url, typeSpec, postData) {
       instance
         .post(url, postData)
         .then((res) => {
-          log.debug(`response to POST request to ${url}:`);
-          log.debug(pprint(res));
-          log.debug('response data:');
-          log.debug(pprint(res.data));
+          log.debug(`response to POST request to ${url}: ${pprint(res)}`);
+          log.debug(`response data: ${pprint(res.data)}`);
           return isOfType(res.data, typeSpec);
         })
         .catch((err) => {
-          log.warn(`error ${err} occurred due to GET request to ${url}:`);
-          log.warn(pprint(err));
+          log.warn(
+            `error ${err} occurred due to GET request to ${url}: ${pprint(
+              err)}`);
           log.warn(`error message: ${err.msgJSON || err.message}`);
           return false;
         })).resolves.toBe(true);

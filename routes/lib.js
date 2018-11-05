@@ -7,16 +7,31 @@
 const crypto = require('crypto');
 const {join, resolve} = require('path');
 const {ValidationError} = require('sequelize/lib/errors');
-let winston = require('winston');
+const winston = require('winston');
 
+/**
+ * This is a logger that should be user by all parts of the REST API such as `/api/user`, `/api/module` etc.
+ *
+ * @type {winston.Logger}
+ */
 const log = winston.createLogger({
   level: 'debug',
-  format: winston.format.simple(),
+  format: winston.format.combine(
+    winston.format.label({label: 'REST API'}),
+    winston.format.prettyPrint(),
+    winston.format.printf(
+      info => `${info.level && info.level.trim() !== '' ?
+        ('[' + info.level.toUpperCase() + ']').padEnd(10) :
+        ''}${info.label ?
+        (info.label + ' ::').padEnd(12) :
+        ''}${info.message}`),
+  ),
   transports: [
     new winston.transports.Console(),
-    // Write all logs error (and below) to `/warnings.log`.
+    // send all logs to `/logs/log`.
     new winston.transports.File({
-      filename: resolve(join(__dirname, '..', 'warnings.log')),
+      level: 'info',
+      filename: resolve(join(__dirname, '..', 'logs', 'log')),
     }),
   ],
 });
@@ -69,6 +84,7 @@ function pprint(data) {
     return data.toString();
   }
 
+  /** @namespace data.__proto__constructor */
   if (data.__proto__constructor && data.__proto__constructor.name) {
     return data.__proto__constructor.name;
   }
@@ -105,9 +121,11 @@ function errMsg(err) {
   }
 
   if (err instanceof ValidationError) {
+    /** @namespace err.errors */
     let noErrs = err.errors.length;
 
     if (noErrs === 0) {
+      /** @namespace err.message */
       return {status, msg: `validation error: ${err.message}`};
     }
 
@@ -118,6 +136,7 @@ function errMsg(err) {
       };
     }
 
+    /** @namespace err.errors */
     return {status, msg: `validation error: ${err.errors[0].message}`};
   }
 
