@@ -39,7 +39,7 @@ const fs = require('fs');
 const express = require('express');
 const router = express.Router();
 
-const {suggestRoutes, log, NotImplYetErr, errMsg, TypoErr} = require('./lib');
+const {suggestRoutes, log, NotImplYetErr, errMsg, TypoErr} = require('./../lib');
 
 const MODELS = [
   'User',

@@ -7,7 +7,7 @@ const faker = require('faker');
 const axios = require('axios');
 
 // Project
-const {isOfType, pprint} = require('./lib');
+const {isOfType, pprint} = require('./../lib');
 
 const PORT = 3000;
 const HOST = '127.0.0.1';
