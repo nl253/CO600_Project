@@ -16,44 +16,58 @@ function rootPath(fileName) {
   return resolve(join(__dirname, fileName));
 }
 
-// create `/logs` and `/sessions` directories if they don't already exist
-// otherwise session files and logs won't be saved!
-for (const dir of ['logs', 'sessions'].map(rootPath)) {
-  if (!existsSync(dir)) mkdirSync(dir);
-}
+if (!existsSync('logs')) mkdirSync('logs');
 
 const express = require('express');
-const createError = require('http-errors');
-const cookieParser = require('cookie-parser');
-const session = require('express-session');
-const FileStore = require('session-file-store')(session);
-const logger = require('morgan');
-const sassMiddleware = require('node-sass-middleware');
-const cors = require('cors');
-
 const SECRET = 'U\x0bQ*kf\x1bb$Z\x13\x03\x15w\'- f\x0fn1\x0f\\\x106V\'M~\x07';
 
 const app = express();
 
-app.use(cors());
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '127.0.0.1');
+  res.header('Access-Control-Allow-Credentials', true);
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
+
+app.use(require('cookie-parser')({
+  secret: SECRET,
+  options: {
+    httpOnly: true,
+    sameSite: true,
+    signed: false,
+    path: '/',
+  },
+}));
+
+app.use(require('cors')({
+  origin: ['http://localhost:3000'],
+  methods: ['GET', 'POST'],
+  // enable set cookie
+  credentials: true,
+}));
+
+// app.use(require('cookie-session')({
+// name: 'session',
+// secret: SECRET,
+// // 4 hours
+// maxAge: 4 * 60 * 60 * 1000,
+// }));
 
 // view engine setup
 app.set('views', rootPath('views'));
 app.set('view engine', 'hbs');
 
-app.use(logger('dev'));
+app.use(require('morgan')('dev'));
 app.use(express.json());
 app.use(
   express.urlencoded({
     extended: false,
   }),
 );
-app.use(cookieParser(SECRET));
-app.use(session(
-  {store: new FileStore({path: rootPath('sessions')}), secret: SECRET}));
 
 app.use(
-  sassMiddleware({
+  require('node-sass-middleware')({
     src: rootPath('public'),
     dest: rootPath('public'),
     debug: false,
@@ -71,7 +85,7 @@ app.use('/api', require('./routes/api'));
 app.use('/', require('./routes/index'));
 
 // catch 404 and forward to error handler
-app.use((req, res, next) => next(createError(404)));
+app.use((req, res, next) => next(require('http-errors')(404)));
 
 // error handler
 app.use((err, req, res, next) => {
