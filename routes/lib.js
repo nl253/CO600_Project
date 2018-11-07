@@ -72,11 +72,17 @@ function pprint(data) {
 
   if (data instanceof Object) {
     return `{${Array.from(Object.entries(data))
-      .map((pair) => `${pair[0]}: ${pair[1]}`)
+      .map((pair) => `${pair[0]}: ${pair[1] !== undefined && pair[1] !== null ?
+        pair[1].toString().slice(0, 15) :
+        '?'}`)
       .join(', ')}}`;
   }
 
-  if (data.constructor && data.constructor.name) {
+  if ('constructor' in data && data.constructor.name === 'String') {
+    return data;
+  }
+
+  if ('constructor' in data && data.constructor && data.constructor.name) {
     return data.constructor.name;
   }
 
@@ -161,64 +167,6 @@ function sha256(data) {
 }
 
 /**
- * Guess the type of data.
- *
- * NOTE expect the type to be *capitalised* as in: "Array", "Object", "Number" etc.
- * NOTE `null` will return "null" and undefined will return "undefined".
- *
- * @param {*} data
- * @return {String|Array|Object} type info
- */
-function guessType(data) {
-
-  if (data === undefined) return 'undefined';
-  if (data === null) return 'null';
-  if (Array.isArray(data)) return data.map(guessType);
-
-  if (data instanceof Map) {
-    const typeObj = {};
-    for (const key in data) {
-      typeObj[key] = guessType(data.get(key));
-    }
-    return typeObj;
-  }
-
-  if (data.constructor.name !== 'Object') {
-    return data.constructor.name;
-  }
-
-  if (data.constructor !== undefined && data.constructor.name === 'String') {
-    return 'String';
-  }
-
-  if (data.constructor !== undefined && data.constructor.name === 'Number') {
-    return 'Number';
-  }
-
-  if (data instanceof Set) return 'Set';
-  if (data instanceof URL) return 'URL';
-  if (data instanceof Promise) return 'Promise';
-  if (data instanceof Error) return 'Error';
-  if (data instanceof Buffer) return 'Buffer';
-  if (data instanceof Int8Array) return 'Int8Array';
-  if (data instanceof Int16Array) return 'Int16Array';
-  if (data instanceof Int32Array) return 'Int32Array';
-  if (data instanceof Float32Array) return 'Float32Array';
-  if (data instanceof Float64Array) return 'Float64Array';
-  if (data instanceof URL) return 'URL';
-  if (data instanceof Date) return 'Date';
-
-  // fallback to Object
-  const typeObj = {};
-
-  for (const key in data) {
-    typeObj[key] = guessType(data[key]);
-  }
-
-  return typeObj;
-}
-
-/**
  * Suggest routes when an API user types something like `/`, `/module` or `/content`.
  *
  * @param {express.Router} router
@@ -232,41 +180,14 @@ function suggestRoutes(router, path, routes) {
 }
 
 /**
- * Check if data is of specified type.
- *
- * @param {*} data
- * @param {String|Object|Array} type
- * @return {Boolean} whether type matches data
+ * @param {String} s
+ * @param {Number} len
+ * @return {string}
  */
-function isOfType(data, type) {
-  if (type === '*') return true;
-
-  if (data === null) {
-    return type.constructor !== undefined && type.constructor.name ===
-      'String' && (type.endsWith('?') || type === 'null');
-  }
-
-  if (data === undefined) {
-    return type.constructor !== undefined && type.constructor.name ===
-      'String' && (type.endsWith('?') || type === 'undefined');
-  }
-
-  if (type.constructor !== undefined && type.constructor.name === 'String') {
-    const guess = guessType(data);
-    return guess.constructor !== undefined && guess.constructor.name ===
-      'String' && (guess === type ||
-        (type.endsWith('?') && type.slice(0, type.length - 1) === guess));
-  }
-
-  if (!(type instanceof Object)) return false;
-
-  for (const key in type) {
-    if (!(key in data && isOfType(data[key], type[key]))) {
-      return false;
-    }
-  }
-
-  return true;
+function truncate(s, len = process.stdout.columns - 5) {
+  return s !== null && s !== undefined ?
+    s.length >= len ? `${s.slice(0, len - 3)} ...` : s :
+    s;
 }
 
 /**
@@ -283,9 +204,9 @@ function getCredentials(req) {
   if ('email' in req.params) {
     log.debug('found email in request params');
     email = req.params.email;
-  } else if (req.session.user && 'email' in req.session.user) {
-    log.debug('found email in session');
-    email = req.session.user.email;
+  } else if (req.cookies.email !== undefined && req.cookies.email !== null) {
+    log.debug('found email in a cookie');
+    email = req.cookies.email;
   } else if ('email' in req.body) {
     log.debug('found email in request body');
     email = req.body.email;
@@ -297,9 +218,10 @@ function getCredentials(req) {
   if ('password' in req.body) {
     log.debug('found password in request body');
     password = sha256(req.body.password);
-  } else if (req.session.user && 'password' in req.session.user) {
-    log.debug('found password in session');
-    password = req.session.user.password;
+  } else if (req.cookies.password !== undefined && req.cookies.password !==
+    null) {
+    log.debug('found password in a cookie');
+    password = req.cookies.password;
   } else {
     log.debug('failed to find credentials (password not found)');
     return Promise.reject(new NoCredentialsErr());
@@ -460,10 +382,10 @@ class NoSuchUser extends NoSuchRecord {
    * @param {...String} attrs
    */
   constructor(email, ...attrs) {
-    if (email !== undefined && email !== null) {
-      super('User', ...attrs);
-    } else {
+    if (email === undefined) {
       super('User', {email}, ...attrs);
+    } else {
+      super('User', ...attrs);
     }
   }
 }
@@ -518,8 +440,6 @@ module.exports = {
   UserExistsErr,
   errMsg,
   getCredentials,
-  guessType,
-  isOfType,
   log,
   msg,
   pprint,

@@ -15,7 +15,7 @@ const winston = require('winston');
  * @type {winston.Logger}
  */
 const log = winston.createLogger({
-  level: 'debug',
+  level: 'warn',
   format: winston.format.combine(
     winston.format.label({label: 'DATABASE'}),
     winston.format.prettyPrint(),

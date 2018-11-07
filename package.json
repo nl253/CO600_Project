@@ -35,7 +35,13 @@
     "jest": "^23.6.0",
     "jsdoc": "^3.5.5"
   },
+  "engines": {
+    "node": ">=10.11.0"
+  },
   "homepage": "https://github.com/nl253/CO600_Project",
+  "jest": {
+    "testEnvironment": "node"
+  },
   "keywords": [
     "SQL",
     "uni",
@@ -54,10 +60,10 @@
     "url": "git+https://github.com/nl253/CO600_Project.git"
   },
   "scripts": {
-    "lint": "./node_modules/.bin/eslint",
-    "start": "node ./bin/www",
     "docs": "./node_modules/.bin/jsdoc -r -R ./README.md -d ./doc $(find -type f -name '*.js' -not -path '**/node_modules/**' -not -path '**/doc/**' -not -path '**/docs/**')",
+    "lint": "./node_modules/.bin/eslint",
     "read-docs": "$BROWSER ./doc/index.html",
+    "start": "node ./bin/www",
     "test": "./node_modules/.bin/jest",
     "test-to-JSON": "./node_modules/.bin/jest --verbose --no-color --color false --json --outputFile 'tests-results.json'"
   },
