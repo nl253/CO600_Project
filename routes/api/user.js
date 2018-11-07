@@ -26,9 +26,9 @@ const {
   msg,
   pprint,
   sha256,
-} = require('./lib');
+} = require('./../lib');
 
-const {User} = require('../database/db.js');
+const {User} = require('../../database/db.js');
 
 /**
  * Logs a user in.

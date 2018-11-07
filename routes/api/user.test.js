@@ -28,7 +28,7 @@ const {
   testPOST,
   testSuggest,
 } = testUtils;
-const {pprint} = require('./lib');
+const {pprint} = require('./../lib');
 
 beforeAll(function() {
   return before();

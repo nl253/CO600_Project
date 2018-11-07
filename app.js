@@ -16,6 +16,8 @@ function rootPath(fileName) {
   return resolve(join(__dirname, fileName));
 }
 
+// create `/logs` and `/sessions` directories if they don't already exist
+// otherwise session files and logs won't be saved!
 for (const dir of ['logs', 'sessions'].map(rootPath)) {
   if (!existsSync(dir)) mkdirSync(dir);
 }
@@ -29,8 +31,6 @@ const logger = require('morgan');
 const sassMiddleware = require('node-sass-middleware');
 const cors = require('cors');
 
-const indexRouter = require('./routes/index');
-const apiRouter = require('./routes/api');
 const SECRET = 'U\x0bQ*kf\x1bb$Z\x13\x03\x15w\'- f\x0fn1\x0f\\\x106V\'M~\x07';
 
 const app = express();
@@ -66,8 +66,9 @@ app.use(
 
 app.use(express.static(rootPath('public')));
 
-app.use('/api', apiRouter);
-app.use('/', indexRouter);
+app.use('/user', require('./routes/user'));
+app.use('/api', require('./routes/api'));
+app.use('/', require('./routes/index'));
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => next(createError(404)));
