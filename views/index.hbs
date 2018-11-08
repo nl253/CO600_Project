@@ -44,7 +44,7 @@
       <div class="navbar-end">
         <div class="navbar-item">
           <div class="control has-icons-left">
-            <input name="email" class="input is-success is-small" id="email" type="text" placeholder="email">
+            <input name="email" class="input is-success is-small" id="email" type="email" placeholder="email" autocomplete="on" maxlength="255" pattern=".{2,}@.{2,}\..{2,}" required>
             <span class="icon is-small is-left">
                             <i class="fa fa-envelope"></i>
                         </span>
@@ -52,14 +52,14 @@
         </div>
         <div class="navbar-item">
           <div class="control has-icons-left">
-            <input name="password" class="input is-success is-small" id="password" type="password" placeholder="password">
+            <input name="password" class="input is-success is-small" id="password" type="password" placeholder="password" pattern=".{6,}" required>
             <span class="icon is-small is-left">
                             <i class="fa fa-lock"></i>
                         </span>
           </div>
         </div>
         <div class="navbar-item">
-          <input type="submit" id="loginBtn" value="Login" class="button is-primary is-small">
+          <input type="submit" id="loginBtn" value="Log In" class="button is-primary is-small">
         </div>
       </div>
 
@@ -105,7 +105,7 @@
                 <div class="field">
                   <label class="label">Email</label>
                   <div class="control has-icons-left">
-                    <input class="input" type="text" placeholder="example@email.com">
+                    <input class="input" type="email" pattern=".{2,}@.{2,}\..{2,}" placeholder="example@email.com" autocomplete="on" required>
                     <span class="icon is-small is-left">
                                           <i class="fa fa-envelope"></i>
                                       </span>
@@ -114,7 +114,7 @@
                 <div class="field">
                   <label class="label">Confirm Email</label>
                   <div class="control has-icons-left">
-                    <input class="input" type="text" placeholder="example@email.com">
+                    <input class="input" type="email" pattern=".{2,}@.{2,}\..{2,}" placeholder="example@email.com" autocomplete="on" required>
                     <span class="icon is-small is-left">
                                           <i class="fa fa-envelope"></i>
                                       </span>
@@ -123,7 +123,7 @@
                 <div class="field">
                   <label class="label">Password</label>
                   <div class="control has-icons-left">
-                    <input class="input" type="password">
+                    <input class="input" type="password" pattern=".{6,}" required>
                     <span class="icon is-small is-left">
                                         <i class="fa fa-lock"></i>
                                     </span>
@@ -132,7 +132,7 @@
                 <div class="field">
                   <label class="label">Confirm Password</label>
                   <div class="control has-icons-left">
-                    <input class="input" type="password">
+                    <input class="input" type="password" pattern=".{6,}" required>
                     <span class="icon is-small is-left">
                                         <i class="fa fa-lock"></i>
                                     </span>
@@ -150,43 +150,38 @@
 </p>
 
 <script>
-  document.querySelector('#loginBtn').onclick = (event) => {
+  document.getElementById('loginBtn').onclick = (event) => {
 
     // don't send the HTML form
     event.preventDefault();
 
-    fetch(`/api/user/login`, {
+    const email = document.getElementById('email').innerText;
+    const password = document.getElementById('password').innerText;
+    const credentials = {email, password};
+
+    const cfg = {
       method: "POST",
+      cache: "no-cache",
+      mode: "cors",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        "Accept": "application/json",
       },
-      body: JSON.stringify({
-        email: document.getElementById('email').innerText,
-        password: document.getElementById('password').innerText
-      }),
+      body: JSON.stringify(credentials),
+    };
 
-      // HTTP response
-    }).then(response => {
-      console.log('reponse:');
-      console.log(response);
-      // if it goes wrong
-      // error codes 400..499 and 500..599 are client and server errors
-      if (response.status >= 400) {
-        // force it to jump to reject
-        return Promise.reject(response.json());
-      } else {
-        return response.json();
-      }
-
-      // JSON object which you can now use to make an error message
-    }).then(json => {
-      console.log('json:');
-      alert(json.msg);
-    }).catch(errorCatch => {
-      console.log('error catch:');
-      console.log(errorCatch);
-      return errorCatch.then(e => alert(e.msg || e.message || e.toString()));
-    })
+    // error codes 400..499 and 500..599 are client and server errors
+    return fetch(`/api/user/login`, cfg)
+      .then(response => response.status >= 400 ?
+        // if it goes wrong force it to jump to reject
+        Promise.reject(response.json()) :
+        // the JSON object is guaranteed to have a "msg" property
+        response.json())
+      .then(json => alert(json.msg))
+      .catch(err => {
+        console.error(err);
+        return err.then(e => alert(e.msg || e.message || e.toString()));
+      })
   }
-
 </script>
