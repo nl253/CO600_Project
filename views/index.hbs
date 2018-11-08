@@ -41,9 +41,9 @@
             </div>
         </div>
 
-        <div class="navbar-end">
+        <form action="" method='post' >
             
-            <form action="/api/user/.../login" method='post' >
+            <div class="navbar-end">
                 <div class="navbar-item">
                     <div class="control has-icons-left">
                         <input name="email" class="input is-success is-small" id="email" type="text" placeholder="email">
@@ -61,12 +61,11 @@
                     </div>
                 </div>
                 <div class="navbar-item">
-                    <input type="submit" onclick="collectVariable" value="Login" class="button is-primary is-small">
+                    <input type="submit" id="loginBtn" value="Login" class="button is-primary is-small">
                 </div>
-            </form>
+            </div>
             
-            
-        </div>
+        </form>
      </nav>
      <section class="hero is-fullheight is-primary is-bold"></div>
         <div class="hero-head">
@@ -97,7 +96,7 @@
                                   </div>
                               </div>
                               <div class="field">
-                                  <label class="label">Surame</label>
+                                  <label class="label">Surname</label>
                                   <div class="control">
                                       <input class="input" type="text" placeholder="e.g. Adams">
                                   </div>
@@ -150,19 +149,43 @@
 </p>
 
 <script>
+    document.querySelector('#loginBtn').onclick = (event) => {
 
-    function collectVariable {
+        // don't send the HTML form
+        event.preventDefault();
 
-        fetch(`/api/user/${document.getElementById("email").value}/`).then(response => {
+        fetch(`/api/user/login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                email: document.getElementById('email').innerText,
+                password: document.getElementById('password').innerText
+            }),
+
+        // HTTP response
+        }).then(response => {
+            console.log('reponse:');
+            console.log(response);
+            // if it goes wrong
+            // error codes 400..499 and 500..599 are client and server errors
             if (response.status >= 400){
-                alert(response.json().msg);
+                // force it to jump to reject
+                return Promise.reject(response.json());
             } else {
-                window.location = "/api/userProfile"
+                return response.json();
             }
+
+        // JSON object which you can now use to make an error message  
+        }).then(json => {
+            console.log('json:');
+            alert(json.msg);
         }).catch(errorCatch => {
-            alert(errorCatch.message);
+            console.log('error catch:');
+            console.log(errorCatch);
+            return errorCatch.then(e => alert(e.msg || e.message || e.toString()));
         })
     } 
 
-    
 </script>
