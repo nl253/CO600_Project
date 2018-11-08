@@ -33,9 +33,8 @@
 const {spawn} = require('child_process');
 
 // My Code
-const testUtils = require('./testUtils');
-const {instance, log, randUser} = testUtils;
-const {pprint} = require('./../lib');
+const {httpClient, log, randUser} = require('../testUtils');
+const {pprint} = require('../lib');
 
 // 3rd Party
 const faker = require('faker');
@@ -61,15 +60,16 @@ afterAll(() => {
 log.info(`running ${__filename} test suite ${NO_RUNS}x`);
 
 for (let i = 0; i < NO_RUNS; i++) {
-  let cookie; // to be set AFTER logging in
   let user = randUser();
   let {email, password} = user;
   let credentials = {email, password};
 
+  const loginReq = () => httpClient.post('/user/login', credentials);
+
   describe(`mock user ${pprint(user)}`, () => {
 
     test(`registration of ${email}`, async () => {
-      const res = await instance.request({
+      const res = await httpClient.request({
         method: 'post',
         url: '/user/register',
         data: credentials,
@@ -83,7 +83,7 @@ for (let i = 0; i < NO_RUNS; i++) {
 
     test(`email of ${email} is not null after registration`,
       async () => {
-        const res = await instance.request({
+        const res = await httpClient.request({
           method: 'get',
           url: `/user/${email}/email`,
         });
@@ -97,7 +97,7 @@ for (let i = 0; i < NO_RUNS; i++) {
 
     test(`${email} is not an admin by default after registration`,
       async () => {
-        const res = await instance.request({
+        const res = await httpClient.request({
           method: 'get',
           url: `/user/${email}/isAdmin`,
         });
@@ -119,7 +119,7 @@ for (let i = 0; i < NO_RUNS; i++) {
         test(
           `GET request for ${email}'s ${attr}  yields null after registration`,
           async () => {
-            const res = await instance.request({
+            const res = await httpClient.request({
               method: 'get',
               url: `/user/${email}/${attr}`,
             });
@@ -136,7 +136,7 @@ for (let i = 0; i < NO_RUNS; i++) {
           test(
             `POST request to update ${email}'s ${attr} to ${value} with password & value in the request body`,
             async () => {
-              const res = await instance.request({
+              const res = await httpClient.request({
                 method: 'post',
                 url: `/user/${email}/${attr}`,
                 data: {password, value},
@@ -150,30 +150,33 @@ for (let i = 0; i < NO_RUNS; i++) {
 
         } else {
 
+          let cookie;
+
           test(
             `POST request to log in in as newly registered ${email} to set ${attr} to ${value}`,
             async () => {
-              const res = await instance.request({
-                method: 'post',
-                url: `/user/login`,
-                data: credentials,
-              });
-              cookie = res.headers['set-cookie'].join(' ; ');
-              expect.assertions(4);
+              const res = await loginReq();
+              expect.assertions(9);
+              expect(res.headers).toHaveProperty('set-cookie');
+              expect(res.headers['content-type']).toMatch(/application\/json/);
+              expect(res.headers['set-cookie'].length).toBe(2);
+              expect(res.headers['set-cookie'][0]).toMatch(/^email=/);
+              expect(res.headers['set-cookie'][1]).toMatch(/^password=/);
               expect(res.status).toBeLessThanOrEqual(300);
               expect(res.status).toBeGreaterThanOrEqual(200);
               expect(res.data).toHaveProperty('msg');
               expect(res.data).toHaveProperty('status', 'OK');
+              cookie = res.headers['set-cookie'].join(' ; ');
             });
 
           test(
             `POST request to update ${email}'s ${attr} to ${value} after logging in`,
             async () => {
-              const res = await instance.request({
+              const res = await httpClient.request({
                 method: 'post',
                 url: `/user/${email}/${attr}`,
                 headers: {cookie},
-                data: {password, value},
+                data: {value},
               });
               expect.assertions(4);
               expect(res.status).toBeLessThanOrEqual(300);
@@ -184,13 +187,8 @@ for (let i = 0; i < NO_RUNS; i++) {
 
           test(`POST request to log ${email} out after updating their ${attr}`,
             async () => {
-              const res = await instance.request({
-                method: 'post',
-                headers: {cookie},
-                url: `/user/logout`,
-                withCredentials: true,
-              });
-              cookie = undefined;
+              const res = await httpClient.post('/user/logout', {},
+                {headers: {cookie}});
               expect.assertions(4);
               expect(res.status).toBeLessThanOrEqual(300);
               expect(res.status).toBeGreaterThanOrEqual(200);
@@ -202,7 +200,7 @@ for (let i = 0; i < NO_RUNS; i++) {
         test(
           `GET request to access ${email}'s ${attr} yields ${value} after updating`,
           async () => {
-            const res = await instance.request({
+            const res = await httpClient.request({
               method: 'get',
               url: `/user/${email}/${attr}`,
             });
@@ -220,11 +218,11 @@ for (let i = 0; i < NO_RUNS; i++) {
   test(
     `GET request for all info about ${email} returns all properties except for password`,
     async () => {
-      expect.assertions(11);
-      const res = await instance.request({
+      const res = await httpClient.request({
         method: 'get',
         url: `/user/${email}`,
       });
+      expect.assertions(11);
       expect(res.status).toBeLessThanOrEqual(300);
       expect(res.status).toBeGreaterThanOrEqual(200);
       expect(res.data).toHaveProperty('msg');
@@ -239,7 +237,7 @@ for (let i = 0; i < NO_RUNS; i++) {
     });
 
   test(`GET request for hashed password of ${email} fails`, async () => {
-    const res = await instance.request({
+    const res = await httpClient.request({
       method: 'get',
       url: `/user/${email}/password`,
     });
@@ -253,7 +251,7 @@ for (let i = 0; i < NO_RUNS; i++) {
 
   test(`POST request to set the isAdmin property in ${email} fails`,
     async () => {
-      const res = await instance.request({
+      const res = await httpClient.request({
         method: 'post',
         url: `/user/${email}/isAdmin`,
         data: credentials,
@@ -271,12 +269,11 @@ for (let i = 0; i < NO_RUNS; i++) {
     test(
       `POST request to un-register ${email} with credentials in the request body`,
       async () => {
-        const res = await instance.request({
+        const res = await httpClient.request({
           method: 'post',
           url: '/user/unregister',
           data: credentials,
         });
-        cookie = undefined;
         expect.assertions(4);
         expect(res.status).toBeLessThanOrEqual(300);
         expect(res.status).toBeGreaterThanOrEqual(200);
@@ -286,31 +283,31 @@ for (let i = 0; i < NO_RUNS; i++) {
 
   } else {
 
+    let cookie;
+
     test(
       `POST request to log in as newly registered ${email} to un-register with credentials in the request body`,
       async () => {
-        const res = await instance.request({
-          method: 'post',
-          url: `/user/login`,
-          data: credentials,
-        });
-        cookie = res.headers['set-cookie'].join(' ; ');
-        expect.assertions(4);
+        const res = await loginReq();
+        expect.assertions(9);
+        expect(res.headers).toHaveProperty('set-cookie');
+        expect(res.headers).toHaveProperty('content-type');
+        expect(res.headers['content-type']).toMatch(/application\/json/);
+        expect(res.headers['set-cookie'].length).toBe(2);
+        expect(res.headers['set-cookie'][0]).toMatch(/^email=/);
+        expect(res.headers['set-cookie'][1]).toMatch(/^password=/);
         expect(res.status).toBeLessThanOrEqual(300);
         expect(res.status).toBeGreaterThanOrEqual(200);
         expect(res.data).toHaveProperty('msg');
         expect(res.data).toHaveProperty('status', 'OK');
+        cookie = res.headers['set-cookie'].join(' ; ');
       });
 
     test(`POST request to un-register ${email} with credentials in cookies`,
       async () => {
-        const res = await instance.request({
-          method: 'post',
-          url: '/user/unregister',
-          withCredentials: true,
-          headers: {cookie},
-        });
-        cookie = undefined;
+        const res = await httpClient.post('/user/unregister', {},
+          {headers: {cookie}});
+        // cookie = undefined;
         expect.assertions(4);
         expect(res.status).toBeLessThanOrEqual(300);
         expect(res.status).toBeGreaterThanOrEqual(200);
@@ -322,7 +319,7 @@ for (let i = 0; i < NO_RUNS; i++) {
   test(
     `GET request to access all info about ${email} after they have been un-registered fails`,
     async () => {
-      const res = await instance.request({
+      const res = await httpClient.request({
         method: 'get',
         url: `/user/${email}`,
       });
@@ -338,7 +335,7 @@ for (let i = 0; i < NO_RUNS; i++) {
     test(
       `GET request for ${email}'s ${attr} after their account has been deleted fails`,
       async () => {
-        const res = await instance.request({
+        const res = await httpClient.request({
           method: 'get',
           url: `/user/${email}/${attr}`,
         });
@@ -355,7 +352,7 @@ for (let i = 0; i < NO_RUNS; i++) {
     test(
       `POST request to update ${email}'s ${attr} to ${value} after their account has been deleted fails`,
       async () => {
-        const res = await instance.request({
+        const res = await httpClient.request({
           method: 'post',
           url: `/user/${email}/${attr}`,
           data: {password, value},
@@ -371,7 +368,7 @@ for (let i = 0; i < NO_RUNS; i++) {
   test(
     `POST request to un-register ${email} who has already been un-registered fails`,
     async () => {
-      const res = await instance.request({
+      const res = await httpClient.request({
         method: 'post',
         url: '/user/unregister',
         data: credentials,
@@ -386,10 +383,7 @@ for (let i = 0; i < NO_RUNS; i++) {
 
   test(`POST request to log in in as un-registered ${email} fails`,
     async () => {
-      const res = await instance.request({
-        method: 'post',
-        url: `/user/login`,
-      });
+      const res = await loginReq();
       expect.assertions(5);
       expect(res.status).toBeGreaterThanOrEqual(400);
       expect(res.status).toBeLessThanOrEqual(499);

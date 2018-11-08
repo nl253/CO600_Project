@@ -27,7 +27,7 @@ $ npm run test
 
 Tests are recognised by the file name. Jest uses the following rules:
 
-- e.g.: for file `user.js` the test would be `user.test.js`
+- e.g.: for file `index.js` the test would be `test.js`
 - all `*.js` files in `__tests__` are considered tests
 
 ## Documentation

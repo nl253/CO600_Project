@@ -15,7 +15,8 @@
     "sequelize": "^4.41.0",
     "session-file-store": "^1.2.0",
     "sqlite3": "^4.0.3",
-    "winston": "^3.1.0"
+    "winston": "^3.1.0",
+    "body-parser": "latest"
   },
   "description": "CO600 final year group project.",
   "devDependencies": {
@@ -62,10 +63,11 @@
   "scripts": {
     "docs": "./node_modules/.bin/jsdoc -r -R ./README.md -d ./doc $(find -type f -name '*.js' -not -path '**/node_modules/**' -not -path '**/doc/**' -not -path '**/docs/**')",
     "lint": "./node_modules/.bin/eslint",
-    "read-docs": "$BROWSER ./doc/index.html",
+    "docs-read": "$BROWSER ./doc/index.html",
+    "docs-clean": "rm -I -r ./doc",
     "start": "node ./bin/www",
     "test": "./node_modules/.bin/jest",
-    "test-to-JSON": "./node_modules/.bin/jest --verbose --no-color --color false --json --outputFile 'tests-results.json'"
+    "test-to-JSON": "./node_modules/.bin/jest --verbose --no-color --color false --json --outputFile 'logs/tests-results.json'"
   },
   "version": "0.0.1"
 }

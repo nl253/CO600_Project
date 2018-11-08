@@ -33,13 +33,14 @@
  *
  * @author Norbert
  */
-const path = require('path');
-const fs = require('fs');
+const {join} = require('path');
+const {existsSync} = require('fs');
 
 const express = require('express');
 const router = express.Router();
 
-const {suggestRoutes, log, NotImplYetErr, errMsg, TypoErr} = require('./../lib');
+const {suggestRoutes, log, errMsg} = require('./lib');
+const {TypoErr, NotImplYetErr} = require('./errors');
 
 const MODELS = [
   'User',
@@ -62,9 +63,9 @@ for (const mod of MODELS.map(key => key.toLowerCase())) {
   router.all(`/${mod}s`,
     (req, res) => res.status(badPlural.code).json(errMsg(badPlural)));
 
-  if (fs.existsSync(path.join(__dirname, `${mod}.js`))) {
+  if (existsSync(join(__dirname, `${mod}.js`)) || existsSync(join(__dirname, mod, 'index.js'))) {
     log.info(`mounting the ${mod} part of the api to /api/${mod}`);
-    router.use(`/${mod}`, require(`./${mod}.js`));
+    router.use(`/${mod}`, require(`./${mod}`));
 
   } else {
     const notDone = new NotImplYetErr(`${mod} part of the REST API`);

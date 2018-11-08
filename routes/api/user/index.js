@@ -8,48 +8,44 @@
  *
  * @author Norbert
  */
+
+// 3rd Party
 const router = require('express').Router();
+
+// Project
 const {
-  AlreadyLoggedIn,
   InvalidRequestErr,
   AuthFailedErr,
   BadMethodErr,
   NoCredentialsErr,
   MissingDataErr,
   NoPermissionErr,
-  NoSuchUser,
   NotLoggedIn,
+} = require('../errors');
+
+const {
+  AlreadyLoggedIn,
   UserExistsErr,
+  NoSuchUser,
+} = require('./errors');
+
+const {
   errMsg,
   getCredentials,
   log,
   msg,
   pprint,
   sha256,
-} = require('./../lib');
+} = require('../lib');
 
-const {User} = require('../../database/db.js');
+const {User} = require('../lib').models;
 
-router.all(/.*/, (req, res, next) => {
-  for (const cookie of ['email', 'password']) {
-    // log.warn(`checking cookie ${cookie}`);
-    /** @namespace req.cookies */
-    if (req.cookies[cookie] !== undefined && req.cookies[cookie].trim() ===
-      '') {
-      res.clearCookie('name', {
-        httpOnly: true,
-        sameSite: true,
-        signed: false,
-        path: '/',
-      });
-    }
-  }
-  // log.warn(req.cookies);
-  for (const cookie in req.cookies) {
-    log.debug(`${cookie} = ${req.cookies[cookie]}`);
-  }
-  next();
-});
+const cookieOpts = {
+  httpOnly: true,
+  sameSite: true,
+  signed: false,
+  path: '/',
+};
 
 /**
  * Logs a user in.
@@ -57,7 +53,9 @@ router.all(/.*/, (req, res, next) => {
  * Requires credentials (BOTH email AND password) to be sent in POST request body.
  */
 router.post('/login', (req, res) => {
-  log.debug(`login request with body: ${pprint(req.body)} & cookies: ${pprint(req.cookies)}`);
+  // log.debug(`login request with body: ${pprint(req.body)} & cookies: ${pprint(
+  //   req.cookies)}`);
+  /** @namespace req.cookies */
   return new Promise((ok, rej) => req.cookies.email === undefined
     ? ok(getCredentials(req))
     : rej(new AlreadyLoggedIn(req.cookies.email)))
@@ -67,16 +65,11 @@ router.post('/login', (req, res) => {
       result.dataValues)
     .then(user => {
       // log.warn(pprint(user));
-      for (const cookie of ['email', 'password']) {
-        res.cookie(cookie, user[cookie], {
-          httpOnly: true,
-          sameSite: true,
-          signed: false,
-          path: '/',
-        });
-      }
-      log.debug(`started session for ${user.email}`);
-      return res.json(msg(`successfully authenticated user ${user.email}`));
+      // log.debug(`started session for ${user.email}`);
+      return res
+        .cookie('email', user.email, cookieOpts)
+        .cookie('password', user.password, cookieOpts)
+        .json(msg(`successfully authenticated user ${user.email}`));
     })
     .catch(err => res.status(err.code || 400).json(errMsg(err)));
 });
@@ -87,7 +80,8 @@ router.post('/login', (req, res) => {
  * Requires someone to be logged in.
  */
 router.post('/logout', (req, res) => {
-  // log.debug(`logout request with body: ${pprint(req.body)} and cookies ${pprint(req.cookies)}`);
+  // log.debug(`logout request with body: ${pprint(req.body)} and cookies ${pprint(
+  //   req.cookies)}`);
   return new Promise((ok, rej) => req.cookies.email === undefined
     ? rej(new NotLoggedIn())
     : ok(req.cookies.email))
@@ -133,7 +127,10 @@ router.post('/register', (req, res) => {
     })
     .then(queryParams => User.create(queryParams))
     .then(() => res.json(msg(`created user ${req.body.email}`)))
-    .catch(err => res.status(err.code || 400).json(errMsg(err)));
+    .catch(err => {
+      log.warn(err);
+      return res.status(err.code || 400).json(errMsg(err));
+    });
 });
 
 /**
@@ -142,7 +139,9 @@ router.post('/register', (req, res) => {
  * Requires authentication OR credentials passed in the request params and body.
  */
 router.post('/unregister', (req, res) => {
-  // log.debug(`unregister request with body ${pprint(req.body)} and cookies ${pprint(req.cookies)}`);
+  // log.debug(
+  //   `unregister request with body ${pprint(req.body)} and cookies ${pprint(
+  //     req.cookies)}`);
   return getCredentials(req)
     .then(credentials => User.findOne({where: credentials}))
     .then(user => user === null ? Promise.reject(new AuthFailedErr()) : user)
@@ -181,7 +180,7 @@ for (const action of ['register', 'unregister', 'login', 'logout']) {
  * Doesn't require authentication.
  */
 router.get('/:email/:property', (req, res) => {
-  // log.debug(`property lookup request with params ${pprint(req.params)} and body ${pprint(req.body)} and cookies ${pprint(req.cookies)}`);
+  // log.debug(`property lookup request for ${req.params.email}`);
   return new Promise((ok, rej) => req.params.property === 'password'
     ? rej(new NoPermissionErr('lookup password'))
     : ok())
@@ -203,7 +202,9 @@ router.get('/:email/:property', (req, res) => {
  * Requires the user to be logged in or that the password is in request body.
  */
 router.post('/:email/:property', (req, res) => {
-  // log.debug(`property update request with params ${pprint(req.params)} and body ${pprint(req.body)} and cookies ${pprint(req.cookies)}`);
+  // log.debug(`property update request with params ${pprint(
+  //   req.params)} and body ${pprint(req.body)} and cookies ${pprint(
+  //   req.cookies)}`);
   /** @namespace req.params.property */
   return new Promise((ok, rej) => req.params.property === 'isAdmin'
     ? rej(new NoPermissionErr('set property isAdmin of a user'))
@@ -238,22 +239,24 @@ router.post('/:email', (req, res) => {
 });
 
 router.get('/:email', (req, res) => {
-  // log.debug(`user lookup request with params ${pprint(req.params)} and query ${pprint(req.query)} and cookies ${pprint(req.cookies)}`);
-  return new Promise((ok, rej) => {
-    const queryParams = {email: req.params.email};
-    for (const q in req.query) {
-      if (q in User.attributes) {
-        queryParams[q] = req.query[q];
-      }
-    }
-    return ok(queryParams);
-  }).then(queryParams => User.findOne({where: queryParams}))
+  // log.debug(`user ${req.params.email} lookup request`);
+  /** @namespace result.dataValues */
+  return Promise.resolve({email: req.params.email})
+    .then(queryParams => User.findOne({where: queryParams}))
     .then(result => result === null ?
       Promise.reject(new NoSuchUser(req.params.email)) : result)
-    .then(result => result.dataValues)
-    .then(user => JSON.parse(JSON.stringify(user)))
+    .then(result => {
+      // log.debug(`located user ${req.params.email}, unwrapping user-info`);
+      return result.dataValues;
+    })
+    .then(user => {
+      // log.debug(`cloning user-info`);
+      return JSON.parse(JSON.stringify(user));
+    })
     .then(userInfo => {
       // don't send hashed password (sensitive data)
+      /** @namespace userInfo.password */
+      // log.debug(`removing password from ${req.params.email}'s user-info`);
       delete userInfo.password;
       return userInfo;
     })
@@ -264,7 +267,7 @@ router.get('/:email', (req, res) => {
 /**
  * Get all users matching properties specified in query params.
  *
- * On success serves: {msg: String, status: String, result: Array<Object>}
+ * On success serves: {msg: String, status: String, result: Array<Object<String, *>>}
  */
 router.get('/', (req, res) => {
   // log.debug(`many user lookup request with query ${pprint(req.query)}`);
@@ -280,16 +283,16 @@ router.get('/', (req, res) => {
     return ok(queryParams);
   }).then(queryParams => User.findAll({limit: 100, where: queryParams}))
     .then(results => {
-      log.debug(`located matching ${results.length} users`);
+      // log.debug(`located matching ${results.length} users`);
       return results.map(u => u.dataValues);
     })
     .then(users => {
       const clones = users.map(u => JSON.parse(JSON.stringify(u)));
-      log.debug('extracted info from found users');
+      // log.debug('extracted info from found users');
       return clones;
     })
     .then(clones => {
-      log.debug('removing passwords from user-info objects');
+      // log.debug('removing passwords from user-info objects');
       for (const c in clones) {
         delete clones[c].password;
       }
