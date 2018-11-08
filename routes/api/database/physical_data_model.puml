@@ -1,5 +1,5 @@
 @startuml
-class User {
+class Index {
   <i>email</i>
   -- other --
   firstName
@@ -105,19 +105,19 @@ Definition "*" -- Lesson : has <
 QuizQuestion "*" -- Lesson : has <
 Report "*" -- Lesson : >
 Report "*" -- Module : >
-Report "*" -- User : by > 
-Answer -- User : by >
+Report "*" -- Index : by >
+Answer -- Index : by >
 Answer -- OpenQuestion : to >
 OpenQuestion "*" -- Module : "about content of" >
 Comment "*" -- Comment : to >
-Comment "*" - User : makes < 
+Comment "*" - Index : makes <
 Comment "*" -- Lesson
 Enrollment -- Module : in >
-Enrollment - User : of >
+Enrollment - Index : of >
 Invitation -- Module : to >
-Invitation - User : for >
+Invitation - Index : for >
 Rating -- Lesson : of >
-Rating "*" - User : by >
+Rating "*" - Index : by >
 Lesson "*" -- Module : in >
-Module "*" -- User : by >
+Module "*" -- Index : by >
 @enduml

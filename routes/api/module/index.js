@@ -21,14 +21,8 @@
 
 const router = require('express').Router();
 
-const {suggestRoutes} = require('./../lib');
+const {suggestRoutes} = require('../lib');
 
-
-/**
- * Suggest using POST if an API user uses GET instead of POST for the following actions.
- */
-for (const action of ['create', 'delete']) {
-}
 
 /**
  * Creates a new module.

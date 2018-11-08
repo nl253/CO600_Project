@@ -4,46 +4,30 @@
  * @author Norbert
  */
 
+// Standard Library
 const {join, resolve} = require('path');
 
+// 3rd Party
 const Sequelize = require('sequelize');
-const winston = require('winston');
+
+// Project
+const {createLogger} = require('../../../lib');
 
 /**
  * This is a logger for the database that logs all queries.
  *
  * @type {winston.Logger}
  */
-const log = winston.createLogger({
-  level: 'warn',
-  format: winston.format.combine(
-    winston.format.label({label: 'DATABASE'}),
-    winston.format.prettyPrint(),
-    winston.format.printf(
-      info => `${info.level && info.level.trim() !== '' ?
-        ('[' + info.level.toUpperCase() + ']').padEnd(10) :
-        ''}${info.label ?
-        (info.label + ' ::').padEnd(12) :
-        ''}${info.message}`),
-  ),
-  transports: [
-    new winston.transports.Console(),
-    new winston.transports.File({
-      level: 'warn',
-      filename: resolve(join(__dirname, '..', 'logs', 'db.log')),
-    }),
-  ],
-});
+const log = createLogger({label: 'DATABASE'});
 
 const {STRING, TEXT, INTEGER, TINYINT, BOOLEAN, REAL} = Sequelize;
 
-let datbasePath = resolve(join(__dirname, 'db'));
-
+/** @namespace log.debug */
 const sequelize = new Sequelize({
 
   dialect: 'sqlite',
 
-  storage: datbasePath,
+  storage: resolve(join(__dirname, 'db')),
 
   // Specify options, which are used when sequelize.define is called.
   //
@@ -390,4 +374,3 @@ module.exports = {
   Report,
   User,
 };
-
