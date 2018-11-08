@@ -88,11 +88,11 @@ function errMsg(err) {
     return {status, msg: 'failure'};
   }
 
-  if (err instanceof RestAPIErr) {
+  if (err.constructor !== undefined && err.constructor.name === 'RestAPIErr') {
     return err.msgJSON;
   }
 
-  if (err instanceof ValidationError) {
+  if (err.constructor !== undefined && err.constructor.name === 'ValidationError') {
     /** @namespace err.errors */
     let noErrs = err.errors.length;
 
