@@ -3,7 +3,7 @@ const faker = require('faker');
 const axios = require('axios');
 
 // Project
-const {createLogger} = require('./lib');
+const {createLogger} = require('../lib');
 
 /**
  * This is a logger for the database that logs all queries.

@@ -1,42 +1,38 @@
-const {exists} = require('fs');
-const {join, resolve} = require('path');
 const express = require('express');
-const AuthFailedErr = require('../api/errors').AuthFailedErr;
-const getCredentials = require('../api/lib').getCredentials;
 const router = express.Router();
-const {log} = require('../lib');
+const {log, decrypt, exists, models} = require('../lib');
+const {User} = models;
+const {join} = require('path');
 
-/**
- * Preload template variables for logged in users.
- */
-router.get((req, res, next) =>
-  getCredentials(req)
-    .then(credentials => User.findOne({where: credentials}))
-    .then(result => result === null ?
-      Promise.reject(new AuthFailedErr()) :
-      result.dataValues)
+router.get('/register', (req, res) => res.render(join('user', 'register')));
+
+router.get('/:email',
+  exists(User, (req) => ({email: req.params.email})),
+  (req, res) => User.findByPk(req.params.email)
     .then(user => {
-      const clone = JSON.parse(JSON.stringify(user));
-      delete clone.password;
-      res.locals.user = clone;
-      next();
-    })
-    .catch(err => next()));
+      if (user !== null) {
+        const userInfo = JSON.parse(JSON.stringify(user.dataValues));
+        delete userInfo.password;
+        res.locals.user = userInfo;
+        return res.render(join('user', 'profile'));
+      }
+      log.warn(`user ${req.params.email} not found`);
+      return res.status(404);
+    }).catch((err) => {
+      log.error(err.message);
+      return res.status(404);
+    }),
+);
 
-router.get('/:page', (req, res) => {
-  /** @namespace req.params.page */
-  const pagePath = resolve(
-    join(__dirname, '..', '..', 'views', 'user', `${req.params.page}.hbs`));
-  return exists(pagePath, ok => {
-    if (ok) {
-      return res.render(join('user', req.params.page));
-    }
-    log.warn(`the file ${pagePath} does not exist`);
-    log.warn(
-      `the ${req.params.page} user page has not been created yet (hint: you can create "/views/user/${req.params.page}.hbs" and it will be served)`);
-  });
-});
-
-router.get('/', (req, res) => res.redirect('/user/profile'));
+router.get('/', (req, res) =>
+  req.cookies.token !== undefined
+    ? Session
+      .findOne({where: {token: decrypt(req.cookies.token)}})
+      .then(session => {
+        return session !== null
+          ? res.redirect(session.email)
+          : res.status(404);
+      })
+    : res.status(404));
 
 module.exports = router;

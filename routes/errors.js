@@ -1,4 +1,4 @@
-const {pprint} = require('./lib');
+const {pprint} = require('../../lib');
 
 class RestAPIErr extends Error {
   /**
@@ -15,7 +15,7 @@ class RestAPIErr extends Error {
   }
 
   /**
-   * @return {Number}
+   * @return {Number} HTTP status code
    */
   get code() {
     return this._code;
@@ -48,12 +48,13 @@ class NoSuchRecord extends RestAPIErr {
   constructor(tableName, attrs = {}) {
     let msg = `failed to find a matching ${tableName.toLowerCase()}`;
     if (Object.keys(attrs).length > 0) {
-      msg += ' with fields: ';
-      msg += Array.isArray(attrs) ?
-        attrs.join(', ') :
-        Object.entries(attrs)
-          .map(pair => `${pair[0]} = ${pprint(pair[1])}`)
-          .join(', ');
+      msg += ' with given: ';
+      msg += (
+        Array.isArray(attrs)
+          ? attrs
+          : Object.entries(attrs)
+            .map(pair => `${pair[0]} = ${pprint(pair[1])}`)
+      ).join(', ');
     }
     super(msg, 404);
   }
@@ -125,16 +126,18 @@ class NoCredentialsErr extends MissingDataErr {
     super('credentials', 'request body', ...params);
   }
 }
-
 class NotLoggedIn extends RestAPIErr {
   /**
    * @param {String} [email]
    * @param params
    */
   constructor(email = undefined, ...params) {
-    super(email !== undefined && email !== null ?
-      `the user ${email} is not logged in` :
-      `the user is not logged in`, 400, ...params);
+    super(
+      `the user${
+        email !== undefined && email !== null
+          ? email + ' '
+          : ''} is not logged in`,
+      400, ...params);
   }
 }
 
@@ -159,6 +162,7 @@ class AuthFailedErr extends NoSuchRecord {
     }
   }
 }
+
 
 module.exports = {
   BadMethodErr,

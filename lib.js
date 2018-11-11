@@ -1,6 +1,5 @@
 // Standard Library
 const {resolve, join, dirname} = require('path');
-const {createHash} = require('crypto');
 const {mkdirSync, existsSync} = require('fs');
 
 // 3rd Party
@@ -134,16 +133,5 @@ function truncate(s, len = process.stdout.columns - 5) {
     s;
 }
 
-/**
- * Compute SHA-256 of data. Use to avoid storing passwords in the db in plain text.
- *
- * @param {String} data
- * @return {String} hashed value
- */
-function sha256(data) {
-  const hash = createHash('sha256');
-  hash.update(data);
-  return hash.digest('base64').toString();
-}
 
-module.exports = {createLogger, pprint, truncate, sha256};
+module.exports = {createLogger, pprint, truncate};

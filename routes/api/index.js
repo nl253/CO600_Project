@@ -39,22 +39,23 @@ const {existsSync} = require('fs');
 const express = require('express');
 const router = express.Router();
 
-const {suggestRoutes, log, errMsg} = require('./lib');
+const {log, errMsg, suggestRoutes} = require('../lib');
 const {TypoErr, NotImplYetErr} = require('./errors');
 
 const MODELS = [
   'User',
-  'Report',
-  'QuizQuestion',
-  'Answer',
-  'Rating',
-  'Module',
-  'Lesson',
-  'Enrollment',
-  'Comment',
-  'Definition',
-  'Invitation',
-  'OpenQuestion'];
+  // 'Report',
+  // 'QuizQuestion',
+  // 'Answer',
+  // 'Rating',
+  // 'Module',
+  // 'Lesson',
+  // 'Enrollment',
+  // 'Comment',
+  // 'Definition',
+  // 'Invitation',
+  // 'OpenQuestion'
+];
 
 for (const mod of MODELS.map(key => key.toLowerCase())) {
 
@@ -63,7 +64,8 @@ for (const mod of MODELS.map(key => key.toLowerCase())) {
   router.all(`/${mod}s`,
     (req, res) => res.status(badPlural.code).json(errMsg(badPlural)));
 
-  if (existsSync(join(__dirname, `${mod}.js`)) || existsSync(join(__dirname, mod, 'index.js'))) {
+  if (existsSync(join(__dirname, `${mod}.js`)) ||
+    existsSync(join(__dirname, mod, 'index.js'))) {
     log.info(`mounting the ${mod} part of the api to /api/${mod}`);
     router.use(`/${mod}`, require(`./${mod}`));
 

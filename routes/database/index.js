@@ -6,12 +6,13 @@
 
 // Standard Library
 const {join, resolve} = require('path');
+const {randomBytes} = require('crypto');
 
 // 3rd Party
 const Sequelize = require('sequelize');
 
 // Project
-const {createLogger} = require('../../../lib');
+const {createLogger} = require('../../lib');
 
 /**
  * This is a logger for the database that logs all queries.
@@ -60,6 +61,20 @@ const sequelize = new Sequelize({
     idle: 30000,
     acquire: 60000,
   },
+});
+
+const Session = sequelize.define('Session', {
+  email: {
+    type: STRING,
+    allowNull: false,
+    primaryKey: true,
+    validate: {is: {args: /.+@.+/, mgs: 'not a valid email'}},
+  },
+  token: {
+    type: STRING,
+    validate: {is: {args: /.{6}/, mgs: 'access token not long enough'}},
+    allowNull: false,
+  }
 });
 
 const User = sequelize.define('User', {
@@ -372,5 +387,6 @@ module.exports = {
   QuizQuestion,
   Rating,
   Report,
+  Session,
   User,
 };

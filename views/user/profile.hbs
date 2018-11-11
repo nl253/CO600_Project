@@ -1,0 +1,30 @@
+<header class="columns">
+    <div class="column"></div>
+    <h2 class="column title is-centered has-text-centered">Profile of <span class="is-italic"> {{user.email}}</span></h2>
+    <div class="column"></div>
+</header>
+
+<div class="columns">
+    <div class="column"></div>
+    <main class="card column">
+        <div class="card-header">
+            <h3 class="heading card-header-title is-large">Your details</h3><br/>
+        </div>
+        <div class="card-content">
+            <h5 class="is-5 is-bold">Email</h5>
+            <p>{{user.email}}</p><br/>
+
+            <h5 class="is-5 is-bold">First Name</h5>
+            <p>{{user.firstName}}</p><br/>
+
+            <h5 class="is-5 is-bold">Last Name</h5>
+            <p>{{user.lastName}}</p><br/>
+
+            <h5 class="is-5 is-bold">Info</h5>
+
+            <p>{{user.info}}</p><br/>
+        </div>
+    </main>
+
+    <div class="column"></div>
+</div>

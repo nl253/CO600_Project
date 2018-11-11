@@ -26,17 +26,21 @@ const SECRET = 'U\x0bQ*kf\x1bb$Z\x13\x03\x15w\'- f\x0fn1\x0f\\\x106V\'M~\x07';
 const app = express();
 
 app.use((req, res, next) => {
-  // res.header('Access-Control-Allow-Origin', '127.0.0.1');
+  res.header('Access-Control-Allow-Origin', '127.0.0.1');
   res.header('Access-Control-Allow-Credentials', true);
-  // res.header('Access-Control-Allow-Headers',
-  //   'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Headers', ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'].join(', '));
   next();
 });
 
+/**
+ * Gives access to `req.cookies`.
+ */
 app.use(require('cookie-parser')({
   secret: SECRET,
   options: {
-    httpOnly: true,
+    // expose to JS (client-side)
+    httpOnly: false,
+    // only from the same host
     sameSite: true,
     signed: false,
     path: '/',
@@ -54,7 +58,7 @@ app.use(require('cors')({
 app.set('views', rootPath('views'));
 app.set('view engine', 'hbs');
 
-app.use(require('morgan')(':method :url :status :remote-user :req[cookie]'));
+app.use(require('morgan')(':method :url :status :req[cookie]'));
 
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
@@ -79,8 +83,8 @@ app.post((req, res, next) => {
   next();
 });
 
-app.use('/user', require('./routes/user'));
 app.use('/api', require('./routes/api'));
+app.use('/user', require('./routes/user'));
 app.use('/', require('./routes'));
 
 // catch 404 and forward to error handler
