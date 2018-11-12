@@ -12,24 +12,17 @@ const winston = require('winston');
  * @return {string}
  */
 function pprint(data) {
-  if (data === undefined) {
-    return 'undefined';
-  }
+  if (data === undefined) return 'undefined';
 
-  if (data === null) {
-    return 'null';
-  }
+  if (data === null) return 'null';
+
   if (Array.isArray(data)) {
     return `[${data.map(pprint).join(', ')}]`;
   }
 
-  if (data === true) {
-    return 'true';
-  }
+  if (data === true) return 'true';
 
-  if (data === false) {
-    return 'false';
-  }
+  if (data === false) return 'false';
 
   if ((data instanceof Date) || (data instanceof RegExp)) {
     return data.toString();
@@ -91,11 +84,11 @@ function pprint(data) {
 function createLogger(cfg = {}) {
   const config = Object.assign({
     label: 'GENERAL',
-    logFileName: 'general.log',
     lvl: 'warn',
     fileLvl: 'info',
   }, cfg);
-  let logFilePath = resolve(join(__dirname, 'logs', config.logFileName));
+  let logFilePath = resolve(join(__dirname, 'logs',
+    config.logFileName || config.label.toLowerCase().replace(' ', '_')));
   let logFileDir = dirname(logFilePath);
   if (!existsSync(logFileDir)) {
     mkdirSync(logFileDir);
@@ -132,6 +125,5 @@ function truncate(s, len = process.stdout.columns - 5) {
     s.length >= len ? `${s.slice(0, len - 3)} ...` : s :
     s;
 }
-
 
 module.exports = {createLogger, pprint, truncate};

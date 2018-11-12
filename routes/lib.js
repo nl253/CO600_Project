@@ -8,16 +8,13 @@ const {
 
 // Project
 const {createLogger, pprint} = require('../lib');
-const models = require('./database');
 const {
   NoSuchRecord,
   MissingDataErr,
   InvalidRequestErr,
-} = require('./api/errors');
+} = require('./errors');
 
-const log = createLogger({label: 'routing', lvl: 'debug'});
-const SECRET = 'U\x0bQ*kf\x1bb$Z\x13\x03\x15w\'- f\x0fn1\x0f\\\x106V\'M~\x07';
-const ENCRYPTION_ALGORITHM = 'aes192';
+const log = createLogger({label: 'ROUTING', lvl: process.env.LOGGING_ROUTING});
 
 /**
  * Validation middleware that says that the next middleware will need a certain `what` in `req[where]`.
@@ -27,14 +24,10 @@ const ENCRYPTION_ALGORITHM = 'aes192';
  * @return {Function} middleware
  */
 function needs(what, where) {
-  return (req, res, next) => {
-    if (req[where][what] === undefined || req[where][what] === null) {
-      const err = new MissingDataErr(what, where);
-      return res.status(err.code).json(errMsg(err));
-    } else {
-      next();
-    }
-  };
+  return (req, res, next) =>
+    req[where][what] === undefined || req[where][what] === null
+      ? next(new MissingDataErr(what, where))
+      : next();
 }
 
 /**
@@ -59,7 +52,7 @@ function sha256(data) {
  */
 function suggestRoutes(router, path, routes) {
   return router.all(path, (req, res) => res.status(400).json(
-    {status: 'CONFUSED', msg: 'nothing here, see the routes', routes}));
+    {status: 'ERROR', msg: 'nothing here, see the routes', routes}));
 }
 
 /**
@@ -127,7 +120,8 @@ function errMsg(err) {
  * @return {String} decrypted string
  */
 function decrypt(s) {
-  const decipher = createDecipher(ENCRYPTION_ALGORITHM, SECRET);
+  const decipher = createDecipher(process.env.ENCRYPTION_ALGORITHM,
+    process.env.SECRET);
   let decrypted = decipher.update(s, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
   return decrypted;
@@ -140,7 +134,8 @@ function decrypt(s) {
  * @return {String} encrypted string
  */
 function encrypt(s) {
-  const cipher = createCipher(ENCRYPTION_ALGORITHM, SECRET);
+  const cipher = createCipher(process.env.ENCRYPTION_ALGORITHM,
+    process.env.SECRET);
   let encrypted = cipher.update(s, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   return encrypted;
@@ -161,12 +156,10 @@ function notExists(model, attrSupplier = (req) => new Object()) {
   return (req, res, next) => {
     const attrs = attrSupplier(req);
     return model.findOne({where: attrs})
-      .then((result) => {
-        if (result === null) return next();
-        /** @namespace model.tableName */
-        const err = new NoSuchRecord(model.tableName, attrs);
-        return res.status(err.code).json(errMsg(err));
-      });
+      .then((result) =>
+        result === null
+          ? next()
+          : next(new NoSuchRecord(model.tableName, attrs)));
   };
 }
 
@@ -181,12 +174,10 @@ function exists(model, attrSupplier = undefined) {
   return (req, res, next) => {
     const attrs = attrSupplier(req);
     return model.findOne({where: attrs})
-      .then((result) => {
-        if (result !== null) return next();
-        /** @namespace model.tableName */
-        const err = new NoSuchRecord(model.tableName, attrs);
-        return res.status(err.code).json(errMsg(err));
-      });
+      .then((result) =>
+        result !== null
+          ? next()
+          : next(new NoSuchRecord(model.tableName, attrs)));
   };
 }
 
@@ -198,13 +189,10 @@ function exists(model, attrSupplier = undefined) {
  * @return {Function}
  */
 function validColumn(model, columnNameSupplier) {
-  return (req, res, next) => {
-    if (model.attributes[columnNameSupplier(req)] !== undefined) {
-      return next();
-    }
-    const err = new InvalidRequestErr('User', columnNameSupplier(req));
-    return res.status(err.code).json(errMsg(err));
-  };
+  return (req, res, next) =>
+    model.attributes[columnNameSupplier(req)] === undefined
+      ? next(new InvalidRequestErr('User', columnNameSupplier(req)))
+      : next();
 }
 
 /**
@@ -216,18 +204,15 @@ function validColumn(model, columnNameSupplier) {
  */
 function notRestrictedColumn(
   columnNameSupplier, forbidden = ['updatedAt', 'createdAt']) {
-  return (req, res, next) => {
-    const set = new Set(forbidden);
-    if (!set.has(columnNameSupplier(req))) return next();
-    const err = new InvalidRequestErr('User', columnNameSupplier(req));
-    return res.status(err.code).json(errMsg(err));
-  };
+  return (req, res, next) =>
+    new Set(forbidden).has(columnNameSupplier(req))
+      ? next(new InvalidRequestErr('User', columnNameSupplier(req)))
+      : next();
 }
 
 
 module.exports = {
   createLogger,
-  models,
   exists,
   notExists,
   needs,

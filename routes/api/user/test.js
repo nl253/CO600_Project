@@ -39,8 +39,6 @@ const {pprint} = require('../lib');
 // 3rd Party
 const faker = require('faker');
 const maybe = faker.random.boolean;
-
-const NO_RUNS = 20;
 let serverProcess;
 
 beforeAll(() => {
@@ -57,9 +55,9 @@ afterAll(() => {
   serverProcess.kill();
 });
 
-log.info(`running ${__filename} test suite ${NO_RUNS}x`);
+log.info(`running ${__filename} test suite ${process.env.TEST_RUNS}x`);
 
-for (let i = 0; i < NO_RUNS; i++) {
+for (let i = 0; i < process.env.TEST_RUNS; i++) {
   let user = randUser();
   let {email, password} = user;
   let credentials = {email, password};

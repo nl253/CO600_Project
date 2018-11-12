@@ -5,21 +5,27 @@
  */
 
 // Standard Library
+const {existsSync} = require('fs');
 const {join, resolve} = require('path');
-const {randomBytes} = require('crypto');
-
-// 3rd Party
-const Sequelize = require('sequelize');
 
 // Project
 const {createLogger} = require('../../lib');
 
 /**
- * This is a logger for the database that logs all queries.
+ * Logger for the database. Logs all queries.
  *
  * @type {winston.Logger}
  */
-const log = createLogger({label: 'DATABASE'});
+const log = createLogger({label: 'DATABASE', lvl: process.env.LOGGING_DB});
+
+if (process.env.NODE_ENV !== 'development') {
+  log.error(`database not configured for ${process.env.NODE_ENV}, see ${resolve(
+    join(__dirname, __filename))}`);
+  process.exit(1);
+}
+
+// 3rd Party
+const Sequelize = require('sequelize');
 
 const {STRING, TEXT, INTEGER, TINYINT, BOOLEAN, REAL} = Sequelize;
 
@@ -28,7 +34,7 @@ const sequelize = new Sequelize({
 
   dialect: 'sqlite',
 
-  storage: resolve(join(__dirname, 'db')),
+  storage: process.env.DB_PATH,
 
   // Specify options, which are used when sequelize.define is called.
   //
@@ -50,7 +56,7 @@ const sequelize = new Sequelize({
     timestamps: true,
   },
 
-  logging: log.debug,
+  logging: log[process.env.LOGGING_DB],
 
   // similar for sync: you can define this to always force sync for models
   sync: {force: true},
@@ -74,7 +80,7 @@ const Session = sequelize.define('Session', {
     type: STRING,
     validate: {is: {args: /.{6}/, mgs: 'access token not long enough'}},
     allowNull: false,
-  }
+  },
 });
 
 const User = sequelize.define('User', {
@@ -369,11 +375,13 @@ const QuizQuestion = sequelize.define('QuizQuestion', {
   },
 });
 
-
 // Sync all models that aren't already in the database
 // NOTE this seems to delete * from all tables!
 // ONLY RUN ONCE AT THE BEGINNING
-// sequelize.sync();
+if (process.env.DB_PATH !== undefined && !existsSync(process.env.DB_PATH)) {
+  log.warn(`syncing database to ${process.env.DB_PATH}`);
+  sequelize.sync();
+}
 
 module.exports = {
   Answer,

@@ -6,6 +6,7 @@ const {
   encrypt,
   decrypt,
   needs,
+  suggestRoutes,
   exists,
   validColumn,
   notExists,
@@ -15,16 +16,15 @@ const {
 
 const {
   BadMethodErr,
-} = require('../errors');
+} = require('../../errors');
 
 const {
   errMsg,
-  log,
   msg,
   sha256,
 } = require('../../lib');
 
-const {User, Session} = require('../../lib').models;
+const {User, Session} = require('../../database');
 
 /**
  * Logs a user in.
@@ -60,7 +60,7 @@ router.post([
 /**
  * Clears the session for the user that is currently logged in.
  *
- * Requires someone to be logged in.
+ * Requires a session token to be passed in cookies.
  */
 router.get([
     '/logout',
@@ -95,7 +95,7 @@ router.post([
   needs('password', 'body'),
   notExists(User,
     (req) => ({email: req.body.email, password: sha256(req.body.password)})),
-  (req, res) => {
+  (req, res, next) => {
     const queryParams = {};
     const columns = new Set(Object.keys(User.attributes));
     for (const param in req.body) {
@@ -107,16 +107,13 @@ router.post([
     }
     return User.create(queryParams)
       .then(() => res.json(msg(`created user ${req.body.email}`)))
-      .catch((err) => {
-        log.warn(err);
-        return res.status(err.code || 400).json(errMsg(err));
-      });
+      .catch((err) => next(err));
   });
 
 /**
  * Removes a user from the database.
  *
- * Requires authentication OR credentials passed in the request params and body.
+ * Requires a session token to be passed in cookies.
  */
 router.get([
     '/unregister',
@@ -127,24 +124,29 @@ router.get([
   ],
   needs('token', 'cookies'),
   exists(Session, (req) => ({token: decrypt(req.cookies.token)})),
-  (req, res) => {
+  (req, res, next) => {
     return Session.findOne({where: {token: decrypt(req.cookies.token)}})
       .then((session) => User.findOne({where: {email: session.email}}))
       .then((user) => user.destroy())
       .then(() => res.json(msg('successfully unregistered')))
-      .catch((err) => res.status(err.code || 400).json(errMsg(err)));
+      .catch((err) => next(err));
   });
 
 /**
- * If an API user tries to perform these actions, show suggestion that they should use POST not GET.
+ * If an API user tries to perform these actions,
+ * show suggestion that they should use POST not GET.
  */
 for (const action of ['register', 'login']) {
-  router.get(`/${action}`, (req, res) => {
-    const err = new BadMethodErr(action, 'POST');
-    return res.status(err.code || 400).json(errMsg(err));
-  });
+  router.get(`/${action}`,
+    (req, res, next) => next(new BadMethodErr(action, 'POST')));
 }
 
+/** POST not used for logout since the token will be sent in cookies. */
+router.get('/logout',
+  (req, res, next) => next(new BadMethodErr('POST', 'GET')));
+
+/** @namespace result.dataValues */
+/** @namespace req.params.property */
 /**
  * Queries the database for a user's attribute (i.e. a property such as: email, id etc.).
  *
@@ -154,18 +156,19 @@ router.get('/:email/:property',
   exists(User, (req) => ({email: req.params.email})),
   validColumn(User, (req) => req.params.property),
   notRestrictedColumn((req) => req.params.property, ['password']),
-  (req, res) => User
+  (req, res, next) => User
     .findOne({where: {email: req.params.email}})
     .then((result) => result.dataValues)
-    .then((user) => res.json(msg(`found ${user.email}'s ${req.params.property}`,
-      user[req.params.property])))
-    .catch((err) => res.status(err.code || 400).json(errMsg(err))),
+    .then(
+      (user) => res.json(msg(`found ${user.email}'s ${req.params.property}`,
+        user[req.params.property])))
+    .catch((err) => next(err)),
 );
 
 /**
  * Modifies a user's property (e.g. email, firstName etc.).
  *
- * Requires the user to be logged in or that the password is in request body.
+ * Requires a session token to be passed in cookies.
  */
 router.post('/:email/:property',
   exists(User, (req) => ({email: req.params.email})),
@@ -174,7 +177,7 @@ router.post('/:email/:property',
   validColumn(User, (req) => req.params.property),
   notRestrictedColumn((req) => req.params.property,
     ['isAdmin', 'updatedAt', 'isAdmin']),
-  (req, res) => {
+  (req, res, next) => {
     const queryParams = {};
     queryParams[req.params.property] = req.params.property === 'password' ?
       sha256(req.body.value) :
@@ -183,17 +186,20 @@ router.post('/:email/:property',
       .update(queryParams)
       .then(() => res.json(
         msg(`updated ${req.params.property} in user ${req.params.email}`)))
-      .catch((err) => res.status(err.code || 400).json(errMsg(err)));
+      .catch((err) => next(err));
   });
 
 /**
  * If an API user tries to query the database for user's info with POST suggest using GET.
  */
-router.post('/:email', (req, res) => {
-  const err = new BadMethodErr(`retrieve info about user`, 'GET');
-  return res.status(err.code || 400).json(err.msgJSON || err.message);
-});
+router.post('/:email', (req, res, next) =>
+  next(new BadMethodErr(`retrieve info about user`, 'GET')));
 
+/**
+ * Gets all info about a single user.
+ *
+ * Doesn't require authentication.
+ */
 router.get('/:email',
   exists(User, (req) => ({email: req.params.email})),
   (req, res) => User
@@ -206,13 +212,15 @@ router.get('/:email',
       return userInfo;
     })
     .then((user) => res.json(msg(`found user ${req.params.email}`, user)))
-    .catch((err) => res.status(err.code || 400).json(errMsg(err))),
+    .catch((err) => next(err)),
 );
 
 /**
  * Get all users matching properties specified in query params.
  *
  * On success serves: {msg: String, status: String, result: Array<Object<String, *>>}
+ *
+ * Doesn't require authentication.
  */
 router.get('/', (req, res) => {
     // log.debug(`many user lookup request with query ${pprint(req.query)}`);
@@ -238,16 +246,32 @@ router.get('/', (req, res) => {
         (users) => res.json(msg(`found users matching ${Object.keys(req.query)
           .filter((attr) => attr in User.attributes && attr !== 'password')
           .join(', ')}`, users)))
-      .catch((err) => res.status(err.code || 400).json(errMsg(err)));
+      .catch((err) => next(err));
   },
 );
 
 /**
+ *  If an API user tries to query the database for users' info with POST suggest using GET.
+ */
+router.post('/', (req, res, next) =>
+  next(new BadMethodErr(`retrieve info about many users`, 'GET')));
+
+/**
  * If an API user tries to query the database for users' info with POST suggest using GET.
  */
-router.post('/', (req, res) => {
-  const err = new BadMethodErr(`retrieve info about many users`, 'GET');
-  return res.status(err.code || 400).json(err.msgJSON || err.message);
+suggestRoutes(router, /.*/, {
+  'POST': {
+    '/{register,create}': 'create a new user in the database',
+    '/{login,authenticate}': 'generated and send a session token',
+    '/:email/:property': 'update the value of :property for a user e.g.: update firstName /if50@kent.ac.uk/firstName',
+  },
+  'GET': {
+    '/{unregister,delete,remove}': 'remove a user from the database',
+    '/:email': 'info about a user',
+    '/:email/:property': 'value of :property for a user e.g.: /nl253@kent.ac.uk/email',
+    '/{logout,unauthenticate}': 'clear created session, deactivate a token and send a session token',
+    '/': 'find all users matching criteria (can be given as query params e.g.: `?email=nv55@kent.ac.uk&firstName=Nic`',
+  },
 });
 
 module.exports = router;

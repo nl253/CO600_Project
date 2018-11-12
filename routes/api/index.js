@@ -40,7 +40,8 @@ const express = require('express');
 const router = express.Router();
 
 const {log, errMsg, suggestRoutes} = require('../lib');
-const {TypoErr, NotImplYetErr} = require('./errors');
+const {TypoErr, NotImplYetErr} = require('../errors');
+
 
 const MODELS = [
   'User',
@@ -59,26 +60,30 @@ const MODELS = [
 
 for (const mod of MODELS.map(key => key.toLowerCase())) {
 
-  const badPlural = new TypoErr(mod);
-
-  router.all(`/${mod}s`,
-    (req, res) => res.status(badPlural.code).json(errMsg(badPlural)));
+  router.all(new RegExp(`/${mod}s`, 'i'),
+    (req, res, next) => next(new TypoErr(mod)));
 
   if (existsSync(join(__dirname, `${mod}.js`)) ||
     existsSync(join(__dirname, mod, 'index.js'))) {
     log.info(`mounting the ${mod} part of the api to /api/${mod}`);
     router.use(`/${mod}`, require(`./${mod}`));
-
-  } else {
-    const notDone = new NotImplYetErr(`${mod} part of the REST API`);
-    router.all(`/${mod}`,
-      (req, res) => res.status(notDone.code).json(errMsg(notDone)));
+    continue;
   }
+
+  router.all(`/${mod}`,
+    (req, res, next) => next(
+      new NotImplYetErr(`${mod} part of the REST API`)));
 }
 
 suggestRoutes(router, /.*/, {
   user: 'user-related operations e.g.: register, lookup, delete',
   module: 'module-related operations e.g.: register, lookup, delete',
+});
+
+router.use((err, req, res, next) => {
+  const msg = err.message || err.msg || err.toString();
+  log.error(msg);
+  return res.status(err.code || 500).json(errMsg(msg));
 });
 
 module.exports = router;

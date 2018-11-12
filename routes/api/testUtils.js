@@ -10,15 +10,14 @@ const {createLogger} = require('../lib');
  *
  * @type {winston.Logger}
  */
-const log = createLogger({label: 'TEST'});
+const log = createLogger({label: 'TEST', lvl: process.env.LOGGING_TESTS});
 
-const PORT = 3000;
 const HOST = '127.0.0.1';
 
 // loads axios and includes config from the defaults
 const httpClient = axios.create({
   withCredentials: true,
-  baseURL: `http://${HOST}:${PORT}/api`,
+  baseURL: `http://${HOST}:${process.env.PORT}/api`,
   headers: {
     'accept': ['application/json', 'application/javascript'].join(', '),
     'accept-language': ['en-GB', 'en-US', 'en'].join(', '),
@@ -46,8 +45,7 @@ function randUser() {
 
 module.exports = {
   HOST,
-  PORT,
-  httpClient: httpClient,
+  httpClient,
   log,
   randUser,
 };

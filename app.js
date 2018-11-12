@@ -8,6 +8,22 @@
 const {join, resolve} = require('path');
 const {mkdirSync, existsSync} = require('fs');
 
+const SECOND = 1000;
+const MINUTE = 60 * SECOND;
+// const HOUR = 60 * MINUTE;
+
+process.env.NODE_ENV = 'development';
+process.env.PORT = 3000;
+process.env.SECRET = 'U\x0bQ*kf\x1bb$Z\x13\x03\x15w\'- f\x0fn1\x0f\\\x106V\'M~\x07';
+process.env.ROOT = resolve(__dirname);
+process.env.ENCRYPTION_ALGORITHM = 'aes192';
+process.env.SESSION_TIME = 20 * MINUTE;
+process.env.TEST_RUNS = 20;
+process.env.DB_PATH = join(process.env.ROOT, 'routes', 'database', 'db');
+process.env.LOGGING_ROUTING = 'debug';
+process.env.LOGGING_DB = 'warn';
+process.env.LOGGING_TESTS = 'info';
+
 /**
  * Produce a path relative to this file (i.e. path relative to the root of the project).
  *
@@ -21,14 +37,13 @@ function rootPath(fileName) {
 if (!existsSync(rootPath('logs'))) mkdirSync(rootPath('logs'));
 
 const express = require('express');
-const SECRET = 'U\x0bQ*kf\x1bb$Z\x13\x03\x15w\'- f\x0fn1\x0f\\\x106V\'M~\x07';
-
 const app = express();
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '127.0.0.1');
   res.header('Access-Control-Allow-Credentials', true);
-  res.header('Access-Control-Allow-Headers', ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'].join(', '));
+  res.header('Access-Control-Allow-Headers',
+    ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'].join(', '));
   next();
 });
 
@@ -36,7 +51,7 @@ app.use((req, res, next) => {
  * Gives access to `req.cookies`.
  */
 app.use(require('cookie-parser')({
-  secret: SECRET,
+  secret: process.env.SECRET,
   options: {
     // expose to JS (client-side)
     httpOnly: false,
@@ -57,6 +72,8 @@ app.use(require('cors')({
 // view engine setup
 app.set('views', rootPath('views'));
 app.set('view engine', 'hbs');
+app.set('x-powered-by', false);
+
 
 app.use(require('morgan')(':method :url :status :req[cookie]'));
 
@@ -77,30 +94,8 @@ app.use(
 
 app.use(express.static(rootPath('public')));
 
-app.post((req, res, next) => {
-  console.warn(`req.body: ${req.body}`);
-  console.warn(`req.cookies: ${req.cookies}`);
-  next();
-});
-
 app.use('/api', require('./routes/api'));
 app.use('/user', require('./routes/user'));
 app.use('/', require('./routes'));
-
-// catch 404 and forward to error handler
-app.use((req, res, next) => next(require('http-errors')(404)));
-
-// error handler
-app.use((err, req, res, next) => {
-  /** @namespace res.locals */
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  /** @namespace req.app */
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  return res.render('error');
-});
 
 module.exports = app;
