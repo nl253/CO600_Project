@@ -88,25 +88,25 @@ function createLogger(cfg = {}) {
     fileLvl: 'info',
   }, cfg);
   let logFilePath = resolve(join(__dirname, 'logs',
-    config.logFileName || config.label.toLowerCase().replace(' ', '_')));
+    config.logFileName || config.label.toLowerCase().replace(/\s+/, '_')));
   let logFileDir = dirname(logFilePath);
   if (!existsSync(logFileDir)) {
     mkdirSync(logFileDir);
   }
   return winston.createLogger({
-    level: config.lvl,
+    level: 'info',
     format: winston.format.combine(
       winston.format.label({label: config.label}),
       winston.format.prettyPrint(),
-      winston.format.printf(
-        info => `${info.level && info.level.trim() !== '' ?
+      winston.format.printf(info =>
+        `${info.level && info.level.trim() !== '' ?
           ('[' + info.level.toUpperCase() + ']').padEnd(10) :
           ''}${info.label ?
           (info.label + ' ::').padEnd(12) :
           ''}${info.message}`),
     ),
     transports: [
-      new winston.transports.Console(),
+      new winston.transports.Console({level: config.lvl}),
       new winston.transports.File({
         level: config.fileLvl,
         filename: logFilePath,

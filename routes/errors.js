@@ -39,6 +39,32 @@ class BadMethodErr extends RestAPIErr {
   }
 }
 
+class SessionExpiredErr extends RestAPIErr {
+  constructor() {
+    super('your session has expired', 401);
+  }
+}
+
+class RecordExistsErr extends RestAPIErr {
+  /**
+   *
+   * @param {String} tableName
+   * @param {Object<String, *>|Array<String>} [attrs]
+   */
+  constructor(tableName, attrs = {}) {
+    let msg = `found existing ${tableName.toLowerCase()}`;
+    if (Object.keys(attrs).length > 0) {
+      msg += ' with given ';
+      msg += (
+        Array.isArray(attrs)
+          ? attrs
+          : Object.keys(attrs)
+      ).join(', ');
+    }
+    super(msg, 409);
+  }
+}
+
 class NoSuchRecord extends RestAPIErr {
   /**
    *
@@ -48,12 +74,11 @@ class NoSuchRecord extends RestAPIErr {
   constructor(tableName, attrs = {}) {
     let msg = `failed to find a matching ${tableName.toLowerCase()}`;
     if (Object.keys(attrs).length > 0) {
-      msg += ' with given: ';
+      msg += ' with given ';
       msg += (
         Array.isArray(attrs)
           ? attrs
-          : Object.entries(attrs)
-            .map(pair => `${pair[0]} = ${pprint(pair[1])}`)
+          : Object.keys(attrs)
       ).join(', ');
     }
     super(msg, 404);
@@ -103,5 +128,7 @@ module.exports = {
   NoSuchRecord,
   RestAPIErr,
   NotImplYetErr,
+  RecordExistsErr,
+  SessionExpiredErr,
   TypoErr,
 };

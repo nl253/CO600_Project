@@ -17,7 +17,7 @@ const HOST = '127.0.0.1';
 // loads axios and includes config from the defaults
 const httpClient = axios.create({
   withCredentials: true,
-  baseURL: `http://${HOST}:${process.env.PORT}/api`,
+  baseURL: `http://${HOST}:${process.env.PORT || 3000}/api`,
   headers: {
     'accept': ['application/json', 'application/javascript'].join(', '),
     'accept-language': ['en-GB', 'en-US', 'en'].join(', '),

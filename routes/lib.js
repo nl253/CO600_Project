@@ -6,9 +6,13 @@ const {
   createDecipher,
 } = require('crypto');
 
+const {Session, User} = require('./database');
+
 // Project
 const {createLogger, pprint} = require('../lib');
 const {
+  SessionExpiredErr,
+  RecordExistsErr,
   NoSuchRecord,
   MissingDataErr,
   InvalidRequestErr,
@@ -25,7 +29,7 @@ const log = createLogger({label: 'ROUTING', lvl: process.env.LOGGING_ROUTING});
  */
 function needs(what, where) {
   return (req, res, next) =>
-    req[where][what] === undefined || req[where][what] === null
+    req[where] === undefined || req[where] === null || req[where][what] === undefined || req[where][what] === null
       ? next(new MissingDataErr(what, where))
       : next();
 }
@@ -116,7 +120,7 @@ function errMsg(err) {
 /**
  * Decrypt a string.
  *
- * @param {String} s
+ * @param {String} s message to decrypt
  * @return {String} decrypted string
  */
 function decrypt(s) {
@@ -130,8 +134,8 @@ function decrypt(s) {
 /**
  * Encrypt a string.
  *
- * @param {String} s
- * @return {String} encrypted string
+ * @param {String} s message to encrypt
+ * @return {String} encrypted String
  */
 function encrypt(s) {
   const cipher = createCipher(process.env.ENCRYPTION_ALGORITHM,
@@ -142,51 +146,45 @@ function encrypt(s) {
 }
 
 function genToken(tokenLen = 18) {
-  return encodeURIComponent(randomBytes(tokenLen).toString('base64'));
+  return randomBytes(tokenLen).toString('base64');
 }
 
 /**
  * Validation middleware that says that the next middleware will need a certain record in model not to exist.
  *
  * @param {Model} model
- * @param {Function} [attrSupplier]
- * @return {Function} middleware
+ * @param {Function} attrSupplier function of Request that returns Object with column names as keys
+ * @return {Function} Express middleware
  */
-function notExists(model, attrSupplier = (req) => new Object()) {
-  return (req, res, next) => {
-    const attrs = attrSupplier(req);
-    return model.findOne({where: attrs})
-      .then((result) =>
-        result === null
-          ? next()
-          : next(new NoSuchRecord(model.tableName, attrs)));
-  };
+function notExists(model, attrSupplier) {
+  return (req, res, next) => model
+    .findOne({where: attrSupplier(req)})
+    .then((result) => result === null
+      ? next()
+      : next(new RecordExistsErr(model.tableName, attrSupplier(req))));
 }
 
 /**
  * Validation middleware that says that the next middleware will need a certain record in model to exist.
  *
  * @param {Model} model
- * @param {Function} [attrSupplier] a function of a Request
- * @return {Function} middleware
+ * @param {Function} attrSupplier function of Request that returns Object with keys matching columns
+ * @return {Function} Express middleware
  */
-function exists(model, attrSupplier = undefined) {
-  return (req, res, next) => {
-    const attrs = attrSupplier(req);
-    return model.findOne({where: attrs})
-      .then((result) =>
-        result !== null
-          ? next()
-          : next(new NoSuchRecord(model.tableName, attrs)));
-  };
+function exists(model, attrSupplier) {
+  return (req, res, next) => model
+    .findOne({where: attrSupplier(req)})
+    .then((result) => result !== null
+      ? next()
+      : next(new NoSuchRecord(model.tableName, attrSupplier(req))));
 }
 
 /**
  * Validation middleware.
  *
- * @param model
- * @param columnNameSupplier
- * @return {Function}
+ * @param {Model} model
+ * @param {Function} columnNameSupplier function of Request that returns String
+ * @return {Function} Express middleware
  */
 function validColumn(model, columnNameSupplier) {
   return (req, res, next) =>
@@ -198,16 +196,66 @@ function validColumn(model, columnNameSupplier) {
 /**
  * Validation middleware.
  *
- * @param columnNameSupplier
- * @param forbidden
- * @return {Function}
+ * @param {Model} model
+ * @param {Function} columnsNamesSupplier 
+ * @return {Function} Express middleware
  */
-function notRestrictedColumn(
-  columnNameSupplier, forbidden = ['updatedAt', 'createdAt']) {
+function validColumns(model, columnsNamesSupplier) {
+  return (req, res, next) => {
+    for (let col of columnsNamesSupplier(req)) {
+      if (model.attributes[col] === undefined) {
+        return next(new InvalidRequestErr('User', col));
+      }
+    }
+    return next();
+  }
+}
+
+/**
+ * Validation middleware.
+ *
+ * @param columnNameSupplier
+ * @param {Array<String>} forbidden banned columns
+ * @return {Function} Express middleware
+ */
+function notRestrictedColumn(columnNameSupplier, forbidden = ['updatedAt', 'createdAt']) {
   return (req, res, next) =>
     new Set(forbidden).has(columnNameSupplier(req))
       ? next(new InvalidRequestErr('User', columnNameSupplier(req)))
       : next();
+}
+
+/**
+ * Validation middleware.
+ *
+ * @param {Function} columnsNamesSupplier function of Request that returns Array of Strings
+ * @param {Array<String>} forbidden banned columns
+ * @return {Function} Express middleware
+ */
+function notRestrictedColumns(columnsNamesSupplier = (request) => [] , forbidden = ['updatedAt', 'createdAt']) {
+  return (req, res, next) => {
+    const bannedCols = new Set(forbidden);
+    for (const col of columnsNamesSupplier(req)) {
+      if (bannedCols.has(col)) {
+        return next(new InvalidRequestErr('User', col));
+      }
+    }
+    return next();
+  }
+}
+
+/**
+ * Validation middleware.
+ *
+ * @param {Function} tokenSupplier function of Request that returns String (the token)
+ * @return {Function} Express middleware
+ */
+function hasFreshSess(tokenSupplier) {
+  return (req, res, next) => 
+    Session.findOne({where: {token: tokenSupplier(req)}})
+      .then(token => (Date.now() - token.dataValues.updatedAt) >= process.env.SESSION_TIME 
+        ? next(new SessionExpiredErr())
+        : next());
 }
 
 
@@ -222,9 +270,12 @@ module.exports = {
   pprint,
   sha256,
   notRestrictedColumn,
+  hasFreshSess,
+  notRestrictedColumns,
   errMsg,
   msg,
   suggestRoutes,
   log,
   validColumn,
+  validColumns,
 };

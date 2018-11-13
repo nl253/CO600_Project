@@ -12,17 +12,26 @@ const SECOND = 1000;
 const MINUTE = 60 * SECOND;
 // const HOUR = 60 * MINUTE;
 
-process.env.NODE_ENV = 'development';
-process.env.PORT = 3000;
-process.env.SECRET = 'U\x0bQ*kf\x1bb$Z\x13\x03\x15w\'- f\x0fn1\x0f\\\x106V\'M~\x07';
-process.env.ROOT = resolve(__dirname);
-process.env.ENCRYPTION_ALGORITHM = 'aes192';
-process.env.SESSION_TIME = 20 * MINUTE;
-process.env.TEST_RUNS = 20;
-process.env.DB_PATH = join(process.env.ROOT, 'routes', 'database', 'db');
-process.env.LOGGING_ROUTING = 'debug';
-process.env.LOGGING_DB = 'warn';
-process.env.LOGGING_TESTS = 'info';
+for (const pair of Object.entries({
+  NODE_ENV: 'development',
+  DB_SYNC: 'false',
+  MAX_RESULTS: '100',
+  PORT: '3000',
+  SECRET: 'U\x0bQ*kf\x1bb$Z\x13\x03\x15w\'- f\x0fn1\x0f\\\x106V\'M~\x07',
+  ROOT: resolve(__dirname),
+  ENCRYPTION_ALGORITHM: 'aes192',
+  SESSION_TIME: 20 * MINUTE,
+  TEST_RUNS: '20',
+  DB_PATH: join(__dirname, 'routes', 'database', 'db'),
+  LOGGING_ROUTING: 'info',
+  LOGGING_DB: 'warn',
+  LOGGING_TESTS: 'info',
+})) {
+  const [k, v] = pair;
+  if (process.env[k] === undefined) {
+    process.env[k] = v;
+  }
+}
 
 /**
  * Produce a path relative to this file (i.e. path relative to the root of the project).
