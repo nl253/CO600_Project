@@ -1,19 +1,42 @@
 const express = require('express');
-const decrypt = require('./lib').decrypt;
+const {NotImplYetErr} = require('./errors');
+const {join, resolve} = require('path');
+const {existsSync} = require('fs');
 const router = express.Router();
-const {Session} = require('./database');
 
+
+/**
+ * Redirect `/search` to `/module/search` .
+ */
 router.get('/search', (req, res) => res.redirect('/module/search'));
 
-router.get(['/profile', '/account', '/dashboard', '/'],
-  (req, res) =>
-    req.cookies.token !== undefined && req.cookies.token !== null
-      ? Session
-        .findOne({where: {token: decrypt(req.cookies.token)}})
-        .then(session => session !== null && ((Date.now() - session.dataValues.updatedAt) < process.env.SESSION_TIME)
-          ? res.redirect(`/user/${session.email}`)
-          : res.status(404))
-      : res.redirect('/user/register'));
+/**
+ * Redirect `/profile`, `/account` & `/dashboard` to `/user/profile` .
+ */
+router.get([
+  '/profile',
+  '/account',
+  '/dashboard',
+], (req, res) => res.redirect('/user/profile'));
+
+/**
+ * Render all pages in `/views/pages`.
+ */
+router.get('/:page', (req, res, next) => {
+  const {page} = req.params;
+  const pagePath = resolve(join(process.env.ROOT || process.env.PWD, 'views', 'pages', page));
+  if (!existsSync(pagePath)) {
+    /** @namespace req.params.page */
+    log.error(`failed to render page "${page}" in "${pagePath}", HINT: try creating it in "/views/pages/${page}" and it will be served`);
+    return next(new NotImplYetErr(`page ${page}`));
+  }
+  return res.render(join('pages', page));
+});
+
+/**
+ * Redirect `/search` to `/module/search` .
+ */
+router.get('/', (req, res) => res.redirect('/user/register'));
 
 // catch 404 and forward to error handler
 router.use((req, res, next) => next(require('http-errors')(404)));

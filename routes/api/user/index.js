@@ -1,4 +1,5 @@
 // 3rd Party
+const {NoSuchRecord, BadMethodErr} = require('../../errors');
 const router = require('express').Router();
 
 // Project
@@ -17,15 +18,7 @@ const {
   genToken,
 } = require('../../lib');
 
-const {
-  BadMethodErr,
-} = require('../../errors');
-
-const {
-  errMsg,
-  msg,
-  sha256,
-} = require('../../lib');
+const {msg, sha256} = require('../../lib');
 
 const {User, Session} = require('../../database');
 
@@ -43,8 +36,8 @@ router.post([
   exists(User, (req) => ({email: req.body.email, password: sha256(req.body.password)})),
   (req, res, next) =>
     Session.findOne({where: {email: req.body.email}})
-      .then(result => result === null 
-        ? next() 
+      .then(result => result === null
+        ? next()
         : result.destroy().then(() => next())),
   (req, res) => {
     const token = genToken();
@@ -69,17 +62,17 @@ router.get([
   needs('token', 'cookies'),
   exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
   (req, res, next) => Session
-      .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
-      .then(session => session.destroy())
-      .then(() => res.json(msg('successfully logged out')))
-      .catch((err) => next(err)),
+    .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
+    .then(session => session.destroy())
+    .then(() => res.json(msg('successfully logged out')))
+    .catch((err) => next(err)),
 );
 
 /**
  * If an API user tries to perform these actions,
  * show suggestion that they should use POST not GET.
  */
-router.get(['/register', '/login'], 
+router.get(['/register', '/login'],
   (req, res, next) => next(new BadMethodErr('GET', 'POST')));
 
 /**
@@ -123,7 +116,7 @@ router.get([
   (req, res, next) => Session
     .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
     .then((session) => {
-      const email = JSON.parse(JSON.stringify(session.dataValues)).email; 
+      const email = JSON.parse(JSON.stringify(session.dataValues)).email;
       return session.destroy().then(() => User.findOne({where: {email}}))
     })
     .then((user) => user.destroy())
@@ -154,8 +147,8 @@ router.post('/password',
  *
  * Doesn't require authentication.
  *
- * @namespace result.dataValues 
- * @namespace req.params.property 
+ * @namespace result.dataValues
+ * @namespace req.params.property
  */
 router.get('/:email/:property',
   exists(User, (req) => ({email: req.params.email})),
@@ -223,8 +216,8 @@ router.post('/',
   (req, res, next) => Session
     .findOne({where: {email: req.params.email}})
     .then((session) => User.findOne({where: {email: session.email}}))
-    .then((user) => user === null 
-      ? Promise.reject(new NoSuchRecord('User')) 
+    .then((user) => user === null
+      ? Promise.reject(new NoSuchRecord('User'))
       : user.update(JSON.parse(JSON.stringify(req.body))))
     .then(() => res.json(msg(`updated ${Object.keys(req.body).join(', ')} in user ${req.params.email}`)))
     .catch((err) => next(err)));
@@ -237,7 +230,7 @@ router.post('/',
  *
  * Doesn't require authentication.
  */
-router.get('/', 
+router.get('/',
   validColumns(User, (req) => Object.keys(req.query)),
   (req, res, next) => {
     const queryParams = {};
@@ -247,10 +240,10 @@ router.get('/',
       } else queryParams[q] = req.query[q];
     }
     return User.findAll({
-        limit: process.env.MAX_RESULTS || 100, 
-        where: queryParams,
-        attributes: Object.keys(User.attributes).filter(attr => attr !== 'password'),
-      })
+      limit: process.env.MAX_RESULTS || 100,
+      where: queryParams,
+      attributes: Object.keys(User.attributes).filter(attr => attr !== 'password'),
+    })
       .then((results) => results.map((u) => u.dataValues))
       .then((users) => {
         let s = `found ${users.length} users`;

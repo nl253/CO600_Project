@@ -30,7 +30,7 @@
  */
 
 // Standard Library
-const {spawn} = require('child_process');
+// const {spawn} = require('child_process');
 
 // My Code
 const {httpClient, log, randUser} = require('../testUtils');
@@ -39,9 +39,8 @@ const TEST_RUNS = process.env.TEST_RUNS || 20;
 
 // 3rd Party
 const faker = require('faker');
-const maybe = faker.random.boolean;
 let token;
-let serverProcess;
+// let serverProcess;
 
 // beforeAll(() => {
 //   log.info(`testing ${__filename} part of the REST API, starting server`);

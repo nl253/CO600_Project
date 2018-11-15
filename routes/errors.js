@@ -1,5 +1,3 @@
-const {pprint} = require('../lib');
-
 class RestAPIErr extends Error {
   /**
    * @param {String} msg

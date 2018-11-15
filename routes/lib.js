@@ -78,17 +78,16 @@ function msg(msg, result) {
  * @return {{status: String, msg: String}}
  */
 function errMsg(err) {
+
   const status = 'ERROR';
-  if (err === undefined || err === null) {
-    return {status, msg: 'failure'};
-  }
+
+  if (err === undefined || err === null) return {status, msg: 'failure'};
 
   if (err.constructor !== undefined && err.constructor.name === 'RestAPIErr') {
     return err.msgJSON;
   }
 
-  if (err.constructor !== undefined && err.constructor.name ===
-    'ValidationError') {
+  if (err.constructor !== undefined && err.constructor.name === 'ValidationError') {
     /** @namespace err.errors */
     let noErrs = err.errors.length;
 
@@ -98,19 +97,14 @@ function errMsg(err) {
     }
 
     if (noErrs > 1) {
-      return {
-        status,
-        msg: `validation errors: ${err.errors.map(e => e.message).join(', ')}`,
-      };
+      return {status, msg: `validation errors: ${err.errors.map(e => e.message).join(', ')}`};
     }
 
     /** @namespace err.errors */
     return {status, msg: `validation error: ${err.errors[0].message}`};
   }
 
-  if (err instanceof Error) {
-    return {status, msg: `error: ${err.message}`};
-  }
+  if (err instanceof Error) return {status, msg: `error: ${err.message}`};
 
   // if err is String (cannot check with instanceof)
   return {status, msg: err.toString()};
@@ -138,8 +132,7 @@ function decrypt(s) {
  * @return {String} encrypted String
  */
 function encrypt(s) {
-  const cipher = createCipher(process.env.ENCRYPTION_ALGORITHM,
-    process.env.SECRET);
+  const cipher = createCipher(process.env.ENCRYPTION_ALGORITHM, process.env.SECRET);
   let encrypted = cipher.update(s, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   return encrypted;

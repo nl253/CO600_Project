@@ -51,8 +51,7 @@ const app = express();
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '127.0.0.1');
   res.header('Access-Control-Allow-Credentials', true);
-  res.header('Access-Control-Allow-Headers',
-    ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'].join(', '));
+  res.header('Access-Control-Allow-Headers', ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'].join(', '));
   next();
 });
 
