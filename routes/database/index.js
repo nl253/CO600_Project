@@ -5,18 +5,11 @@
  */
 
 // Standard Library
-const {
-  existsSync
-} = require('fs');
-const {
-  join,
-  resolve
-} = require('path');
+const {existsSync} = require('fs');
+const {join, resolve} = require('path');
 
 // Project
-const {
-  createLogger
-} = require('../../lib');
+const {createLogger} = require('../../lib');
 
 /**
  * Logger for the database. Logs all queries.
@@ -24,36 +17,22 @@ const {
  * @type {winston.Logger}
  */
 // const log = createLogger({label: 'DATABASE', lvl: process.env.LOGGING_DB});
-const log = createLogger({
-  label: 'DATABASE',
-  lvl: process.env.LOGGING_DB
-});
+const log = createLogger({label: 'DATABASE', lvl: process.env.LOGGING_DB});
 
 if (process.env.NODE_ENV !== 'development') {
-  log.error(
-    `database not configured for ${process.env.NODE_ENV}, see ${resolve( join(__dirname, __filename))}`
-  );
+  log.error(`database not configured for ${process.env.NODE_ENV}, see ${resolve( join(__dirname, __filename))}`);
   process.exit(1);
 }
 
 // 3rd Party
 const Sequelize = require('sequelize');
 
-const {
-  STRING,
-  TEXT,
-  INTEGER,
-  TINYINT,
-  BOOLEAN,
-  REAL
-} = Sequelize;
+const {STRING, TEXT, INTEGER, TINYINT, BOOLEAN, REAL} = Sequelize;
 
 const sequelize = new Sequelize({
 
   operatorsAliases: false,
-
   dialect: 'sqlite',
-
   storage: process.env.DB_PATH,
 
   // Specify options, which are used when sequelize.define is called.
@@ -90,7 +69,6 @@ const sequelize = new Sequelize({
     acquire: 60000,
   },
 });
-
 
 const User = sequelize.define('User', {
   email: {
@@ -146,13 +124,19 @@ const Session = sequelize.define('Session', {
     primaryKey: true,
     type: STRING,
     validate: {
-      is: {args: /.{6}/, mgs: 'access token not long enough'}
+      is: {
+        args: /.{6}/,
+        mgs: 'access token not long enough'
+      }
     },
   },
   email: {
     type: STRING,
     allowNull: false,
-    references: {model: User, key: 'email'},
+    references: {
+      model: User,
+      key: 'email'
+    },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
   },
@@ -197,11 +181,6 @@ const Lesson = sequelize.define('Lesson', {
     onUpdate: 'CASCADE',
     allowNull: false,
   },
-  isQuized: {
-    type: BOOLEAN,
-    defaultValue: false,
-    allowNull: false,
-  },
   summary: TEXT,
   content: TEXT,
 });
@@ -223,16 +202,17 @@ const Rating = sequelize.define('Rating', {
     },
     onUpdate: 'CASCADE',
   },
-  lessonId: {
-    type: INTEGER,
+  module: {
+    type: STRING,
     references: {
-      model: Lesson,
-      key: 'id'
+      model: Module,
+      key: 'name'
     },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     allowNull: false,
   },
+  comment: TEXT,
   stars: {
     type: TINYINT,
     validate: {
@@ -246,41 +226,6 @@ const Rating = sequelize.define('Rating', {
       },
     },
     allowNull: false,
-  },
-});
-
-const Invitation = sequelize.define('Invitation', {
-  module: {
-    type: STRING,
-    references: {
-      model: Module,
-      key: 'name'
-    },
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    allowNull: false,
-    unique: 'compositeIndex',
-  },
-  student: {
-    type: STRING,
-    references: {
-      model: User,
-      key: 'email'
-    },
-    allowNull: false,
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    unique: 'compositeIndex',
-  },
-  creator: {
-    type: STRING,
-    references: {
-      model: User,
-      key: 'email'
-    },
-    allowNull: false,
-    onUpdate: 'CASCADE',
-    unique: 'compositeIndex',
   },
 });
 
@@ -309,7 +254,7 @@ const Enrollment = sequelize.define('Enrollment', {
   },
 });
 
-const Comment = sequelize.define('Comment', {
+const Question = sequelize.define('Question', {
   id: {
     type: INTEGER,
     allowNull: false,
@@ -322,183 +267,8 @@ const Comment = sequelize.define('Comment', {
       model: Module,
       key: 'name'
     },
-    allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
-  },
-  lessonId: {
-    type: INTEGER,
-    references: {
-      model: Lesson,
-      key: 'id'
-    },
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-  },
-  author: {
-    type: STRING,
-    references: {
-      model: User,
-      key: 'email'
-    },
-    onUpdate: 'CASCADE',
-  },
-  parent: {
-    type: INTEGER,
-    references: {
-      model: 'Comment',
-      key: 'id'
-    },
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-  },
-});
-
-const OpenQuestion = sequelize.define('OpenQuestion', {
-  id: {
-    type: INTEGER,
-    allowNull: false,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-  module: {
-    type: STRING,
-    allowNull: false,
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    references: {
-      model: Module,
-      key: 'name'
-    },
-  },
-  question: {
-    type: TEXT,
-    allowNull: false,
-  },
-});
-
-const [minMark, maxMark] = [0.0, 100.0];
-const badMarkMsg = `the mark must be between ${minMark} and ${maxMark}`;
-const Answer = sequelize.define('Answer', {
-  student: {
-    type: STRING,
-    references: {
-      model: User,
-      key: 'email'
-    },
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    allowNull: false,
-    unique: 'compositeIndex',
-  },
-  questionId: {
-    type: INTEGER,
-    references: {
-      model: OpenQuestion,
-      key: 'id'
-    },
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    allowNull: false,
-    unique: 'compositeIndex',
-  },
-  answer: {
-    type: TEXT,
-    allowNull: false,
-  },
-  comment: TEXT,
-  mark: {
-    type: REAL,
-    validate: {
-      min: {
-        args: minMark,
-        msg: badMarkMsg
-      },
-      max: {
-        args: maxMark,
-        msg: badMarkMsg
-      },
-    },
-  },
-});
-
-const Report = sequelize.define('Report', {
-  id: {
-    type: INTEGER,
-    allowNull: false,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-  lessonId: {
-    type: INTEGER,
-    allowNull: false,
-    references: {
-      model: Lesson,
-      key: 'id'
-    },
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-  },
-  module: {
-    type: STRING,
-    allowNull: false,
-    references: {
-      model: Module,
-      key: 'name'
-    },
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-  },
-  author: {
-    type: STRING,
-    references: {
-      model: User,
-      key: 'email'
-    }
-  },
-  issue: {
-    type: TEXT,
-    allowNull: false
-  },
-});
-
-const Definition = sequelize.define('Definition', {
-  lessonId: {
-    type: INTEGER,
-    references: {
-      model: Lesson,
-      key: 'id'
-    },
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    allowNull: false,
-    unique: 'compositeIndex',
-  },
-  term: {
-    type: STRING,
-    allowNull: false,
-    unique: 'compositeIndex',
-  },
-  meaning: {
-    type: TEXT,
-    allowNull: false,
-  },
-});
-
-const QuizQuestion = sequelize.define('QuizQuestion', {
-  lessonId: {
-    type: INTEGER,
-    references: {
-      model: Lesson,
-      key: 'id'
-    },
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    allowNull: false,
-    unique: 'compositeIndex',
-  },
-  question: {
-    type: TEXT,
     allowNull: false,
     unique: 'compositeIndex',
   },
@@ -517,17 +287,11 @@ if (process.env.DB_SYNC === '1' || process.env.DB_SYNC === 'true' || (process.en
 }
 
 module.exports = {
-  Answer,
-  Comment,
-  Definition,
   Enrollment,
-  Invitation,
   Lesson,
   Module,
-  OpenQuestion,
-  QuizQuestion,
+  Question,
   Rating,
-  Report,
   Session,
   User,
 };

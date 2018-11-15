@@ -1,0 +1,66 @@
+@startuml
+
+class User {
+  <i>email</i>
+  -- other --
+  firstName
+  lastName
+  password
+  info
+}
+
+class Session {
+  <i>token</i>
+  -- other --
+  email
+}
+
+class Module {
+  <i>name</i>
+  -- FK --
+  author
+  -- other --
+  topic
+  summary
+}
+
+class Lesson {
+  <i>id</i>
+  -- FK --
+  module
+  -- other --
+  content
+}
+
+class Rating {
+  -- FK --
+  <i>rater</i>
+  <i>lesson</i>
+  -- other --
+  stars
+  comment
+}
+
+class Enrollment {
+  -- FK --
+  <i>module</i>
+  <i>student</i>
+}
+
+class Question {
+  -- FK --
+  <i>module</i>
+  -- other --
+  <i>question</i>
+  correctAnswer
+}
+
+Session -- User : "for a" >
+Question "*" -- Module : "about content of" >
+Enrollment -- Module : in >
+Enrollment - User : of >
+Rating -- Module : of >
+Rating "*" - User : by >
+Lesson "*" -- Module : in >
+Module "*" -- User : by >
+@enduml
