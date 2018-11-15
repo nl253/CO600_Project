@@ -1,0 +1,88 @@
+@startuml
+start
+if () then (/api)
+  partition API {
+    if () then (/api/user)
+      if (has-token) then 
+        if () then (POST /api/user)
+          :modify user info;
+          stop
+        elseif () then (POST /api/user/:property)
+          :modify user's property;
+          stop
+        elseif () then (GET /api/user/logout)
+          :modify user's property;
+          stop
+        elseif () then (GET /api/user/unregister)
+          :delete account;
+          stop
+        else
+          :404 error;
+          stop
+        endif
+      else 
+        if () then (GET /api/user/:email)
+          :user public info;
+          stop
+        elseif () then (GET /api/user/:email/:property)
+          :user public info for property;
+          stop
+        elseif () then (GET /api/user)
+          :search for users;
+          stop
+        elseif () then (POST /api/user/login)
+          :start session;
+          stop
+        elseif () then (POST /api/user/register)
+          :create new account;
+          stop
+        else
+          :404 error;
+          stop
+        endif
+      endif
+    elseif () then (/api/module)
+      :module operations;
+      stop
+    else 
+      :404 error;
+      stop
+    endif
+  }
+else 
+  partition WEBSITE {
+    if () then (/user)
+      if () then (/user/profile)
+        :user enrollments & created content;
+        stop
+      elseif () then (/user/register)
+        :registration page;
+        stop
+      elseif () then (/user/settings)
+        :settings page to modify personal details;
+        stop
+      elseif () then (/user/:email)
+        :user public info;
+        stop
+      else
+        :404 error;
+        stop
+      endif
+    elseif () then (/module)
+      if () then (/module/search)
+        :module search page;
+        stop
+      elseif () then (/module/:name)
+        :module info page;
+        stop
+      else
+        :404 error;
+        stop
+      endif
+    else
+      :404 error;
+      stop
+    endif
+  }
+endif
+@enduml
