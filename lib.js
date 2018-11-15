@@ -87,8 +87,7 @@ function createLogger(cfg = {}) {
     lvl: 'warn',
     fileLvl: 'info',
   }, cfg);
-  let logFilePath = resolve(join(__dirname, 'logs',
-    config.logFileName || config.label.toLowerCase().replace(/\s+/, '_')));
+  let logFilePath = resolve(join(__dirname, 'logs', config.logFileName || config.label.toLowerCase().replace(/\s+/, '_')));
   let logFileDir = dirname(logFilePath);
   if (!existsSync(logFileDir)) {
     mkdirSync(logFileDir);

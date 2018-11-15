@@ -76,3 +76,12 @@ sessions/
 # Generated API documentation
 doc/
 docs/
+
+# MacOS stuff
+.DS_Store
+
+# Node Package Manager
+package-lock.json
+
+# Git
+*.orig
