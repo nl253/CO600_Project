@@ -48,6 +48,19 @@ if (!existsSync(rootPath('logs'))) mkdirSync(rootPath('logs'));
 const express = require('express');
 const app = express();
 
+// view engine setup
+app.set('views', rootPath('views'));
+app.set('view engine', 'hbs');
+app.set('x-powered-by', false);
+
+app.locals.title = 'FreeSchool';
+app.locals.authors = [
+  {name: 'Norbert Logiewa', email: 'nl253@kent.ac.uk'},
+  {name: 'Imaan Fakim', email: 'if50@kent.ac.uk'},
+  {name: 'Nic', email: 'nv55@kent.ac.uk'},
+];
+
+
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '127.0.0.1');
   res.header('Access-Control-Allow-Credentials', true);
@@ -76,11 +89,6 @@ app.use(require('cors')({
   // enable set cookie
   credentials: true,
 }));
-
-// view engine setup
-app.set('views', rootPath('views'));
-app.set('view engine', 'hbs');
-app.set('x-powered-by', false);
 
 
 app.use(require('morgan')(':method :url :status :req[cookie]'));

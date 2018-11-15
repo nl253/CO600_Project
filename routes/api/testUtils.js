@@ -3,14 +3,14 @@ const faker = require('faker');
 const axios = require('axios');
 
 // Project
-const {createLogger} = require('../lib');
+const {createLogger} = require('../../lib');
 
 /**
  * This is a logger for the database that logs all queries.
  *
  * @type {winston.Logger}
  */
-const log = createLogger({label: 'TEST', lvl: process.env.LOGGING_TESTS});
+const log = createLogger({label: 'TEST', lvl: process.env.LOGGING_TESTS || 'info'});
 
 const HOST = '127.0.0.1';
 
@@ -24,6 +24,7 @@ const httpClient = axios.create({
     'content-language': 'en-GB',
     'content-type': 'application/json',
   },
+  responseType: 'json',
   validateStatus: (status) => true,
 });
 

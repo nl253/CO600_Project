@@ -39,23 +39,12 @@ const {existsSync} = require('fs');
 const express = require('express');
 const router = express.Router();
 
-const {log, errMsg, suggestRoutes} = require('../lib');
-const {TypoErr, NotImplYetErr} = require('../errors');
-
+const {suggestRoutes, log, errMsg} = require('./lib');
+const {TypoErr, NotImplYetErr} = require('./../errors');
 
 const MODELS = [
   'User',
-  // 'Report',
-  // 'QuizQuestion',
-  // 'Answer',
-  // 'Rating',
-  // 'Module',
-  // 'Lesson',
-  // 'Enrollment',
-  // 'Comment',
-  // 'Definition',
-  // 'Invitation',
-  // 'OpenQuestion'
+  'Module',
 ];
 
 for (const mod of MODELS.map(key => key.toLowerCase())) {
@@ -70,9 +59,8 @@ for (const mod of MODELS.map(key => key.toLowerCase())) {
     continue;
   }
 
-  router.all(`/${mod}`,
-    (req, res, next) => next(
-      new NotImplYetErr(`${mod} part of the REST API`)));
+  router.all(`/${mod}`, (req, res, next) => next(new NotImplYetErr(`${mod} part of the REST API`)));
+
 }
 
 suggestRoutes(router, /.*/, {

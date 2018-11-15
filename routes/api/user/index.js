@@ -1,4 +1,5 @@
 // 3rd Party
+const {suggestRoutes, msg} = require('../lib');
 const {NoSuchRecord, BadMethodErr} = require('../../errors');
 const router = require('express').Router();
 
@@ -7,7 +8,6 @@ const {
   encrypt,
   decrypt,
   needs,
-  suggestRoutes,
   hasFreshSess,
   exists,
   validColumn,
@@ -18,7 +18,8 @@ const {
   genToken,
 } = require('../../lib');
 
-const {msg, sha256} = require('../../lib');
+
+const {sha256} = require('../../lib');
 
 const {User, Session} = require('../../database');
 
@@ -39,7 +40,7 @@ router.post([
       .then(result => result === null
         ? next()
         : result.destroy().then(() => next())),
-  (req, res) => {
+  (req, res, next) => {
     const token = genToken();
     return Session
       .create({email: req.body.email, token})

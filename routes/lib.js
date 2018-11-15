@@ -1,3 +1,8 @@
+/**
+ * This module contains utility functions to be used by everything in the
+ * `PROJECT_ROOT/routes` directory.
+ */
+
 // Standard Library
 const {
   randomBytes,
@@ -6,10 +11,10 @@ const {
   createDecipher,
 } = require('crypto');
 
-const {Session, User} = require('./database');
 
 // Project
-const {createLogger, pprint} = require('../lib');
+const {Session} = require('./database');
+const {createLogger} = require('../lib');
 const {
   SessionExpiredErr,
   RecordExistsErr,
@@ -18,7 +23,7 @@ const {
   InvalidRequestErr,
 } = require('./errors');
 
-const log = createLogger({label: 'ROUTING', lvl: process.env.LOGGING_ROUTING});
+const log = createLogger({label: 'ROUTING', lvl: process.env.LOGGING_ROUTING || 'warn'});
 
 /**
  * Validation middleware that says that the next middleware will need a certain `what` in `req[where]`.
@@ -29,7 +34,8 @@ const log = createLogger({label: 'ROUTING', lvl: process.env.LOGGING_ROUTING});
  */
 function needs(what, where) {
   return (req, res, next) =>
-    req[where] === undefined || req[where] === null || req[where][what] === undefined || req[where][what] === null
+    req[where] === undefined || req[where] === null || req[where][what] ===
+    undefined || req[where][what] === null
       ? next(new MissingDataErr(what, where))
       : next();
 }
@@ -44,70 +50,6 @@ function sha256(data) {
   const hash = createHash('sha256');
   hash.update(data);
   return hash.digest('base64').toString();
-}
-
-/**
- * Suggest routes when an API user types something like `/`, `/module` or `/content`.
- *
- * @param {express.Router} router
- * @param {String|RegExp|Array<String>|Array<RegExp>} path
- * @param {String|Object<String, *>|Number|Array} routes
- * @return {undefined}
- */
-function suggestRoutes(router, path, routes) {
-  return router.all(path, (req, res) => res.status(400).json(
-    {status: 'ERROR', msg: 'nothing here, see the routes', routes}));
-}
-
-/**
- * Format response message when it's OK.
- *
- * @param {String} msg
- * @param {*} [result]
- * @return {{status: String, msg: String}}
- */
-function msg(msg, result) {
-  const status = 'OK';
-  return result !== undefined ? {status, msg, result} : {status, msg};
-}
-
-/**
- * Produce a more informative error msg when using the REST API.
- *
- * @param {ValidationError|RestAPIErr|Error|String} [err]
- * @return {{status: String, msg: String}}
- */
-function errMsg(err) {
-
-  const status = 'ERROR';
-
-  if (err === undefined || err === null) return {status, msg: 'failure'};
-
-  if (err.constructor !== undefined && err.constructor.name === 'RestAPIErr') {
-    return err.msgJSON;
-  }
-
-  if (err.constructor !== undefined && err.constructor.name === 'ValidationError') {
-    /** @namespace err.errors */
-    let noErrs = err.errors.length;
-
-    if (noErrs === 0) {
-      /** @namespace err.message */
-      return {status, msg: `validation error: ${err.message}`};
-    }
-
-    if (noErrs > 1) {
-      return {status, msg: `validation errors: ${err.errors.map(e => e.message).join(', ')}`};
-    }
-
-    /** @namespace err.errors */
-    return {status, msg: `validation error: ${err.errors[0].message}`};
-  }
-
-  if (err instanceof Error) return {status, msg: `error: ${err.message}`};
-
-  // if err is String (cannot check with instanceof)
-  return {status, msg: err.toString()};
 }
 
 
@@ -132,7 +74,8 @@ function decrypt(s) {
  * @return {String} encrypted String
  */
 function encrypt(s) {
-  const cipher = createCipher(process.env.ENCRYPTION_ALGORITHM, process.env.SECRET);
+  const cipher = createCipher(process.env.ENCRYPTION_ALGORITHM,
+    process.env.SECRET);
   let encrypted = cipher.update(s, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   return encrypted;
@@ -190,7 +133,7 @@ function validColumn(model, columnNameSupplier) {
  * Validation middleware.
  *
  * @param {Model} model
- * @param {Function} columnsNamesSupplier 
+ * @param {Function} columnsNamesSupplier
  * @return {Function} Express middleware
  */
 function validColumns(model, columnsNamesSupplier) {
@@ -201,7 +144,7 @@ function validColumns(model, columnsNamesSupplier) {
       }
     }
     return next();
-  }
+  };
 }
 
 /**
@@ -211,7 +154,8 @@ function validColumns(model, columnsNamesSupplier) {
  * @param {Array<String>} forbidden banned columns
  * @return {Function} Express middleware
  */
-function notRestrictedColumn(columnNameSupplier, forbidden = ['updatedAt', 'createdAt']) {
+function notRestrictedColumn(
+  columnNameSupplier, forbidden = ['updatedAt', 'createdAt']) {
   return (req, res, next) =>
     new Set(forbidden).has(columnNameSupplier(req))
       ? next(new InvalidRequestErr('User', columnNameSupplier(req)))
@@ -225,7 +169,8 @@ function notRestrictedColumn(columnNameSupplier, forbidden = ['updatedAt', 'crea
  * @param {Array<String>} forbidden banned columns
  * @return {Function} Express middleware
  */
-function notRestrictedColumns(columnsNamesSupplier = (request) => [] , forbidden = ['updatedAt', 'createdAt']) {
+function notRestrictedColumns(columnsNamesSupplier = (request) => [],
+                              forbidden = ['updatedAt', 'createdAt']) {
   return (req, res, next) => {
     const bannedCols = new Set(forbidden);
     for (const col of columnsNamesSupplier(req)) {
@@ -234,7 +179,7 @@ function notRestrictedColumns(columnsNamesSupplier = (request) => [] , forbidden
       }
     }
     return next();
-  }
+  };
 }
 
 /**
@@ -244,31 +189,27 @@ function notRestrictedColumns(columnsNamesSupplier = (request) => [] , forbidden
  * @return {Function} Express middleware
  */
 function hasFreshSess(tokenSupplier) {
-  return (req, res, next) => 
+  return (req, res, next) =>
     Session.findOne({where: {token: tokenSupplier(req)}})
-      .then(token => (Date.now() - token.dataValues.updatedAt) >= process.env.SESSION_TIME 
+      .then(token => (Date.now() - token.dataValues.updatedAt) >=
+      process.env.SESSION_TIME
         ? next(new SessionExpiredErr())
         : next());
 }
 
 
 module.exports = {
-  createLogger,
-  exists,
-  notExists,
-  needs,
-  genToken,
-  encrypt,
   decrypt,
-  pprint,
-  sha256,
-  notRestrictedColumn,
+  encrypt,
+  exists,
+  genToken,
   hasFreshSess,
-  notRestrictedColumns,
-  errMsg,
-  msg,
-  suggestRoutes,
   log,
+  needs,
+  notExists,
+  notRestrictedColumn,
+  notRestrictedColumns,
+  sha256,
   validColumn,
   validColumns,
 };

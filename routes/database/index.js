@@ -17,7 +17,7 @@ const {createLogger} = require('../../lib');
  * @type {winston.Logger}
  */
 // const log = createLogger({label: 'DATABASE', lvl: process.env.LOGGING_DB});
-const log = createLogger({label: 'DATABASE', lvl: process.env.LOGGING_DB});
+const log = createLogger({label: 'DATABASE', lvl: process.env.LOGGING_DB || 'warn'});
 
 if (process.env.NODE_ENV !== 'development') {
   log.error(`database not configured for ${process.env.NODE_ENV}, see ${resolve( join(__dirname, __filename))}`);
