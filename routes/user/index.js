@@ -1,12 +1,10 @@
 // Standard Library
-const {NoSuchRecord} = require('../errors');
-
 const {exists} = require('fs');
 const {join} = require('path');
 
 // 3rd Party
 const express = require('express');
-const NotImplYetErr = require('../errors').NotImplYetErr;
+const {NotImplYetErr, NoSuchRecord} = require('../errors');
 const router = express.Router();
 
 // Project
@@ -46,7 +44,6 @@ router.get('/:page',
       : res.render(join('user', 'index'), {user: user.dataValues})
     ).catch((err) => next(err))
   });
-
 
 /** @namespace user.dataValues */
 /** @namespace session.updatedAt */
