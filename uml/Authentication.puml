@@ -1,0 +1,24 @@
+@startuml
+
+title Authentication
+
+start
+:/user/register;
+:client sends credentials\nin POST body; 
+:hash(password);
+if (matching hashed password & email) then (yes)
+  :generate session token;
+  :base64 encode the token;
+  :store a new entry\nin the Session table (email, token);
+  :encrypt(token);
+  :encodeURIComponent(encryptedToken);
+  :sendToClient(encodedToken);
+  :client uses JavaScript\nto set cookie\n`token=${token}`;
+  :client uses JavaScript\nto redirect to /user\n`window.location = ...`;
+  stop
+else (no)
+  :auth error;
+  :display pop-up;
+  stop
+endif
+@enduml

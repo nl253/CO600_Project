@@ -1,0 +1,25 @@
+@startuml
+
+title Requesting Profile Page
+
+start
+if (token in cookies) then (yes)
+  if (token matches existing session) then (yes)
+    if (token is fresh) then (yes)
+      :show /user;
+      stop
+    else (no)
+      :redirect to /user/register;
+      stop
+    endif
+  else (no)
+    :redirect to /user/register;
+    stop
+  endif
+else (no)
+  :redirect to /user/register;
+  :client needs to log in\nauthenticates by sending credentials in POST body\nto /api/user/login; 
+  stop
+endif
+
+@enduml
