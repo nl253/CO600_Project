@@ -1,30 +1,37 @@
-<header class="columns">
-  <div class="column"></div>
-  <h2 class="column title is-centered has-text-centered">Profile of <span class="is-italic"> {{user.email}}</span></h2>
-  <div class="column"></div>
-</header>
-
-<div class="columns">
-  <div class="column"></div>
-  <main class="card column">
-    <div class="card-header">
-      <h3 class="heading card-header-title is-large">Your details</h3><br/>
+<section class="hero is-primary is-bold">
+    <div class="hero-head">
+        <br>
+        <div class="container">
+            <h1 class="title is-1"><i class="fas fa-user"></i><span id="user-email-msg">{{loggedIn.email}}</span></h1>
+        </div>
     </div>
-    <div class="card-content">
-      <h5 class="is-5 is-bold">Email</h5>
-      <p>{{user.email}}</p><br/>
 
-      <h5 class="is-5 is-bold">First Name</h5>
-      <p>{{user.firstName}}</p><br/>
 
-      <h5 class="is-5 is-bold">Last Name</h5>
-      <p>{{user.lastName}}</p><br/>
+    <div class="hero-body">
+        <div class="container">
+            <h1 class="title is-4">Here are the modules you created:</h1>
+        </div>
+        <div class="container">
+            <div style="
+                overflow:auto;
+                font-family:sans-serif;
+                padding:10px;">
+                
+            </div>
+        </div>
+        <div class="container">
+            <h1 class="title is-4">Here are the modules you enrolled in:</h1>
+        </div>
 
-      <h5 class="is-5 is-bold">Info</h5>
 
-      <p>{{user.info}}</p><br/>
     </div>
-  </main>
+</section>
 
-  <div class="column"></div>
-</div>
+<script>
+    const el = document.getElementById("user-email-msg");
+    if (el.innerText !== '') {
+        const regex = /(.*)@(.*)/;
+        const result = regex.exec(el.innerText);
+        if (result !== null) el.innerText = result[1];
+    }
+</script>
