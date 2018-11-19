@@ -14,14 +14,35 @@ const {User, Session} = require('../database');
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
 
-router.get('/register', (req, res) => res.render(join('user', 'register')));
+/**
+ * Registration page if not logged in, otherwise redirect to user profile page.
+ */
+router.get('/register', (req, res) => {
+  const maybeToken = req.cookies.token;
+  if (maybeToken === null || maybeToken === undefined) {
+    return res.render(join('user', 'register'));
+  }
+  return Session
+    .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
+    .then((session) => session === null
+      ? res.status(403).redirect('/user/register')
+      : session.dataValues
+    )
+    .then((session) => (Date.now() - session.updatedAt) >= (process.env.SESSION_TIME || 20 * MINUTE)
+      ? res.status(401).redirect('/user/register')
+      : User.findOne({
+        where: {email: session.email},
+        attributes: Object.keys(User.attributes).filter(a => a !== 'password')
+      }).then((user) => res.render(join('user', 'index'), {loggedIn: user.dataValues})))
+});
+
 router.get([
   '/profile',
   '/dashboard',
-  '/account'], (req, res) => res.redirect('/user'));
+  '/account'], (req, res) => res.redirect('/user/'));
 
 /**
- * Display public info about a user.
+ * Public info about a user.
  */
 router.get('/:page',
   (req, res, next) => {
@@ -41,10 +62,13 @@ router.get('/:page',
       attributes: Object.keys(User.attributes).filter(a => a !== 'password')
     }).then((user) => user === null
       ? next(new NoSuchRecord('User', {email}))
-      : res.render(join('user', 'index'), {user: user.dataValues})
+      : res.render(join('user', 'profile'), {user: user.dataValues})
     ).catch((err) => next(err))
   });
 
+/**
+ * User profile page with enrollments and their content.
+ */
 /** @namespace user.dataValues */
 /** @namespace session.updatedAt */
 router.get('/',
@@ -60,7 +84,7 @@ router.get('/',
         : User.findOne({
           where: {email: session.email},
           attributes: Object.keys(User.attributes).filter(a => a !== 'password')
-        }).then((user) => res.render(join('user', 'profile'), {loggedIn: user.dataValues})))
+        }).then((user) => res.render(join('user', 'index'), {loggedIn: user.dataValues})))
       .catch(err => next(err)));
 
 module.exports = router;
