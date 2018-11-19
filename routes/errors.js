@@ -1,5 +1,3 @@
-const {pprint} = require('./lib');
-
 class RestAPIErr extends Error {
   /**
    * @param {String} msg
@@ -15,7 +13,7 @@ class RestAPIErr extends Error {
   }
 
   /**
-   * @return {Number}
+   * @return {Number} HTTP status code
    */
   get code() {
     return this._code;
@@ -39,6 +37,32 @@ class BadMethodErr extends RestAPIErr {
   }
 }
 
+class SessionExpiredErr extends RestAPIErr {
+  constructor() {
+    super('your session has expired', 401);
+  }
+}
+
+class RecordExistsErr extends RestAPIErr {
+  /**
+   *
+   * @param {String} tableName
+   * @param {Object<String, *>|Array<String>} [attrs]
+   */
+  constructor(tableName, attrs = {}) {
+    let msg = `found existing ${tableName.toLowerCase()}`;
+    if (Object.keys(attrs).length > 0) {
+      msg += ' with given ';
+      msg += (
+        Array.isArray(attrs)
+          ? attrs
+          : Object.keys(attrs)
+      ).join(', ');
+    }
+    super(msg, 409);
+  }
+}
+
 class NoSuchRecord extends RestAPIErr {
   /**
    *
@@ -48,12 +72,12 @@ class NoSuchRecord extends RestAPIErr {
   constructor(tableName, attrs = {}) {
     let msg = `failed to find a matching ${tableName.toLowerCase()}`;
     if (Object.keys(attrs).length > 0) {
-      msg += ' with fields: ';
-      msg += Array.isArray(attrs) ?
-        attrs.join(', ') :
-        Object.entries(attrs)
-          .map(pair => `${pair[0]} = ${pprint(pair[1])}`)
-          .join(', ');
+      msg += ' with given ';
+      msg += (
+        Array.isArray(attrs)
+          ? attrs
+          : Object.keys(attrs)
+      ).join(', ');
     }
     super(msg, 404);
   }
@@ -64,22 +88,6 @@ class TypoErr extends RestAPIErr {
     super(`did you mean '${suggestion}'?`, 400);
   }
 }
-
-class AlreadyExistsErr extends RestAPIErr {
-  /**
-   * @param {String} table
-   * @param {...String} [attrs] name of overlapping attribute
-   */
-  constructor(table, ...attrs) {
-    super(
-      `cannot create a new ${table.toLowerCase()} because ${attrs.length > 0 ?
-        attrs.join(', ') :
-        'it'} overlap${attrs.length !== 0 ?
-        's' :
-        ''} with an existing ${table.toLowerCase()}`, 409);
-  }
-}
-
 
 class InvalidRequestErr extends RestAPIErr {
   /**
@@ -102,42 +110,6 @@ class MissingDataErr extends RestAPIErr {
   }
 }
 
-class NoPermissionErr extends RestAPIErr {
-  /**
-   * @param {String} toDo
-   * @param {String} [likelyCause]
-   * @param {...*} params
-   */
-  constructor(toDo, likelyCause, ...params) {
-    super(likelyCause !== undefined
-      ?
-      `no permission to ${toDo} (the likely cause is ${likelyCause})`
-      :
-      `no permission to ${toDo}`, 403, ...params);
-  }
-}
-
-class NoCredentialsErr extends MissingDataErr {
-  /**
-   * @param {...String} params
-   */
-  constructor(...params) {
-    super('credentials', 'request body', ...params);
-  }
-}
-
-class NotLoggedIn extends RestAPIErr {
-  /**
-   * @param {String} [email]
-   * @param params
-   */
-  constructor(email = undefined, ...params) {
-    super(email !== undefined && email !== null ?
-      `the user ${email} is not logged in` :
-      `the user is not logged in`, 400, ...params);
-  }
-}
-
 class NotImplYetErr extends RestAPIErr {
   /**
    * @param {String} feature
@@ -147,30 +119,14 @@ class NotImplYetErr extends RestAPIErr {
   }
 }
 
-class AuthFailedErr extends NoSuchRecord {
-  /**
-   * @param {String} [email]
-   */
-  constructor(email = undefined) {
-    if (email === undefined || email === null) {
-      super('User');
-    } else {
-      super('User', {email, password: '<hidden>'});
-    }
-  }
-}
-
 module.exports = {
   BadMethodErr,
   InvalidRequestErr,
   MissingDataErr,
-  NoCredentialsErr,
-  NoPermissionErr,
   NoSuchRecord,
   RestAPIErr,
   NotImplYetErr,
-  AlreadyExistsErr,
-  AuthFailedErr,
-  NotLoggedIn,
+  RecordExistsErr,
+  SessionExpiredErr,
   TypoErr,
 };

@@ -82,3 +82,6 @@ docs/
 
 # Node Package Manager
 package-lock.json
+
+# Git
+*.orig

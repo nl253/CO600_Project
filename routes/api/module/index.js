@@ -29,38 +29,33 @@ const {suggestRoutes} = require('../lib');
  *
  * Requires that the module does not already exist.
  */
-router.post('/:module/create', async () => {
-});
+router.post('/:module/create', () => undefined);
 
 /**
  * Deletes a new module.
  *
  * Requires that the module exists.
  */
-router.post('/:module/delete', async () => {
-});
+router.post('/:module/delete', () => undefined);
 
 /**
  * If an API user tries to query the database for modules's info with POST suggest using GET.
  */
-router.post('/:module', () => {
-});
+router.post('/:module', () => undefined);
 
 /**
  * Update property to value in a module.
  *
  * Requires that the module exists and value is passed in request body.
  */
-router.post('/:module/:property', async () => {
-});
+router.post('/:module/:property', () => undefined);
 
 /**
  * Query the database for a property of a certain module.
  *
  * Requires that the module exists.
  */
-router.get('/:module/:property', async () => {
-});
+router.get('/:module/:property', () => undefined);
 
 /**
  * Suggest using GET when an API user uses POST instead of GET to get a module's property.
@@ -72,9 +67,7 @@ router.post('/:module', () => undefined);
  *
  * Requires that the module exists.
  */
-router.get('/:module', async () => {
-
-});
+router.get('/:module', () => undefined);
 
 /**
  * If none of the above match, shows help.

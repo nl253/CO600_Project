@@ -6,9 +6,9 @@
     </div>
     <div class="navbar-menu">
         <div class="navbar-start">
-            <a href="/home" class="navbar-item"> Home </a>
-            <a href="/search" class="navbar-item"> Search </a>
-            <a href="/create" class="navbar-item"> Create </a>
+            <a href="/user/profile" class="navbar-item"> Home </a>
+            <a href="/module/search" class="navbar-item"> Search </a>
+            <a href="/module/create" class="navbar-item"> Create </a>
             <a href="/about" class="navbar-item"> About Us </a>
         </div>
     </div>
@@ -45,26 +45,27 @@
             <div class="columns is-variable is-1">
                 <div class="column is-half">
                     <h1 class="title is-3">Our Project</h1>
-                    <p> WEBSITE NAME is a result of a group project created by three final year students from the University of Kent: Imaan Fakim, Norbert Logiewa and Nicolas Valderrabano.
-                        Through this project, we wanted to created an interdisciplinary platform, giving a chance to people to learn and teach subjects they desire. Our user friendly interface is for all types of users, from complete beginner to advanced in their field of choice.
+                    <p> {{title}} is a result of a group project created by three final year students from the
+                        University of Kent: Imaan Fakim, Norbert Logiewa and Nicolas Valderrabano.
+                        Through this project, we wanted to created an interdisciplinary platform, giving a chance to
+                        people to learn and teach subjects they desire. Our user friendly interface is for all types of
+                        users, from complete beginner to advanced in their field of choice.
                         <br>
                         We hope you enjoy our website !
                     </p>
                     <br><br>
                     <h2 class="title is-3">Contact Us</h2>
                     <h3 class="title is-5">Emails</h3>
-                        <p>Imaan Fakim:</p>
-                        <a href="mailto:if50@kent.ac.uk">if50@kent.ac.uk</a>
-                        <p>Norbert Logiewa:</p>
-                        <a href="mailto:nl253@kent.ac.uk">nl253@kent.ac.uk</a>
-                        <p>Nicolas Valderrabano:</p>
-                        <a href="mailto:nv55@kent.ac.uk">nv55@kent.ac.uk</a>
+                    {{#each authors}}
+                        <p>{{name}}</p>
+                        <a style="display: block; margin-bottom: 15px;" href="mailto:{{email}}">{{email}}</a>
+                    {{/each}}
                     <br><br>
                 </div>
                 <div class="column is-half">
-                    <a><img src="/images/biglogo.png" width="600" height="600" alt="Logo"></a>
-                </div>
+                    <a><img src="/images/bigLogo.png" width="600" height="600" alt="Logo"></a>
                 </div>
             </div>
         </div>
+    </div>
 </section>

@@ -4,7 +4,9 @@
     "url": "https://github.com/nl253/CO600_Project/issues"
   },
   "dependencies": {
-    "cookie-parser": "~1.4.3",
+    "body-parser": "latest",
+    "cookie-parser": "^1.4.3",
+    "cookie-session": "^2.0.0-beta.3",
     "debug": "~2.6.9",
     "express": "~4.16.0",
     "express-session": "^1.15.6",
@@ -62,9 +64,9 @@
   },
   "scripts": {
     "docs": "./node_modules/.bin/jsdoc -r -R ./README.md -d ./doc $(find -type f -name '*.js' -not -path '**/node_modules/**' -not -path '**/doc/**' -not -path '**/docs/**')",
-    "lint": "./node_modules/.bin/eslint",
-    "docs-read": "$BROWSER ./doc/index.html",
     "docs-clean": "rm -I -r ./doc",
+    "docs-read": "$BROWSER ./doc/index.html",
+    "lint": "./node_modules/.bin/eslint",
     "start": "node ./bin/www",
     "test": "./node_modules/.bin/jest",
     "test-to-JSON": "./node_modules/.bin/jest --verbose --no-color --color false --json --outputFile 'logs/tests-results.json'"

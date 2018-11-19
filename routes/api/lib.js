@@ -1,10 +1,9 @@
-// 3rd Party
-const {ValidationError} = require('sequelize/lib/errors');
-
 // Project
-const {log, sha256, pprint, createLogger} = require('../lib');
-const models = require('./database');
-const {NoCredentialsErr, RestAPIErr} = require('./errors');
+const {createLogger} = require('../../lib');
+const log = createLogger({
+  label: 'API',
+  lvl: process.env.LOGGING_API || 'warn',
+});
 
 /**
  * Suggest routes when an API user types something like `/`, `/module` or `/content`.
@@ -15,53 +14,9 @@ const {NoCredentialsErr, RestAPIErr} = require('./errors');
  * @return {undefined}
  */
 function suggestRoutes(router, path, routes) {
-  return router.all(path, (req, res) => res.status(400).json(
-    {status: 'CONFUSED', msg: 'nothing here, see the routes', routes}));
-}
-
-/**
- * Retrieves credentials by trying the request body, params and then the cookies.
- * The function may return undefined but if it doesn't you are guaranteed to have
- * an email and password.
- *
- * @param {express.Request} req http request (see Express docs)
- * @return {Promise<{password: String, email: String}>} credentials with SHA256 hashed password
- */
-function getCredentials(req) {
-  let email;
-  let password;
-  /** @namespace req.cookies */
-  /** @namespace req.params */
-  if (req.params.email !== undefined) {
-    log.debug('found email in request params');
-    email = req.params.email;
-  } else if (req.cookies.email !== undefined && req.cookies.email !== null) {
-    log.debug('found email in a cookie');
-    email = req.cookies.email;
-  } else if (req.body.email !== undefined) {
-    log.debug('found email in request body');
-    email = req.body.email;
-  } else {
-    log.debug('failed to find credentials (email not found)');
-    return Promise.reject(new NoCredentialsErr());
-  }
-
-  /** @namespace req.body */
-  if (req.body.password !== undefined) {
-    log.debug('found password in request body');
-    password = sha256(req.body.password);
-  } else if (req.cookies.password !== undefined && req.cookies.password !==
-    null) {
-    log.debug('found password in a cookie');
-    /** @namespace req.cookies */
-    password = req.cookies.password;
-  } else {
-    log.debug('failed to find credentials (password not found)');
-    return Promise.reject(new NoCredentialsErr());
-  }
-
-  log.debug(`found credentials: ${pprint({email, password})}`);
-  return Promise.resolve({email, password});
+  return router.all(path, (req, res) => res
+    .status(400)
+    .json({status: 'CONFUSED', msg: 'nothing here, see the routes', routes}));
 }
 
 /**
@@ -92,7 +47,8 @@ function errMsg(err) {
     return err.msgJSON;
   }
 
-  if (err.constructor !== undefined && err.constructor.name === 'ValidationError') {
+  if (err.constructor !== undefined && err.constructor.name ===
+    'ValidationError') {
     /** @namespace err.errors */
     let noErrs = err.errors.length;
 
@@ -123,12 +79,7 @@ function errMsg(err) {
 
 module.exports = {
   errMsg,
-  getCredentials,
   log,
-  sha256,
-  pprint,
   msg,
-  models,
-  createLogger,
   suggestRoutes,
 };

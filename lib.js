@@ -1,6 +1,5 @@
 // Standard Library
 const {resolve, join, dirname} = require('path');
-const {createHash} = require('crypto');
 const {mkdirSync, existsSync} = require('fs');
 
 // 3rd Party
@@ -13,24 +12,17 @@ const winston = require('winston');
  * @return {string}
  */
 function pprint(data) {
-  if (data === undefined) {
-    return 'undefined';
-  }
+  if (data === undefined) return 'undefined';
 
-  if (data === null) {
-    return 'null';
-  }
+  if (data === null) return 'null';
+
   if (Array.isArray(data)) {
     return `[${data.map(pprint).join(', ')}]`;
   }
 
-  if (data === true) {
-    return 'true';
-  }
+  if (data === true) return 'true';
 
-  if (data === false) {
-    return 'false';
-  }
+  if (data === false) return 'false';
 
   if ((data instanceof Date) || (data instanceof RegExp)) {
     return data.toString();
@@ -92,29 +84,28 @@ function pprint(data) {
 function createLogger(cfg = {}) {
   const config = Object.assign({
     label: 'GENERAL',
-    logFileName: 'general.log',
     lvl: 'warn',
     fileLvl: 'info',
   }, cfg);
-  let logFilePath = resolve(join(__dirname, 'logs', config.logFileName));
+  let logFilePath = resolve(join(__dirname, 'logs', config.logFileName || config.label.toLowerCase().replace(/\s+/, '_')));
   let logFileDir = dirname(logFilePath);
   if (!existsSync(logFileDir)) {
     mkdirSync(logFileDir);
   }
   return winston.createLogger({
-    level: config.lvl,
+    level: 'info',
     format: winston.format.combine(
       winston.format.label({label: config.label}),
       winston.format.prettyPrint(),
-      winston.format.printf(
-        info => `${info.level && info.level.trim() !== '' ?
+      winston.format.printf(info =>
+        `${info.level && info.level.trim() !== '' ?
           ('[' + info.level.toUpperCase() + ']').padEnd(10) :
           ''}${info.label ?
           (info.label + ' ::').padEnd(12) :
           ''}${info.message}`),
     ),
     transports: [
-      new winston.transports.Console(),
+      new winston.transports.Console({level: config.lvl}),
       new winston.transports.File({
         level: config.fileLvl,
         filename: logFilePath,
@@ -134,16 +125,4 @@ function truncate(s, len = process.stdout.columns - 5) {
     s;
 }
 
-/**
- * Compute SHA-256 of data. Use to avoid storing passwords in the db in plain text.
- *
- * @param {String} data
- * @return {String} hashed value
- */
-function sha256(data) {
-  const hash = createHash('sha256');
-  hash.update(data);
-  return hash.digest('base64').toString();
-}
-
-module.exports = {createLogger, pprint, truncate, sha256};
+module.exports = {createLogger, pprint, truncate};

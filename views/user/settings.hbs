@@ -1,0 +1,137 @@
+<nav class="navbar is-light">
+    <div class="navbar-brand">
+        <a class="navbar-item">
+            <img src="/images/logo.png" width="30" height="30" alt="Logo">
+        </a>
+    </div>
+    <div class="navbar-menu">
+        <div class="navbar-start">
+            <a href="/user/profile" class="navbar-item"> Home </a>
+            <a href="/module/search" class="navbar-item"> Search </a>
+            <a href="/module/create" class="navbar-item"> Create </a>
+            <a href="/about" class="navbar-item"> About Us </a>
+        </div>
+    </div>
+    <div class="navbar-end">
+        <a href="" class="navbar-item">
+            Hi {{user.email}} !
+        </a>
+        <div class="navbar-item has-dropdown is-hoverable">
+            <a href="#" class="navbar-link">Account Overview</a>
+            <div class="navbar-dropdown">
+                <a href="#" class="navbar-item">Settings</a>
+                <a href="#" class="navbar-item">Help</a>
+                <hr class="navbar-divider">
+                <a href="#" class="navbar-item">Log out</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+
+    <div class="hero-head"></div>
+
+    <div class="hero-body">
+        <div class="container is-widescreen">
+            <h1 class="title is-3">Personal Details</h1>
+            <div class="columns is-variable is-8">
+                <div class="column is-half">
+                    <form>
+                        <div class="field">
+                            <label class="label">First name</label>
+                            <div class="control has-icons-left">
+                                <input class="input is-rounded" value="{{user.firstName}}" type="text"
+                                       placeholder="e.g.: John">
+                                <span class="icon is-left">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="label">Last name</label>
+                            <div class="control has-icons-left">
+                                <input class="input is-rounded" value="{{user.lastName}}" type="text"
+                                       placeholder="e.g.: Smith">
+                                <span class="icon is-left">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="label">Email</label>
+                            <div class="control has-icons-left">
+                                <input class="input is-rounded" value="{{user.email}}" type="text"
+                                       placeholder="e.g.: johnsmith@gmail.com">
+                                <span class="icon is-left">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="field-label"></div>
+                            <div class="field-body is-grouped is-grouped-centered">
+                                <p class="control">
+                                    <a class="button is-link is-rounded">
+                                        Submit
+                                    </a>
+                                </p>
+                                <p class="control">
+                                    <a class="button is-light is-rounded">
+                                        Cancel
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="column is-half">
+                    <form>
+                        <div class="field">
+                            <label class="label">Current password</label>
+                            <div class="control has-icons-left">
+                                <input class="input is-rounded" type="text">
+                                <span class="icon is-left">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="label">New password</label>
+                            <div class="control has-icons-left">
+                                <input class="input is-rounded" type="text">
+                                <span class="icon is-left">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="label">Re-enter new password</label>
+                            <div class="control has-icons-left">
+                                <input class="input is-rounded" type="text">
+                                <span class="icon is-left">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="field-label"></div>
+                            <div class="field-body is-grouped is-grouped-centered">
+                                <p class="control">
+                                    <a class="button is-link is-rounded">
+                                        Submit
+                                    </a>
+                                </p>
+                                <p class="control">
+                                    <a class="button is-light is-rounded">
+                                        Cancel
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
