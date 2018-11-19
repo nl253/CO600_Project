@@ -114,22 +114,36 @@ app.use(express.static(rootPath('public')));
 const models = require('./routes/database');
 const {decrypt} = require('./routes/lib');
 
-app.use((req, res, next) =>
-  req.cookies.token === null || req.cookies.token === undefined
-    ? next()
-    : models.Session
-      .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
-      .then((session) => session === null ? next() : session.dataValues)
-      .then((session) => (Date.now() - session.updatedAt) >=
-      (process.env.SESSION_TIME || 20 * MINUTE)
-        ? next()
-        : models.User.findOne({
-          where: {email: session.email},
-          attributes: Object.keys(models.User.attributes).filter(a => a !== 'password'),
-        }).then((user) => {
-          res.locals.loggedIn = user.dataValues;
-          return next();
-        })));
+app.use((req, res, next) => req.cookies.token === null || req.cookies.token === undefined || req.cookies.token === ''
+  ? next()
+  : models.Session
+    .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
+    .then((session) => {
+      if (session !== null) return session.dataValues;
+      res.cookie('token', {
+        SameSite: true,
+        Path: '/',
+        Expires: new Date(Date.now() - 1000 * 60 * 60).toUTCString(),
+      });
+      return next();
+    })
+    .then((session) => {
+      if ((Date.now() - session.updatedAt) >= (process.env.SESSION_TIME || 20 * MINUTE)) {
+        res.cookie('token', {
+          SameSite: true,
+          Path: '/',
+          Expires: new Date(Date.now() - 1000 * 60 * 60).toUTCString(),
+        });
+        return next();
+      }
+      return models.User.findOne({
+        where: {email: session.email},
+        attributes: Object.keys(models.User.attributes).filter(a => a !== 'password'),
+      }).then((user) => {
+        res.locals.loggedIn = user.dataValues;
+        return next();
+      });
+    }));
 
 app.use('/api', require('./routes/api'));
 app.use('/user', require('./routes/user'));
