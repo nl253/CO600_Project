@@ -15,133 +15,128 @@
 
 <body>
   <nav class="navbar">
+
     <div class="navbar-brand">
-      <a href="" class="navbar-item">
-        <h1 class="title is-4">LOGO</h1>
-      </a>
+        <a class="navbar-item">
+            <img src="/images/logo.png" width="30" height="30" alt="Logo">
+        </a>
     </div>
 
     <div class="navbar-menu">
       <div class="navbar-start">
-        <a href="" class="navbar-item">
-          Home
-        </a>
-        <a href="" class="navbar-item">
-          Info
-        </a>
-        <div class="navbar-item has-dropdown is-hoverable">
-          <a href="" class="navbar-link">
-            Learn
-          </a>
-
-          <div class="navbar-dropdown">
-            <a class="navbar-item">
-              Modules
-            </a>
-            <a class="navbar-item">
-              Content Creators
-            </a>
-            <a class="navbar-item">
-              Quizzes
-            </a>
-            <hr class="navbar-divider">
-            <a class="navbar-item">
-              Create your own
-            </a>
-          </div>
-
-        </div>
+        <a href="/user/profile" class="navbar-item"> Home </a>
+        <a href="/module/search" class="navbar-item"> Search </a>
+        <a href="/module/create" class="navbar-item"> Create </a>
+        <a href="/about" class="navbar-item"> About Us </a>
       </div>
     </div>
 
-    <form action="" method='post'>
-
+    {{#if loggedIn}}
       <div class="navbar-end">
-        <div class="navbar-item">
-          <div class="control has-icons-left">
-            <input name="email" class="input is-success is-small" id="email" type="email" placeholder="email"
-              autocomplete="on" maxlength="255" pattern=".{2,}@.{2,}\..{2,}" required>
-            <span class="icon is-small is-left">
-              <i class="fa fa-envelope"></i>
-            </span>
-          </div>
-        </div>
-        <div class="navbar-item">
-          <div class="control has-icons-left">
-            <input name="password" class="input is-success is-small" id="password" type="password" placeholder="password"
-              pattern=".{6,}" required>
-            <span class="icon is-small is-left">
-              <i class="fa fa-lock"></i>
-            </span>
-          </div>
-        </div>
-        {{#if loggedIn}}
-          <h1>Hello {{loggedIn.firstName}} {{loggedIn.lastName}}!</h1>
+        {{#if loggedin.firstname}}
+          <a href="" class="navbar-item"> Hi {{loggedIn.firstName}}!</a> 
         {{else}}
-          <div class="navbar-item">
-            <input type="submit" id="loginBtn" value="Log In" class="button is-primary is-small">
-          </div>
+          <a href="" id="user-name" class="navbar-item"> Hi {{loggedIn.email}}!</a>
+          <script>
+            (function () {
+              const el = document.getElementById('user-name');
+              const regex = /(.*)@(.*)/;
+              const result = regex.exec(el.innerText);
+              if (result !== null) el.innerText = result[1];
+            })();
+          </script>
         {{/if}}
+          <div class="navbar-item has-dropdown is-hoverable">
+            <a href="/user" class="navbar-link">Account Overview</a>
+            <div class="navbar-dropdown">
+              <a href="/user/settings" class="navbar-item">Settings</a>
+              <a href="/help" class="navbar-item">Help</a>
+              <hr class="navbar-divider">
+              <a href="#" class="navbar-item">Log out</a>
+            </div>
+          </div>
       </div>
+    {{else}}
+      <form action="" method='post'>
+        <div class="navbar-end">
+          <div class="navbar-item">
+            <div class="control has-icons-left">
+              <input name="email" class="input is-success is-small" id="email" type="email" placeholder="email"
+                autocomplete="on" maxlength="255" pattern=".{2,}@.{2,}\..{2,}" required>
+              <span class="icon is-small is-left">
+                    <i class="fa fa-envelope"></i>
+                  </span>
+            </div>
+          </div>
+          <div class="navbar-item">
+            <div class="control has-icons-left">
+              <input name="password" class="input is-success is-small" id="password" type="password" placeholder="password"
+                pattern=".{6,}" required>
+              <span class="icon is-small is-left">
+                    <i class="fa fa-lock"></i>
+                  </span>
+            </div>
+          </div>
+          <div class="navbar-item">
+            <input type="submit" id="login-btn" value="Log In" class="button is-primary is-small">
+          </div>
+        </div>
+      </form>
+      <script>
+        (function () {
+          document.getElementById('login-btn').onclick = (event) => {
 
-    </form>
+            // don't send the HTML form
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const credentials = {
+              email,
+              password
+            };
+
+            const cfg = {
+              method: "POST",
+              redirect: 'follow',
+              cache: "no-cache",
+              mode: "cors",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+              },
+              body: JSON.stringify(credentials),
+            };
+
+            // error codes 400..499 and 500..599 are client and server errors
+            return fetch(`/api/user/login`, cfg)
+              .then(response => response.status >= 400 ?
+                // if it goes wrong force it to jump to reject
+                Promise.reject(response.json()) :
+                // the JSON object is guaranteed to have a "msg" property
+                response.json())
+              .then(json => {
+                // result should store the token if things go well
+                const token = json.result;
+                setCookie('token', token);
+                // redirect
+                window.location = '/user/profile';
+              })
+              .catch(err => {
+                console.error(err);
+                return err.then(e => alert(e.msg || e.message || e.toString()));
+              });
+          };
+        })();
+      </script>
+    {{/if}}
   </nav>
   {{{body}}}
 </body>
 <footer class="footer">
   <div class="content has-text-centered">
-    <p>
-      <a href="">About Us</a>
-    </p>
+    <p><a href="/about">About Us</a></p>
   </div>
 </footer>
-
 </html>
-
-<script>
-  const maybeLoginBtn  = document.getElementById('loginBtn');
-  if (maybeLoginBtn) {
-
-    maybeLoginBtn.onclick = (event) => {
-
-      // don't send the HTML form
-      event.preventDefault();
-
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const credentials = { email, password };
-
-      const cfg = {
-        method: "POST",
-        redirect:'follow',
-        cache: "no-cache",
-        mode: "cors",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify(credentials),
-      };
-
-      // error codes 400..499 and 500..599 are client and server errors
-      return fetch(`/api/user/login`, cfg)
-        .then(response => response.status >= 400 ?
-          // if it goes wrong force it to jump to reject
-          Promise.reject(response.json()) :
-          // the JSON object is guaranteed to have a "msg" property
-          response.json())
-        .then(json => {
-          // result should store the token if things go well
-          const token = json.result; 
-          setCookie('token', token);
-          // redirect
-          window.location = '/user/profile';
-        })
-        .catch(err => {
-          console.error(err);
-          return err.then(e => alert(e.msg || e.message || e.toString()));
-        });
-    }
-  }
-</script>
