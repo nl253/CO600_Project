@@ -1,117 +1,49 @@
-<p>
-  <nav class="navbar">
-    <div class="navbar-brand">
-      <a href="" class="navbar-item">
-        <h1 class="title is-4">LOGO</h1>
-      </a>
-    </div>
+<section class="hero is-fullheight is-primary is-bold">
+  </div>
+  <div class="hero-head">
 
-    <div class="navbar-menu">
-      <div class="navbar-start">
-        <a href="" class="navbar-item">
-                    Home
-                </a>
-        <a href="" class="navbar-item">
-                    Info
-                </a>
-        <div class="navbar-item has-dropdown is-hoverable">
-          <a href="" class="navbar-link">
-                        Learn
-                    </a>
+  </div>
+  <div class="hero-body">
+    <div class="container is-widescreen">
+      <div class="columns">
+        <div class="column is-half">
+          <h1 class="title is-1">Welcome</h1>
+          <p>WEBSITE NAME is all about learning together freely! As a user on this website,
+            you are able to see and learn from lessons and modules posted by other users.
+            Register, and you will be able to upload content of your own for other users
+            to learn from. Content creators can invite users to subscribe to their modules
+            and be able to receive feedback and take a module test which, if completed successfully,
+            will reward them with an online certificate for that module. <br><br> Thank you
+            for visiting, enjoy your learning.
 
-          <div class="navbar-dropdown">
-            <a class="navbar-item">
-                            Modules
-                        </a>
-            <a class="navbar-item">
-                            Content Creators
-                        </a>
-            <a class="navbar-item">
-                            Quizzes
-                        </a>
-            <hr class="navbar-divider">
-            <a class="navbar-item">
-                            Create your own
-                        </a>
-          </div>
-
+          </p>
         </div>
-      </div>
-    </div>
-
-    <form action="" method='post'>
-
-      <div class="navbar-end">
-        <div class="navbar-item">
-          <div class="control has-icons-left">
-            <input name="email" class="input is-success is-small" id="email" type="email" placeholder="email"
-              autocomplete="on" maxlength="255" pattern=".{2,}@.{2,}\..{2,}" required>
-            <span class="icon is-small is-left">
-                            <i class="fa fa-envelope"></i>
-                        </span>
-          </div>
-        </div>
-        <div class="navbar-item">
-          <div class="control has-icons-left">
-            <input name="password" class="input is-success is-small" id="password" type="password" placeholder="password"
-              pattern=".{6,}" required>
-            <span class="icon is-small is-left">
-                            <i class="fa fa-lock"></i>
-                        </span>
-          </div>
-        </div>
-        <div class="navbar-item">
-          <input type="submit" id="loginBtn" value="Log In" class="button is-primary is-small">
-        </div>
-      </div>
-
-    </form>
-  </nav>
-  <section class="hero is-fullheight is-primary is-bold">
-    </div>
-    <div class="hero-head">
-
-    </div>
-    <div class="hero-body">
-      <div class="container is-widescreen">
-        <div class="columns">
-          <div class="column is-half">
-            <h1 class="title is-1">Welcome</h1>
-            <p>WEBSITE NAME is all about learning together freely! As a user on this website,
-              you are able to see and learn from lessons and modules posted by other users.
-              Register, and you will be able to upload content of your own for other users
-              to learn from. Content creators can invite users to subscribe to their modules
-              and be able to receive feedback and take a module test which, if completed successfully,
-              will reward them with an online certificate for that module. <br><br> Thank you
-              for visiting, enjoy your learning.
-
-            </p>
-          </div>
-          <div class="column is-half">
-            <article class="message">
-              <div class="message-header">Don't have an account?</div>
-              <div class="message-body">
+        <div class="column is-half">
+          <article class="message">
+            <div class="message-header">Don't have an account?</div>
+            <div class="message-body">
+              <form>
                 <h1 class="title is-4 has-text-primary">Register!</h1>
                 <div class="field">
                   <label class="label">First Name</label>
                   <div class="control">
-                    <input class="input" type="text" placeholder="e.g. Amy">
+                    <input class="input" id="firstName" type="text" placeholder="e.g. Amy">
                   </div>
                 </div>
                 <div class="field">
                   <label class="label">Surname</label>
                   <div class="control">
-                    <input class="input" type="text" placeholder="e.g. Adams">
+                    <input class="input" id="surname" type="text" placeholder="e.g. Adams">
                   </div>
                 </div>
                 <div class="field">
                   <label class="label">Email</label>
                   <div class="control has-icons-left">
-                    <input class="input" type="email" pattern=".{2,}@.{2,}\..{2,}" placeholder="example@email.com"
+                    <input class="input" id="regEmail" type="email" pattern=".{2,}@.{2,}\..{2,}" placeholder="example@email.com"
                       autocomplete="on" required>
                     <span class="icon is-small is-left">
-                                          <i class="fa fa-envelope"></i>
-                                      </span>
+                      <i class="fa fa-envelope"></i>
+                    </span>
                   </div>
                 </div>
                 <div class="field">
@@ -120,17 +52,17 @@
                     <input class="input" type="email" pattern=".{2,}@.{2,}\..{2,}" placeholder="example@email.com"
                       autocomplete="on" required>
                     <span class="icon is-small is-left">
-                                          <i class="fa fa-envelope"></i>
-                                      </span>
+                      <i class="fa fa-envelope"></i>
+                    </span>
                   </div>
                 </div>
                 <div class="field">
                   <label class="label">Password</label>
                   <div class="control has-icons-left">
-                    <input class="input" type="password" pattern=".{6,}" required>
+                    <input class="input" id="regPassword" type="password" pattern=".{6,}" required>
                     <span class="icon is-small is-left">
-                                        <i class="fa fa-lock"></i>
-                                    </span>
+                      <i class="fa fa-lock"></i>
+                    </span>
                   </div>
                 </div>
                 <div class="field">
@@ -138,73 +70,92 @@
                   <div class="control has-icons-left">
                     <input class="input" type="password" pattern=".{6,}" required>
                     <span class="icon is-small is-left">
-                                        <i class="fa fa-lock"></i>
-                                    </span>
+                      <i class="fa fa-lock"></i>
+                    </span>
                   </div>
                 </div>
                 <div class="control">
-                  <button class="button is-primary">Submit</button>
+                  <button class="button is-primary" id="registerBtn">Submit</button>
                 </div>
-              </div>
-            </article>
-          </div>
+              </form>
+            </div>
+          </article>
         </div>
       </div>
     </div>
-</p>
+  </div>
+</section>
+
 
 <script>
-  document.getElementById('loginBtn').onclick = (event) => {
 
-    // don't send the HTML form
-    // just use it for validation and input boxes
-    event.preventDefault();
+  document.getElementById('registerBtn').onclick = (event) => {
 
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const credentials = {
-      email,
-      password
-    };
+      event.preventDefault();
 
-    const cfg = {
-      method: "post",
-      cache: "no-cache",
-      mode: "cors",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
-      body: JSON.stringify(credentials),
-    };
+      let [firstName, lastName] = [null, null];
 
-    // error codes 400..499 and 500..599 are client and server errors
-    // if it goes wrong force it to jump to reject
-    // the JSON object is guaranteed to have a "msg" property
-    return fetch(`/api/user/login`, cfg)
-      .then(response => response.status >= 400 ? Promise.reject(response.json()) : Promise.resolve(response.json()))
-      .then(json => {
-        console.warn('json:');
-        console.warn(json);
-        setCookie('token', json.result);
-        window.location = `/user/${email}`;
-      })
-      .catch(err => {
-        if (err['then'] === undefined) {
+      let maybeFirstName = document.getElementById("firstName").value;
+      if (maybeFirstName !== "") firstName = maybeFirstName;
+
+      let maybeLastName = document.getElementById("firstName").value;
+      if (maybeLastName !== "") lastName = maybeLastName;
+
+      const email = document.getElementById("regEmail").value;
+      const password = document.getElementById("regPassword").value;
+      const userDetails = { firstName, lastName, email, password };
+
+      const cfg = {
+        method: "POST",
+        redirect: "follow",
+        cache: "no-cache",
+        mode: "cors",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify(userDetails),
+      }
+
+      return fetch(`/api/user/register`, cfg)
+        .then(response => response.status >= 400 
+          ? Promise.reject(response.json()) 
+          : response.json())
+        .then(json => {
+
+          const credentials = { email, password };
+
+          const cfg = {
+            method: "POST",
+            redirect: 'follow',
+            cache: "no-cache",
+            mode: "cors",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json",
+            },
+            body: JSON.stringify(credentials),
+          };
+
+          // error codes 400..499 and 500..599 are client and server errors
+          return fetch(`/api/user/login`, cfg)
+            .then(response => response.status >= 400 
+              // if it goes wrong force it to jump to reject
+              ? Promise.reject(response.json()) 
+              // the JSON object is guaranteed to have a "msg" property
+              : response.json())
+            .then(json => {
+              // result should store the token if things go well
+              const token = json.result;
+              setCookie('token', token);
+              // redirect
+              window.location = '/user/profile';
+            });
+        }).catch(err => {
           console.error(err);
-          return alert(err.msg || err.message || err.toString());
-        } else {
-          return err.then(e => {
-            console.error(e);
-            return alert(e.msg || e.message || e.toString());
-          })
-        }
-      });
-  };
-
+          return err.then(e => alert(e.msg || e.message || e.toString()));
+        });
+    };
 </script>
-
-<!--
-vim:ft=htmldjango:
--->
