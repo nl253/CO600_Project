@@ -1,0 +1,144 @@
+<p>
+  <section class="hero is-fullheight is-primary is-bold">
+    </div>
+    <div class="hero-head">
+
+    </div>
+    <div class="hero-body">
+      <div class="container is-widescreen">
+        <div class="columns">
+          <div class="column is-half">
+            <h1 class="title is-1">Welcome</h1>
+            <p>WEBSITE NAME is all about learning together freely! As a user on this website,
+              you are able to see and learn from lessons and modules posted by other users.
+              Register, and you will be able to upload content of your own for other users
+              to learn from. Content creators can invite users to subscribe to their modules
+              and be able to receive feedback and take a module test which, if completed successfully,
+              will reward them with an online certificate for that module. <br><br> Thank you
+              for visiting, enjoy your learning.
+
+            </p>
+          </div>
+          <div class="column is-half">
+            <article class="message">
+              <div class="message-header">Don't have an account?</div>
+              <div class="message-body">
+                <form>
+                  <h1 class="title is-4 has-text-primary">Register!</h1>
+                  <div class="field">
+                    <label class="label">First Name</label>
+                    <div class="control">
+                      <input class="input" id="firstName" type="text" placeholder="e.g. Amy">
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="label">Surname</label>
+                    <div class="control">
+                      <input class="input" id="surname" type="text" placeholder="e.g. Adams">
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="label">Email</label>
+                    <div class="control has-icons-left">
+                      <input class="input" id="regEmail" type="email" pattern=".{2,}@.{2,}\..{2,}" placeholder="example@email.com" autocomplete="on" required>
+                      <span class="icon is-small is-left">
+                                            <i class="fa fa-envelope"></i>
+                                        </span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="label">Confirm Email</label>
+                    <div class="control has-icons-left">
+                      <input class="input" type="email" pattern=".{2,}@.{2,}\..{2,}" placeholder="example@email.com" autocomplete="on" required>
+                      <span class="icon is-small is-left">
+                                            <i class="fa fa-envelope"></i>
+                                        </span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="label">Password</label>
+                    <div class="control has-icons-left">
+                      <input class="input" id="regPassword" type="password" pattern=".{6,}" required>
+                      <span class="icon is-small is-left">
+                                          <i class="fa fa-lock"></i>
+                                      </span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="label">Confirm Password</label>
+                    <div class="control has-icons-left">
+                      <input class="input" type="password" pattern=".{6,}" required>
+                      <span class="icon is-small is-left">
+                                          <i class="fa fa-lock"></i>
+                                      </span>
+                    </div>
+                  </div>
+                  <div class="control">
+                    <button class="button is-primary" id="registerBtn">Submit</button>
+                  </div>
+                </form>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </div>
+</p>
+
+<script>
+
+  document.getElementById('registerBtn').onclick = (event) => {
+
+    event.preventDefault();
+
+    const firstName = document.getElementById("firstName").value;
+    const surname = document.getElementById("surname").value;
+    const email = document.getElementById("regEmail").value;
+    const password = document.getElementById("regPassword").value;
+    const credentials = {firstName, surname, email, password};
+  
+    const cfg = {
+      method: "POST",
+      cache: "no-cache",
+      mode: "cors",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify(credentials),
+    }
+
+    return fetch(`/api/user/register`, cfg)
+      .then(response => response.status >= 400 ?
+        Promise.reject(response.json()) :
+        response.json())
+        .then(json => alert(json.msg))
+        .catch(err => {
+          console.error(err);
+          return err.then(e => alert(e.msg || e.message || e.toString()));
+        });
+  }
+
+
+
+  function emailValidation(email) {
+    var reg = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return reg.test(String(email).toLowerCase());
+  }
+
+  function validation() {
+    var $result = $("#result");
+    var email = $("#regEmail").val();
+    $result.text("");
+
+    if (validateEmail(email)) {
+      $result.text(email + " is valid :)");
+      $result.css("color", "green");
+    } else {
+      $result.text(email + " is not valid :(");
+      $result.css("color", "red");
+    }
+    return false;
+  }
+</script>
