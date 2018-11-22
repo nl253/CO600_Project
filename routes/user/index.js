@@ -18,7 +18,7 @@ router.get('/register', (req, res) => res.render(join('user', 'register')));
 router.get([
   '/profile',
   '/dashboard',
-  '/account'], (req, res) => res.redirect('/user'));
+  '/account'], (req, res) => res.redirect('/user/'));
 
 /**
  * Display public info about a user.
@@ -41,7 +41,7 @@ router.get('/:page',
       attributes: Object.keys(User.attributes).filter(a => a !== 'password')
     }).then((user) => user === null
       ? next(new NoSuchRecord('User', {email}))
-      : res.render(join('user', 'index'), {user: user.dataValues})
+      : res.render(join('user', 'profile'), {user: user.dataValues})
     ).catch((err) => next(err))
   });
 
@@ -60,7 +60,7 @@ router.get('/',
         : User.findOne({
           where: {email: session.email},
           attributes: Object.keys(User.attributes).filter(a => a !== 'password')
-        }).then((user) => res.render(join('user', 'profile'), {loggedIn: user.dataValues})))
+        }).then((user) => res.render(join('user', 'index'), {loggedIn: user.dataValues})))
       .catch(err => next(err)));
 
 module.exports = router;
