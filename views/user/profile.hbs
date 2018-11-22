@@ -1,30 +1,57 @@
 <header class="columns">
   <div class="column"></div>
-  <h2 class="column title is-centered has-text-centered">Profile of <span class="is-italic"> {{user.email}}</span></h2>
+  <h2 class="column title is-centered has-text-centered">
+    {{#if user.firstName}}
+      <span class="is-italic">{{user.firstName}}</span>'s Profile
+    {{else}}
+      <span class="is-italic" id="user-name">{{user.firstName}}</span>'s Profile
+      <script>
+        (function () {
+          const el = document.getElementById("user-name");
+          const regex = /(.*)@(.*)/;
+          const result = regex.exec(el.innerText);
+          if (result !== null) el.innerText = result[1];
+        })();
+      </script>
+    {{/if}}
+  </h2>
   <div class="column"></div>
 </header>
 
 <div class="columns">
+
   <div class="column"></div>
+
   <main class="card column">
+
     <div class="card-header">
-      <h3 class="heading card-header-title is-large">Your details</h3><br/>
+      <h3 class="heading card-header-title is-large">Personal Details</h3><br/>
     </div>
+
     <div class="card-content">
+
       <h5 class="is-5 is-bold">Email</h5>
       <p>{{user.email}}</p><br/>
 
-      <h5 class="is-5 is-bold">First Name</h5>
-      <p>{{user.firstName}}</p><br/>
+      {{#if user.firstName}} 
+        <h5 class="is-5 is-bold">First Name</h5>
+        <p>{{user.firstName}}</p><br/>
+      {{/if}}
 
-      <h5 class="is-5 is-bold">Last Name</h5>
-      <p>{{user.lastName}}</p><br/>
+      {{#if user.lastName}} 
+        <h5 class="is-5 is-bold">Last Name</h5>
+        <p>{{user.lastName}}</p><br/>
+      {{/if}}
 
-      <h5 class="is-5 is-bold">Info</h5>
 
-      <p>{{user.info}}</p><br/>
+      {{#if user.info}} 
+        <h5 class="is-5 is-bold">Info</h5>
+        <p>{{user.info}}</p><br/>
+      {{/if}}
+
     </div>
   </main>
 
   <div class="column"></div>
+
 </div>
