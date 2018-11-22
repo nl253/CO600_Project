@@ -17,24 +17,9 @@ const MINUTE = 60 * SECOND;
 /**
  * Registration page if not logged in, otherwise redirect to user profile page.
  */
-router.get('/register', (req, res) => {
-  const maybeToken = req.cookies.token;
-  if (maybeToken === null || maybeToken === undefined) {
-    return res.render(join('user', 'register'));
-  }
-  return Session
-    .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
-    .then((session) => session === null
-      ? res.status(403).redirect('/user/register')
-      : session.dataValues
-    )
-    .then((session) => (Date.now() - session.updatedAt) >= (process.env.SESSION_TIME || 20 * MINUTE)
-      ? res.status(401).redirect('/user/register')
-      : User.findOne({
-        where: {email: session.email},
-        attributes: Object.keys(User.attributes).filter(a => a !== 'password')
-      }).then((user) => res.render(join('user', 'index'), {loggedIn: user.dataValues})))
-});
+router.get('/register', (req, res) => res.locals.loggedIn 
+  ? res.redirect('/user/') 
+  : res.render(join('user', 'register')));
 
 router.get([
   '/profile',
@@ -71,20 +56,8 @@ router.get('/:page',
  */
 /** @namespace user.dataValues */
 /** @namespace session.updatedAt */
-router.get('/',
-  (req, res, next) => req.cookies.token === undefined || req.cookies.token === null
-    ? res.status(403).render(join('user', 'register'))
-    : Session.findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
-      .then((session) => session === null
-        ? res.status(403).redirect('/user/register')
-        : session.dataValues
-      )
-      .then((session) => (Date.now() - session.updatedAt) >= (process.env.SESSION_TIME || 20 * MINUTE)
-        ? res.status(401).redirect('/user/register')
-        : User.findOne({
-          where: {email: session.email},
-          attributes: Object.keys(User.attributes).filter(a => a !== 'password')
-        }).then((user) => res.render(join('user', 'index'), {loggedIn: user.dataValues})))
-      .catch(err => next(err)));
+router.get('/', (req, res, next) => res.locals.loggedIn 
+  ? res.render(join('user', 'index'))
+  : res.status(403).redirect('/user/register'));
 
 module.exports = router;

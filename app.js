@@ -64,7 +64,8 @@ app.locals.authors = [
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '127.0.0.1');
   res.header('Access-Control-Allow-Credentials', true);
-  res.header('Access-Control-Allow-Headers', ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'].join(', '));
+  res.header('Access-Control-Allow-Headers',
+    ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'].join(', '));
   next();
 });
 
@@ -109,6 +110,40 @@ app.use(
 );
 
 app.use(express.static(rootPath('public')));
+
+const models = require('./routes/database');
+const {decrypt} = require('./routes/lib');
+
+app.use((req, res, next) => req.cookies.token === null || req.cookies.token === undefined || req.cookies.token === ''
+  ? next()
+  : models.Session
+    .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
+    .then((session) => {
+      if (session !== null) return session.dataValues;
+      res.cookie('token', {
+        SameSite: true,
+        Path: '/',
+        Expires: new Date(Date.now() - 1000 * 60 * 60).toUTCString(),
+      });
+      return next();
+    })
+    .then((session) => {
+      if ((Date.now() - session.updatedAt) >= (process.env.SESSION_TIME || 20 * MINUTE)) {
+        res.cookie('token', {
+          SameSite: true,
+          Path: '/',
+          Expires: new Date(Date.now() - 1000 * 60 * 60).toUTCString(),
+        });
+        return next();
+      }
+      return models.User.findOne({
+        where: {email: session.email},
+        attributes: Object.keys(models.User.attributes).filter(a => a !== 'password'),
+      }).then((user) => {
+        res.locals.loggedIn = user.dataValues;
+        return next();
+      });
+    }));
 
 app.use('/api', require('./routes/api'));
 app.use('/user', require('./routes/user'));
