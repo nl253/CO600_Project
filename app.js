@@ -124,19 +124,20 @@ app.use((req, res, next) => req.cookies.token === null || req.cookies.token === 
     .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
     .then((session) => {
       if (session !== null) return session.dataValues;
-      res.cookie('token', {
+      res.clearCookie('token', {
         SameSite: true,
+        httpOnly: false,
         Path: '/',
-        Expires: new Date(Date.now() - 1000 * 60 * 60).toUTCString(),
       });
       return next();
     })
+    .then((session) => session === null ? next() : session)
     .then((session) => {
       if ((Date.now() - session.updatedAt) >= (process.env.SESSION_TIME || 20 * MINUTE)) {
-        res.cookie('token', {
+        res.clearCookie('token', {
           SameSite: true,
+          httpOnly: false,
           Path: '/',
-          Expires: new Date(Date.now() - 1000 * 60 * 60).toUTCString(),
         });
         return next();
       }
