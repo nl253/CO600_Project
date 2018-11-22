@@ -1,57 +1,66 @@
-<header class="columns">
-  <div class="column"></div>
-  <h2 class="column title is-centered has-text-centered">
-    {{#if user.firstName}}
-      <span class="is-italic">{{user.firstName}}</span>'s Profile
-    {{else}}
-      <span class="is-italic" id="user-name">{{user.firstName}}</span>'s Profile
-      <script>
-        (function () {
-          const el = document.getElementById("user-name");
-          const regex = /(.*)@(.*)/;
-          const result = regex.exec(el.innerText);
-          if (result !== null) el.innerText = result[1];
-        })();
-      </script>
-    {{/if}}
-  </h2>
-  <div class="column"></div>
+<style>
+  .card .card-content .title.is-6 {
+    margin-bottom: 3px;
+  }
+</style>
+
+ <header class="hero is-primary">
+  <div class="hero-body">
+    <div class="container">
+      <h1 class="title">
+        {{#if user.firstName}}
+          <span class="is-italic">{{user.firstName}}</span>'s Profile
+        {{else}}
+          <span class="is-italic" id="user-name">{{user.firstName}}</span>'s Profile
+          <script>
+            (function () {
+              const el = document.getElementById("user-name");
+              const regex = /(.*)@(.*)/;
+              const result = regex.exec(el.innerText);
+              if (result !== null) el.innerText = result[1];
+            })();
+          </script>
+        {{/if}}
+      </h1>
+    </div>
+  </div>
 </header>
 
 <div class="columns">
-
   <div class="column"></div>
-
   <main class="card column">
-
     <div class="card-header">
       <h3 class="heading card-header-title is-large">Personal Details</h3><br/>
     </div>
-
     <div class="card-content">
-
-      <h5 class="is-5 is-bold">Email</h5>
+      <h5 class="title is-6">Email</h5>
       <p>{{user.email}}</p><br/>
-
       {{#if user.firstName}} 
-        <h5 class="is-5 is-bold">First Name</h5>
+        <h5 class="title is-6">First Name</h5>
         <p>{{user.firstName}}</p><br/>
       {{/if}}
-
       {{#if user.lastName}} 
-        <h5 class="is-5 is-bold">Last Name</h5>
+        <h5 class="title is-6">Last Name</h5>
         <p>{{user.lastName}}</p><br/>
       {{/if}}
-
-
       {{#if user.info}} 
-        <h5 class="is-5 is-bold">Info</h5>
+        <h5 class="title is-6">Info</h5>
         <p>{{user.info}}</p><br/>
       {{/if}}
-
+      <h5 class="title is-6">Member Since</h5>
+      <p id="member-since-date">{{user.createdAt}}</p><br/>
+      <script>
+        (function() {
+          const el = document.getElementById('member-since-date');
+          if (el.innerText) {
+            const regex = /(.*\s+GMT\+\d).*/;
+            const match = regex.exec(el.innerText);
+            if (match) el.innerText = match[1];
+          }
+        })();
+      </script>
     </div>
   </main>
-
   <div class="column"></div>
-
 </div>
+
