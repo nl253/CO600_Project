@@ -39,17 +39,9 @@
     {{#if loggedIn}}
       <div class="navbar-end">
         {{#if loggedin.firstname}}
-          <a href="" class="navbar-item"> Hi {{loggedIn.firstName}}!</a>
+          <div class="navbar-item">Hi {{loggedIn.firstName}}!</div>
         {{else}}
-          <a href="" id="user-name" class="navbar-item"> Hi {{loggedIn.email}}!</a>
-          <script>
-            (function() {
-              const el = document.getElementById('user-name');
-              const regex = /(.*)@(.*)/;
-              const result = regex.exec(el.innerText);
-              if (result !== null) el.innerText = result[1];
-            })();
-          </script>
+          <div class="navbar-item">Hi <span class="greeting-email"> {{loggedIn.email}}</span>!</div>
         {{/if}}
         <div class="navbar-item has-dropdown is-hoverable">
           <a href="/user" class="navbar-link">Account Overview</a>
@@ -168,4 +160,16 @@
     <p><a href="/about">About Us</a></p>
   </div>
 </footer>
+<script>
+  (function() {
+    /** Strip email suffix. I.e. all after the '@' at symbol. */
+    const regex = /([A-Za-z0-9.]+)@([A-Za-z0-9.]+)/;
+    for (const el of document.getElementsByClassName('greeting-email')) {
+      const match = regex.exec(el.innerText);
+      if (match !== null) {
+        el.innerText = el.innerText.replace(match[0], ', ' + match[1] + ' ');
+      }
+    }
+  })();
+</script>
 </html>

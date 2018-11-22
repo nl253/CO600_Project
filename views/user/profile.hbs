@@ -11,15 +11,7 @@
         {{#if user.firstName}}
           <span class="is-italic">{{user.firstName}}</span>'s Profile
         {{else}}
-          <span class="is-italic" id="user-name">{{user.firstName}}</span>'s Profile
-          <script>
-            (function () {
-              const el = document.getElementById("user-name");
-              const regex = /(.*)@(.*)/;
-              const result = regex.exec(el.innerText);
-              if (result !== null) el.innerText = result[1];
-            })();
-          </script>
+          <span class="is-italic greeting-email">{{user.email}}</span>'s Profile
         {{/if}}
       </h1>
     </div>
