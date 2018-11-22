@@ -1,104 +1,139 @@
 <section class="hero">
-
-  <div class="hero-head"></div>
-
-  <div class="hero-body">
-    <div class="container is-widescreen">
-      <h1 class="title is-3">Personal Details</h1>
-      <div class="columns is-variable is-8">
-        <div class="column is-half">
-          <form>
-            <div class="field">
-              <label class="label">First name</label>
-              <div class="control has-icons-left">
-                <input class="input is-rounded" value="{{user.firstName}}" type="text" placeholder="e.g.: John">
-                <span class="icon is-left">
-                                    <i class="fas fa-user"></i>
-                                </span>
-              </div>
-            </div>
-            <div class="field">
-              <label class="label">Last name</label>
-              <div class="control has-icons-left">
-                <input class="input is-rounded" value="{{user.lastName}}" type="text" placeholder="e.g.: Smith">
-                <span class="icon is-left">
-                                    <i class="fas fa-user"></i>
-                                </span>
-              </div>
-            </div>
-            <div class="field">
-              <label class="label">Email</label>
-              <div class="control has-icons-left">
-                <input class="input is-rounded" value="{{user.email}}" type="text" placeholder="e.g.: johnsmith@gmail.com">
-                <span class="icon is-left">
-                                    <i class="fas fa-envelope"></i>
-                                </span>
-              </div>
-            </div>
-            <div class="field">
-              <div class="field-label"></div>
-              <div class="field-body is-grouped is-grouped-centered">
-                <p class="control">
-                  <a class="button is-link is-rounded">
-                                        Submit
-                                    </a>
-                </p>
-                <p class="control">
-                  <a class="button is-light is-rounded">
-                                        Cancel
-                                    </a>
-                </p>
-              </div>
-            </div>
-          </form>
+  <section class="hero is-light">
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title">
+          Modify Personal Details
+        </h1>
+      </div>
+    </div>
+  </section>
+</section>
+<div class="hero-body">
+  <form style="margin: 0 10vw;">
+    <div class="columns">
+      <div class="column" style="margin: 0 10px;">
+        <div class="field">
+          <label class="label">First name</label>
+          <div class="control has-icons-left">
+            <input class="input" id="first-name" value="{{loggedIn.firstName}}" type="text"
+                   placeholder="e.g.: John">
+            <span class="icon is-left"><i class="fas fa-user"></i></span>
+          </div>
         </div>
-        <div class="column is-half">
-          <form>
-            <div class="field">
-              <label class="label">Current password</label>
-              <div class="control has-icons-left">
-                <input class="input is-rounded" type="text">
-                <span class="icon is-left">
-                                    <i class="fas fa-lock"></i>
-                                </span>
-              </div>
-            </div>
-            <div class="field">
-              <label class="label">New password</label>
-              <div class="control has-icons-left">
-                <input class="input is-rounded" type="text">
-                <span class="icon is-left">
-                                    <i class="fas fa-lock"></i>
-                                </span>
-              </div>
-            </div>
-            <div class="field">
-              <label class="label">Re-enter new password</label>
-              <div class="control has-icons-left">
-                <input class="input is-rounded" type="text">
-                <span class="icon is-left">
-                                    <i class="fas fa-lock"></i>
-                                </span>
-              </div>
-            </div>
-            <div class="field">
-              <div class="field-label"></div>
-              <div class="field-body is-grouped is-grouped-centered">
-                <p class="control">
-                  <a class="button is-link is-rounded">
-                                        Submit
-                                    </a>
-                </p>
-                <p class="control">
-                  <a class="button is-light is-rounded">
-                                        Cancel
-                                    </a>
-                </p>
-              </div>
-            </div>
-          </form>
+        <div class="field">
+          <label class="label">Last name</label>
+          <div class="control has-icons-left">
+            <input class="input" id="last-name" value="{{loggedIn.lastName}}" type="text" placeholder="e.g.: Smith">
+            <span class="icon is-left"><i class="fas fa-user"></i></span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Info</label>
+          <div class="control">
+            <textarea class="textarea" id="info" placeholder="I am a ...">{{loggedIn.info}}</textarea>
+          </div>
+        </div>
+      </div>
+      <div class="column" style="margin: 0 10px;">
+        <div class="field">
+          <label class="label">Current Email</label>
+          <div class="control has-icons-left">
+            <input value="{{loggedIn.email}}" class="input" id="email-current" type="email" readonly>
+            <span class="icon is-left"><i class="fas fa-user"></i></span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Current password</label>
+          <div class="control has-icons-left">
+            <input class="input" id="password-old" type="password">
+            <span class="icon is-left"><i class="fas fa-lock"></i></span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">New password</label>
+          <div class="control has-icons-left">
+            <input class="input" id="password-new" type="password">
+            <span class="icon is-left"><i class="fas fa-lock"></i></span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Re-enter new password</label>
+          <div class="control has-icons-left">
+            <input class="input" id="password-new-2" type="password">
+            <span class="icon is-left"><i class="fas fa-lock"></i></span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+    <div class="field is-grouped is-grouped-centered">
+      <p class="control">
+        <a class="button is-primary" id="modify-details-btn">Change My Details</a>
+      </p>
+    </div>
+  </form>
+</div>
+
+<script>
+  (function() {
+    document.getElementById('modify-details-btn').onclick = (event) => {
+      event.preventDefault();
+      const details = {};
+      const changedAttrs = [];
+      const infoEl = document.getElementById('info');
+      if (infoEl !== null && infoEl.value !== '') {
+        details.info = infoEl.value;
+      }
+      const firstNameEl = document.getElementById('first-name');
+      if (firstNameEl !== null && firstNameEl.value !== '') {
+        details.firstName = firstNameEl.value;
+      }
+      const lastNameEl = document.getElementById('last-name');
+      if (lastNameEl !== null && lastNameEl.value !== '') {
+        details.lastName = lastNameEl.value;
+      }
+      const cfg = {
+        method: 'POST',
+        withCredentials: true,
+        cache: 'no-cache',
+        body: JSON.stringify(details),
+        redirect: 'follow',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      };
+      for (const k of Object.keys(details)) {
+        changedAttrs.push(k);
+      }
+      return (Object.keys(details).length > 0
+          ? fetch('/api/user', cfg)
+              .then((result) => result.status >= 400
+                  ? Promise.reject(result.json())
+                  : result.json())
+          : Promise.resolve(true))
+          .then(() => {
+            const elOldPass = document.getElementById('password-old');
+            const elEmail = document.getElementById('email-current');
+            const elNewPass = document.getElementById('password-new');
+            const elNewPass2 = document.getElementById('password-new-2');
+            for (const el of [elOldPass, elEmail, elNewPass, elNewPass2]) {
+              if (el === null || el.value === '') {
+                return alert(`successfully modified ${changedAttrs.join(', ')}`);
+              }
+            }
+            if (elNewPass.value !== elNewPass2.value) {
+              return alert('new passwords don\'t match');
+            }
+            changedAttrs.push('password');
+            const postBody = {value: elNewPass.value, password: elOldPass.value, email: elEmail.value};
+            return fetch('/api/user/password', Object.assign(cfg, {body: JSON.stringify(postBody)}))
+                .then(result => result.status >= 400
+                    ? Promise.reject(result.json())
+                    : result.json())
+                .then(json => alert(`successfully modified ${changedAttrs.join(', ')}`));
+          }).catch(json => alert(json.msg || json.message || `failed to change ${changedAttrs.join(', ')}`));
+    };
+  })();
+</script>

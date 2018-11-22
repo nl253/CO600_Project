@@ -12,7 +12,7 @@ const SECOND = 1000;
 const MINUTE = 60 * SECOND;
 // const HOUR = 60 * MINUTE;
 
-for (const pair of Object.entries({
+const APP_ENV = {
   NODE_ENV: 'development',
   DB_SYNC: 'false',
   MAX_RESULTS: '100',
@@ -26,11 +26,15 @@ for (const pair of Object.entries({
   LOGGING_ROUTING: 'info',
   LOGGING_DB: 'warn',
   LOGGING_TESTS: 'info',
-})) {
+};
+
+const padStartLen = Object.keys(APP_ENV).reduce((prev, curr) => curr.length >= prev ? curr.length : prev, 0);
+const padEndLen = Object.values(APP_ENV).reduce((prev, curr) => curr.length >= prev ? curr.length : prev, 0);
+console.info(`APPLICATION ENVIRONMENT\n${'-'.repeat(padStartLen + padEndLen + 3)}`);
+for (const pair of Object.entries(APP_ENV)) {
   const [k, v] = pair;
-  if (process.env[k] === undefined) {
-    process.env[k] = v;
-  }
+  if (process.env[k] === undefined) process.env[k] = v;
+  console.info(`${k.padEnd(padStartLen)} = ${v}`);
 }
 
 /**
@@ -120,19 +124,20 @@ app.use((req, res, next) => req.cookies.token === null || req.cookies.token === 
     .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
     .then((session) => {
       if (session !== null) return session.dataValues;
-      res.cookie('token', {
+      res.clearCookie('token', {
         SameSite: true,
+        httpOnly: false,
         Path: '/',
-        Expires: new Date(Date.now() - 1000 * 60 * 60).toUTCString(),
       });
       return next();
     })
+    .then((session) => session === null ? next() : session)
     .then((session) => {
       if ((Date.now() - session.updatedAt) >= (process.env.SESSION_TIME || 20 * MINUTE)) {
-        res.cookie('token', {
+        res.clearCookie('token', {
           SameSite: true,
+          httpOnly: false,
           Path: '/',
-          Expires: new Date(Date.now() - 1000 * 60 * 60).toUTCString(),
         });
         return next();
       }

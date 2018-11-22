@@ -155,7 +155,9 @@
             const token = json.result;
             setCookie('token', token);
             // redirect
-            window.location = '/user/profile';
+            if (window.location.href.endsWith('register') || window.location.href.endsWith('/')) {
+              window.location = '/user/profile';
+            }
           });
       }).catch(err => {
         console.error(err);

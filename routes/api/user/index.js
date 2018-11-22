@@ -134,10 +134,8 @@ router.post('/password',
   needs('password', 'body'),
   needs('value', 'body'),
   exists(User, (req) => ({email: req.body.email, password: sha256(req.body.password)})),
-  validColumns(User, (req) => Object.keys(req.body)),
-  // notRestrictedColumns((req) => Object.keys(req.body), Object.keys(User.attributes).filter(a => a !== 'email' && a !== 'password')),
   (req, res, next) => User
-    .findOne({where: {email: req.params.email}})
+    .findOne({where: {email: req.body.email}})
     .then(user => user.update({password: sha256(req.body.value)}))
     .then(() => res.json(msg(`updated password in user ${req.body.email}`)))
     .catch((err) => next(err)));
@@ -215,12 +213,12 @@ router.post('/',
   validColumns(User, (req) => Object.keys(req.body)),
   notRestrictedColumns((req) => Object.keys(req.body), ['createdAt', 'updatedAt', 'isAdmin', 'password', 'email']),
   (req, res, next) => Session
-    .findOne({where: {email: req.params.email}})
+    .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
     .then((session) => User.findOne({where: {email: session.email}}))
     .then((user) => user === null
       ? Promise.reject(new NoSuchRecord('User'))
       : user.update(JSON.parse(JSON.stringify(req.body))))
-    .then(() => res.json(msg(`updated ${Object.keys(req.body).join(', ')} in user ${req.params.email}`)))
+    .then(() => res.json(msg(`updated ${Object.keys(req.body).join(', ')}`)))
     .catch((err) => next(err)));
 
 
