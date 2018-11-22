@@ -53,7 +53,7 @@ app.set('views', rootPath('views'));
 app.set('view engine', 'hbs');
 app.set('x-powered-by', false);
 
-app.locals.title = 'FreeSchool';
+app.locals.title = 'FreeLearn';
 app.locals.authors = [
   {name: 'Norbert Logiewa', email: 'nl253@kent.ac.uk'},
   {name: 'Imaan Fakim', email: 'if50@kent.ac.uk'},
