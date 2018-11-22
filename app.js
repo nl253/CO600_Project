@@ -57,7 +57,7 @@ app.locals.title = 'FreeSchool';
 app.locals.authors = [
   {name: 'Norbert Logiewa', email: 'nl253@kent.ac.uk'},
   {name: 'Imaan Fakim', email: 'if50@kent.ac.uk'},
-  {name: 'Nic', email: 'nv55@kent.ac.uk'},
+  {name: 'Nicolas Valderrabano', email: 'nv55@kent.ac.uk'},
 ];
 
 
