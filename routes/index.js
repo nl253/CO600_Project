@@ -38,17 +38,4 @@ router.get('/:page', (req, res, next) => {
  */
 router.get('/', (req, res) => res.redirect('/user/register'));
 
-// catch 404 and forward to error handler
-router.use((req, res, next) => next(require('http-errors')(404)));
-
-// error handler
-router.use((err, req, res, next) => {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = process.env.NODE_ENV === 'development' ? err : {};
-
-  // render the error page
-  return res.status(err.status || err.code || 500).render('error');
-});
-
 module.exports = router;

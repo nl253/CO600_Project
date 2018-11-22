@@ -53,11 +53,11 @@ app.set('views', rootPath('views'));
 app.set('view engine', 'hbs');
 app.set('x-powered-by', false);
 
-app.locals.title = 'FreeSchool';
+app.locals.title = 'FreeLearn';
 app.locals.authors = [
   {name: 'Norbert Logiewa', email: 'nl253@kent.ac.uk'},
   {name: 'Imaan Fakim', email: 'if50@kent.ac.uk'},
-  {name: 'Nic', email: 'nv55@kent.ac.uk'},
+  {name: 'Nicolas Valderrabano', email: 'nv55@kent.ac.uk'},
 ];
 
 
@@ -148,5 +148,18 @@ app.use((req, res, next) => req.cookies.token === null || req.cookies.token === 
 app.use('/api', require('./routes/api'));
 app.use('/user', require('./routes/user'));
 app.use('/', require('./routes'));
+
+// catch 404 and forward to error handler
+app.use((req, res, next) => next(require('http-errors')(404)));
+
+// error handler
+app.use((err, req, res, next) => {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = process.env.NODE_ENV === 'development' ? err : {};
+
+  // render the error page
+  return res.status(err.status || err.code || 500).render('error');
+});
 
 module.exports = app;
