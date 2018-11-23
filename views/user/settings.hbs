@@ -31,7 +31,7 @@
         <div class="field">
           <label class="label">Info</label>
           <div class="control">
-            <textarea class="textarea" id="info" placeholder="I am a ...">{{loggedIn.info}}</textarea>
+            <textarea class="textarea" maxlength="255" id="info" placeholder="Summary of who you are and what you are interested in">{{loggedIn.info}}</textarea>
           </div>
         </div>
       </div>
@@ -53,14 +53,14 @@
         <div class="field">
           <label class="label">New password</label>
           <div class="control has-icons-left">
-            <input class="input" id="password-new" type="password">
+            <input class="input" minlength="6" pattern=".{6,}" id="password-new" type="password">
             <span class="icon is-left"><i class="fas fa-lock"></i></span>
           </div>
         </div>
         <div class="field">
           <label class="label">Re-enter new password</label>
           <div class="control has-icons-left">
-            <input class="input" id="password-new-2" type="password">
+            <input class="input" minlength="6" id="password-new-2" type="password">
             <span class="icon is-left"><i class="fas fa-lock"></i></span>
           </div>
         </div>
@@ -81,16 +81,16 @@
       const details = {};
       const changedAttrs = [];
       const infoEl = document.getElementById('info');
-      if (infoEl !== null && infoEl.value !== '') {
-        details.info = infoEl.value;
+      if (infoEl !== null) {
+        details.info = infoEl.value === '' ? null : infoEl.value;
       }
       const firstNameEl = document.getElementById('first-name');
-      if (firstNameEl !== null && firstNameEl.value !== '') {
-        details.firstName = firstNameEl.value;
+      if (firstNameEl !== null) {
+        details.firstName = firstNameEl.value === '' ? null : firstNameEl.value;
       }
       const lastNameEl = document.getElementById('last-name');
-      if (lastNameEl !== null && lastNameEl.value !== '') {
-        details.lastName = lastNameEl.value;
+      if (lastNameEl !== null) {
+        details.lastName = lastNameEl.value === ''  ? null : lastNameEl.value;
       }
       const cfg = {
         method: 'POST',
