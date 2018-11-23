@@ -31,7 +31,8 @@
         <div class="field">
           <label class="label">Info</label>
           <div class="control">
-            <textarea class="textarea" maxlength="255" id="info" placeholder="Summary of who you are and what you are interested in">{{loggedIn.info}}</textarea>
+            <textarea class="textarea" maxlength="255" id="info"
+                      placeholder="Summary of who you are and what you are interested in">{{loggedIn.info}}</textarea>
           </div>
         </div>
       </div>
@@ -90,7 +91,7 @@
       }
       const lastNameEl = document.getElementById('last-name');
       if (lastNameEl !== null) {
-        details.lastName = lastNameEl.value === ''  ? null : lastNameEl.value;
+        details.lastName = lastNameEl.value === '' ? null : lastNameEl.value;
       }
       const cfg = {
         method: 'POST',
@@ -118,9 +119,9 @@
             const elEmail = document.getElementById('email-current');
             const elNewPass = document.getElementById('password-new');
             const elNewPass2 = document.getElementById('password-new-2');
-            for (const el of [elOldPass, elEmail, elNewPass, elNewPass2]) {
-              if (el === null || el.value === '') {
-                return alert(`successfully modified ${changedAttrs.join(', ')}`);
+            for (const el of [elOldPass, elNewPass, elNewPass2]) {
+              if (el.value === '') {
+                return alert('empty password');
               }
             }
             if (elNewPass.value !== elNewPass2.value) {
