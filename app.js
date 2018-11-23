@@ -123,25 +123,21 @@ app.use((req, res, next) => req.cookies.token === null || req.cookies.token === 
   : models.Session
     .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
     .then((session) => {
-      if (session !== null) return session.dataValues;
-      res.clearCookie('token', {
-        SameSite: true,
-        httpOnly: false,
-        Path: '/',
-      });
-      return next();
-    })
-    .then((session) => session === null ? next() : session)
-    .then((session) => {
-      if ((Date.now() - session.updatedAt) >= (process.env.SESSION_TIME || 20 * MINUTE)) {
+      if (session === null) {
         res.clearCookie('token', {
           SameSite: true,
           httpOnly: false,
           Path: '/',
         });
         return next();
-      }
-      return models.User.findOne({
+      } else if ((Date.now() - session.updatedAt) >= (process.env.SESSION_TIME || 20 * MINUTE)) {
+        res.clearCookie('token', {
+          SameSite: true,
+          httpOnly: false,
+          Path: '/',
+        });
+        return next();
+      } else return models.User.findOne({
         where: {email: session.email},
         attributes: Object.keys(models.User.attributes).filter(a => a !== 'password'),
       }).then((user) => {
