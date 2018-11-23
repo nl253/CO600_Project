@@ -41,7 +41,7 @@
         {{#if loggedin.firstname}}
           <div class="navbar-item">Hi {{loggedIn.firstName}}!</div>
         {{else}}
-          <div class="navbar-item">Hi <span class="greeting-email"> {{loggedIn.email}}</span>!</div>
+          <div class="navbar-item">Hi <span class="greeting-email" style="margin-left: 3px;"> {{loggedIn.email}}</span>!</div>
         {{/if}}
         <div class="navbar-item has-dropdown is-hoverable">
           <a href="/user" class="navbar-link">Account Overview</a>
@@ -172,7 +172,7 @@
     for (const el of document.getElementsByClassName('greeting-email')) {
       const match = regex.exec(el.innerText);
       if (match !== null) {
-        el.innerText = el.innerText.replace(match[0], ', ' + match[1] + ' ');
+        el.innerText = el.innerText.replace(match[0], ' ' + match[1] + ' ');
       }
     }
   })();
