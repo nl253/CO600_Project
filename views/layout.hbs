@@ -52,7 +52,8 @@
             <a href="#" id="btn-log-out" class="navbar-item">Log out</a>
             <script>
               (function() {
-                document.getElementById('btn-log-out').onclick = () => {
+                document.getElementById('btn-log-out').onclick = (event) => {
+                  event.preventDefault();
                   const cfg = {
                     method: 'GET',
                     redirect: 'follow',
@@ -64,9 +65,7 @@
                       'Accept': 'application/json',
                     },
                   };
-                  return fetch('/api/user/logout', cfg).then(response => {
-                    window.location = '/user/register';
-                  });
+                  return fetch('/api/user/logout', cfg).then(response => window.location = '/');
                 };
               })();
             </script>
