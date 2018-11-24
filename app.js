@@ -148,6 +148,7 @@ app.use((req, res, next) => req.cookies.token === null || req.cookies.token === 
 
 app.use('/api', require('./routes/api'));
 app.use('/user', require('./routes/user'));
+app.use('/module', require('./routes/module'));
 app.use('/', require('./routes'));
 
 // catch 404 and forward to error handler
