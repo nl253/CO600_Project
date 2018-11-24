@@ -332,6 +332,8 @@ module.exports = {
   Module,
   Question,
   Rating,
+  sequelize,
   Session,
+  Sequelize,
   User,
 };
