@@ -10,10 +10,8 @@ const {
   needs,
   hasFreshSess,
   exists,
-  validColumn,
   validColumns,
   notExists,
-  notRestrictedColumn,
   notRestrictedColumns,
   genToken,
 } = require('../../lib');
@@ -137,48 +135,6 @@ router.post('/password',
   (req, res, next) => User
     .findOne({where: {email: req.body.email}})
     .then(user => user.update({password: sha256(req.body.value)}))
-    .then(() => res.json(msg(`updated password in user ${req.body.email}`)))
-    .catch((err) => next(err)));
-
-
-/**
- * Queries the database for a user's attribute (i.e. a property such as: email, id etc.).
- *
- * Doesn't require authentication.
- *
- * @namespace result.dataValues
- * @namespace req.params.property
- */
-router.get('/:email/:property',
-  exists(User, (req) => ({email: req.params.email})),
-  validColumn(User, (req) => req.params.property),
-  notRestrictedColumn((req) => req.params.property, ['password']),
-  (req, res, next) => User
-    .findOne({where: {email: req.params.email}, attributes: [req.params.property]})
-    .then((user) => res.json(msg(`found ${user.email}'s ${req.params.property}`, user.dataValues[req.params.property])))
-    .catch((err) => next(err)),
-);
-
-/**
- * Change the user's property.
- *
- * Requires a session token to be passed in cookies.
- */
-router.post('/:property',
-  needs('token', 'cookies'),
-  needs('value', 'body'),
-  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
-  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
-  notRestrictedColumn((req) => req.params.property, ['createdAt', 'updatedAt', 'isAdmin', 'password', 'email']),
-  validColumn(User, (req) => req.params.property),
-  (req, res, next) => Session
-    .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
-    .then((session) => User.findOne({where: {email: session.email}}))
-    .then(user => {
-      const attrs = {};
-      attrs[req.params.property] = req.body.value;
-      return user.update(attrs);
-    })
     .then(() => res.json(msg(`updated password in user ${req.body.email}`)))
     .catch((err) => next(err)));
 
