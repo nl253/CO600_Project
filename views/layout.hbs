@@ -41,7 +41,8 @@
         {{#if loggedin.firstname}}
           <div class="navbar-item">Hi {{loggedIn.firstName}}!</div>
         {{else}}
-          <div class="navbar-item">Hi <span class="greeting-email" style="margin-left: 3px;"> {{loggedIn.email}}</span>!</div>
+          <div class="navbar-item">Hi <span class="greeting-email" style="margin-left: 3px;"> {{loggedIn.email}}</span>!
+          </div>
         {{/if}}
         <div class="navbar-item has-dropdown is-hoverable">
           <a href="/user" class="navbar-link">Account Overview</a>
@@ -54,7 +55,7 @@
               (function() {
                 document.getElementById('btn-log-out').onclick = (event) => {
                   event.preventDefault();
-                  const cfg = {
+                  return fetch('/api/user/logout', {
                     method: 'GET',
                     redirect: 'follow',
                     cache: 'no-cache',
@@ -64,8 +65,11 @@
                       'Content-Type': 'application/json',
                       'Accept': 'application/json',
                     },
-                  };
-                  return fetch('/api/user/logout', cfg).then(response => window.location = '/');
+                  }).then(response => response.json())
+                      .then(response => {
+                        window.location.href = window.location.href;
+                      })
+                      .catch(err => alert(err.msg || err.message || 'failed to log out'));
                 };
               })();
             </script>
@@ -109,8 +113,7 @@
                     email,
                     password,
                   };
-
-                  const cfg = {
+                  return fetch(`/api/user/login`, {
                     method: 'POST',
                     redirect: 'follow',
                     cache: 'no-cache',
@@ -121,31 +124,23 @@
                       'Accept': 'application/json',
                     },
                     body: JSON.stringify(credentials),
-                  };
-
-                  // error codes 400..499 and 500..599 are client and server errors
-                  return fetch(`/api/user/login`, cfg)
-                      .then(response => response.status >= 400 ?
-                          // if it goes wrong force it to jump to reject
-                          Promise.reject(response.json()) :
-                          // the JSON object is guaranteed to have a "msg" property
-                          response.json())
-                      .then(json => {
-                        // result should store the token if things go well
-                        const token = json.result;
-                        setCookie('token', token);
-                        // redirect
-                        for (const suffix of ['register', '/']) {
-                          if (window.location.href.endsWith(suffix)) {
-                            window.location = '/user/profile';
-                            break;
-                          }
-                        }
-                      })
-                      .catch(err => {
-                        console.error(err);
-                        return err.then(e => alert(e.msg || e.message || e.toString()));
-                      });
+                  }).then(response => response.status >= 400 ?
+                      // error codes 400..499 and 500..599 are client and server errors
+                      // if it goes wrong force it to jump to reject
+                      Promise.reject(response.json()) :
+                      // the JSON object is guaranteed to have a "msg" property
+                      response.json()).then(json => {
+                    // result should store the token if things go well
+                    const token = json.result;
+                    setCookie('token', token);
+                    // redirect
+                    window.location.href = window.location.href.endsWith('register')
+                        ? '/user/profile'
+                        : window.location.href;
+                  }).catch(err => {
+                    console.error(err);
+                    return err.then(e => alert(e.msg || e.message || e.toString()));
+                  });
                 };
               })();
             </script>
