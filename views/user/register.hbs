@@ -1,5 +1,5 @@
 <section class="hero is-fullheight is-primary is-bold">
-  <div class="hero-head"> </div>
+  <div class="hero-head"></div>
   <div class="hero-body">
     <div class="container is-widescreen">
       <div class="columns">
@@ -34,8 +34,8 @@
                 <div class="field">
                   <label class="label">Email</label>
                   <div class="control has-icons-left">
-                    <input class="input" id="regEmail" type="email" pattern=".{2,}@.{2,}\..{2,}" placeholder="example@email.com"
-                      autocomplete="on" required>
+                    <input class="input" id="regEmail" type="email" pattern=".{2,}@.{2,}\..{2,}"
+                           placeholder="example@email.com" autocomplete="on" required>
                     <span class="icon is-small is-left">
                       <i class="fa fa-envelope"></i>
                     </span>
@@ -45,7 +45,7 @@
                   <label class="label">Confirm Email</label>
                   <div class="control has-icons-left">
                     <input class="input" type="email" pattern=".{2,}@.{2,}\..{2,}" placeholder="example@email.com"
-                      autocomplete="on" required>
+                           autocomplete="on" required>
                     <span class="icon is-small is-left">
                       <i class="fa fa-envelope"></i>
                     </span>
@@ -89,79 +89,63 @@
 
     let [firstName, lastName] = [null, null];
 
-    let maybeFirstName = document.getElementById("firstName").value;
-    if (maybeFirstName !== "") firstName = maybeFirstName;
+    let maybeFirstName = document.getElementById('firstName').value;
+    if (maybeFirstName !== '') firstName = maybeFirstName;
 
-    let maybeLastName = document.getElementById("lastName").value;
-    if (maybeLastName !== "") lastName = maybeLastName;
+    let maybeLastName = document.getElementById('lastName').value;
+    if (maybeLastName !== '') lastName = maybeLastName;
 
-    const email = document.getElementById("regEmail").value;
-    const password = document.getElementById("regPassword").value;
-    const userDetails = {
-      firstName,
-      lastName,
-      email,
-      password
-    };
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    const userDetails = {firstName, lastName, email, password};
 
-    const cfg = {
-      method: "POST",
-      redirect: "follow",
-      cache: "no-cache",
-      mode: "cors",
-      credentials: "include",
+    return fetch(`/api/user/register`, {
+      method: 'POST',
+      redirect: 'follow',
+      cache: 'no-cache',
+      mode: 'cors',
+      credentials: 'include',
       headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
       body: JSON.stringify(userDetails),
-    }
-
-    return fetch(`/api/user/register`, cfg)
-      .then(response => response.status >= 400 ?
+    }).then(response => response.status >= 400 ?
         Promise.reject(response.json()) :
-        response.json())
-      .then(json => {
+        response.json()).then(json => {
 
-        const credentials = {
-          email,
-          password
-        };
+      const credentials = {email, password};
 
-        const cfg = {
-          method: "POST",
-          redirect: 'follow',
-          cache: "no-cache",
-          mode: "cors",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-          },
-          body: JSON.stringify(credentials),
-        };
-
-        // error codes 400..499 and 500..599 are client and server errors
-        return fetch(`/api/user/login`, cfg)
-          .then(response => response.status >= 400
-            // if it goes wrong force it to jump to reject
-            ?
-            Promise.reject(response.json())
-            // the JSON object is guaranteed to have a "msg" property
-            :
-            response.json())
-          .then(json => {
-            // result should store the token if things go well
-            const token = json.result;
-            setCookie('token', token);
-            // redirect
-            if (window.location.href.endsWith('register') || window.location.href.endsWith('/')) {
-              window.location = '/user/profile';
-            }
-          });
-      }).catch(err => {
-        console.error(err);
-        return err.then(e => alert(e.msg || e.message || e.toString()));
+      // error codes 400..499 and 500..599 are client and server errors
+      return fetch(`/api/user/login`, {
+        method: 'POST',
+        redirect: 'follow',
+        cache: 'no-cache',
+        mode: 'cors',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      }).then(response => response.status >= 400
+          // if it goes wrong force it to jump to reject
+          ?
+          Promise.reject(response.json())
+          // the JSON object is guaranteed to have a "msg" property
+          :
+          response.json()).then(json => {
+        // result should store the token if things go well
+        const token = json.result;
+        setCookie('token', token);
+        // redirect
+        if (window.location.href.endsWith('register') || window.location.href.endsWith('/')) {
+          window.location.href = '/user/profile';
+        }
       });
+    }).catch(err => {
+      console.error(err);
+      return err.then(e => alert(e.msg || e.message || e.toString()));
+    });
   };
 </script>
