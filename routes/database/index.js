@@ -276,7 +276,7 @@ const Question = sequelize.define('Question', {
 // Sync all models that aren't already in the database
 // NOTE this seems to delete * from all tables!
 // ONLY RUN ONCE AT THE BEGINNING
-if (process.env.DB_SYNC === '1' || process.env.DB_SYNC === 'true' || (process.env.DB_PATH !== undefined && !existsSync(process.env.DB_PATH))) {
+if (process.env.DB_SYNC === '1' || (process.env.DB_PATH !== undefined && !existsSync(process.env.DB_PATH))) {
   log.warn(`syncing database to ${process.env.DB_PATH}`);
   sequelize.sync();
 }
