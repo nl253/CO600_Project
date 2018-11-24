@@ -59,7 +59,7 @@ const sequelize = new Sequelize({
 
   // similar for sync: you can define this to always force sync for models
   sync: {
-    force: process.env.DB_SYNC === '1' || process.env.DB_SYNC === 'true' || false,
+    force: process.env.DB_SYNC === '1' || false,
   },
 
   // pool configuration used to pool database connections
