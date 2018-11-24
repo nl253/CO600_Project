@@ -43,30 +43,7 @@ router.post('/:module/delete', () => undefined);
  */
 router.post('/:module', () => undefined);
 
-/**
- * Update property to value in a module.
- *
- * Requires that the module exists and value is passed in request body.
- */
-router.post('/:module/:property', () => undefined);
 
-/**
- * Query the database for a property of a certain module.
- *
- * Requires that the module exists.
- */
-router.get('/:module/:property', () => undefined);
-
-/**
- * Suggest using GET when an API user uses POST instead of GET to get a module's property.
- */
-router.post('/:module', () => undefined);
-
-/**
- * Shows all info about a module.
- *
- * Requires that the module exists.
- */
 router.get('/:module', () => undefined);
 
 /**
@@ -74,13 +51,13 @@ router.get('/:module', () => undefined);
  */
 suggestRoutes(router, /.*/, {
   GET: {
-    ':module/:property': 'to lookup a property of a module (the module must exist)',
-    ':module': 'to lookup a module (the module must exist)',
+    '/:module': 'to lookup a module (the module must exist)',
+    '/:module/delete': 'to delete a module (you must be it\'s creator & provide a a valid session token in the Cookie header)',
+    '/': 'to search through modules',
   },
   POST: {
-    ':module/create': 'to create module with name :module (you must provide credentials in cookies or request body, another module with the same name cannot exist)',
-    ':module/delete': 'to delete module with name :module (you must provide credentials in cookies or request body, the module must exist)',
-    ':module/:property': 'to set property to value in a module (`value` needs to be set in request body)',
+    '/': 'to update a module (you must be it\'s creator & provide a a valid session token in the Cookie header)',
+    '/create': 'to create a module (you must provide a a valid session token in the Cookie header)',
   },
 });
 
