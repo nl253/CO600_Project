@@ -48,15 +48,19 @@
 
 <script>
   (function() {
-    const btnCreatedModules = document.getElementById('btn-created-modules-tab');
-    const btnEnrollments = document.getElementById('btn-enrollments-tab');
-    btnCreatedModules.onclick = () => {
-      btnCreatedModules.parentElement.classList.add('is-active');
-      btnEnrollments.parentElement.classList.remove('is-active');
+    document.getElementById('btn-created-modules-tab').onclick = function(event) {
+      event.preventDefault();
+      document.getElementById('modules-created').style.display = 'block';
+      document.getElementById('enrollments').style.display = 'none';
+      document.getElementById('btn-created-modules-tab').parentElement.classList.add('is-active');
+      document.getElementById('btn-enrollments-tab').parentElement.classList.remove('is-active');
     };
-    btnEnrollments.onclick = () => {
-      btnCreatedModules.parentElement.classList.remove('is-active');
-      btnEnrollments.parentElement.classList.add('is-active');
+    document.getElementById('btn-enrollments-tab').onclick = function(event) {
+      event.preventDefault();
+      document.getElementById('modules-created').style.display = 'none';
+      document.getElementById('enrollments').style.display = 'block';
+      document.getElementById('btn-created-modules-tab').parentElement.classList.remove('is-active');
+      document.getElementById('btn-enrollments-tab').parentElement.classList.add('is-active');
     };
   })();
 </script>
