@@ -157,11 +157,6 @@ const Module = sequelize.define('Module', {
     },
     onUpdate: 'CASCADE',
   },
-  isTested: {
-    type: BOOLEAN,
-    defaultValue: false,
-    allowNull: false,
-  },
   summary: TEXT,
 });
 
