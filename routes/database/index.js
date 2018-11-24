@@ -77,18 +77,18 @@ const User = sequelize.define('User', {
     primaryKey: true,
     validate: {
       is: {
-        args: /.+@.+/,
-        mgs: 'not a valid email'
-      }
+        args: [/.+@.+/],
+        mgs: 'not a valid email',
+      },
     },
   },
   password: {
     type: STRING,
     validate: {
       is: {
-        args: /.{2,}/,
-        msg: 'password is too short'
-      }
+        args: [/.{2,}/],
+        msg: 'password is too short',
+      },
     },
     allowNull: false,
   },
@@ -96,18 +96,18 @@ const User = sequelize.define('User', {
     type: STRING,
     validate: {
       is: {
-        args: /.+/,
-        msg: 'first name is too short'
-      }
+        args: [/.+/],
+        msg: 'first name is too short',
+      },
     },
   },
   lastName: {
     type: STRING,
     validate: {
       is: {
-        args: /.+/,
-        msg: 'last name is too short'
-      }
+        args: [/.+/],
+        msg: 'last name is too short',
+      },
     },
   },
   isAdmin: {
@@ -125,9 +125,9 @@ const Session = sequelize.define('Session', {
     type: STRING,
     validate: {
       is: {
-        args: /.{6}/,
-        mgs: 'access token not long enough'
-      }
+        args: [/.{6}/],
+        mgs: 'access token not long enough',
+      },
     },
   },
   email: {
@@ -217,12 +217,12 @@ const Rating = sequelize.define('Rating', {
     type: TINYINT,
     validate: {
       min: {
-        args: minRating,
-        msg: badRatingMsg
+        args: [minRating],
+        msg: badRatingMsg,
       },
       max: {
-        args: maxRating,
-        msg: badRatingMsg
+        args: [maxRating],
+        msg: badRatingMsg,
       },
     },
     allowNull: false,
