@@ -19,10 +19,22 @@
  * @author Norbert
  */
 
+const msg = require('../lib').msg;
+const {decrypt} = require('../../lib');
+const {Session, Module, Enrollment, Lesson} = require('../../database');
 const router = require('express').Router();
 
 const {suggestRoutes} = require('../lib');
 
+// Project
+const {
+  needs,
+  hasFreshSess,
+  exists,
+  validColumns,
+  notExists,
+  notRestrictedColumns,
+} = require('../../lib');
 
 /**
  * Creates a new module.
@@ -31,17 +43,31 @@ const {suggestRoutes} = require('../lib');
  */
 router.post('/:module/create', () => undefined);
 
-/**
- * Deletes a new module.
- *
- * Requires that the module exists.
- */
-router.post('/:module/delete', () => undefined);
+router.get('/:module/enroll',
+  exists(Module, (req) => ({name: req.params.module})),
+  needs('token', 'cookies'),
+  exists(Session,
+    (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
+  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
+  (req, res) => Enrollment.create({
+    module: req.params.module,
+    student: res.locals.loggedIn.email,
+  }).then(() => res.json(msg('successfully enrolled'))));
 
-/**
- * If an API user tries to query the database for modules's info with POST suggest using GET.
- */
-router.post('/:module', () => undefined);
+router.get('/:module/unenroll',
+  exists(Module, (req) => ({name: req.params.module})),
+  needs('token', 'cookies'),
+  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
+  // (req, res, next) => exists(Enrollment, (req) => ({
+  //   student: res.locals.loggedIn.email,
+  //   module: req.params.module,
+  // }))(),
+  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
+  (req, res) => Enrollment.findOne({
+    module: req.params.module,
+    student: res.locals.loggedIn.email,
+  }).then(enrollment => enrollment.destroy())
+    .then(() => res.json(msg('successfully unenrolled'))));
 
 
 router.get('/:module', () => undefined);
