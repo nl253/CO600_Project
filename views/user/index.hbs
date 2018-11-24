@@ -30,6 +30,22 @@
   </div>
 </section>
 
+<section id="modules-created" style="margin: 70px 25vw; display: none;"></section>
+
+<section id="enrollments" style="margin: 70px 25vw;">
+  {{#if loggedIn.enrollments}}
+    <ul class="list" style="width: 100%;">
+      {{#each loggedIn.enrollments}}
+        <li class="list-item">
+          <a href="/module/{{module}}" class="has-text-link">
+            {{module}}
+          </a>
+        </li>
+      {{/each}}
+    </ul>
+  {{/if}}
+</section>
+
 <script>
   (function() {
     const btnCreatedModules = document.getElementById('btn-created-modules-tab');
