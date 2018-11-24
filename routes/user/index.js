@@ -8,11 +8,8 @@ const {NotImplYetErr, NoSuchRecord} = require('../errors');
 const router = express.Router();
 
 // Project
-const {decrypt, log} = require('../lib');
-const {User, Session} = require('../database');
-
-const SECOND = 1000;
-const MINUTE = 60 * SECOND;
+const {log} = require('../lib');
+const {User, Enrollment} = require('../database');
 
 /**
  * Registration page if not logged in, otherwise redirect to user profile page.
@@ -56,8 +53,13 @@ router.get('/:page',
  */
 /** @namespace user.dataValues */
 /** @namespace session.updatedAt */
-router.get('/', (req, res, next) => res.locals.loggedIn 
-  ? res.render(join('user', 'index'))
-  : res.status(403).redirect('/user/register'));
+router.get('/', (req, res, next) =>
+  res.locals.loggedIn
+    ? Enrollment.findAll({where: {student: res.locals.loggedIn.email}})
+      .then(enrollments => {
+        res.locals.loggedIn.enrollments = enrollments.map(e => e.dataValues);
+        return res.render(join('user', 'index'));
+      })
+    : res.status(403).redirect('/user/register'));
 
 module.exports = router;
