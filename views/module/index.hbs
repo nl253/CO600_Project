@@ -1,0 +1,94 @@
+<section class="hero is-light">
+  <div class="hero-body" style="margin-left: 13.5vw;">
+    <h1 class="title">{{module.name}}</h1>
+    <h3 class="subtitle">{{module.topic}}</h3>
+    {{#if loggedIn}}
+      {{#if module.enrolled}}
+        <button id="btn-enroll" class="button is-danger">Unenroll</button>
+        <script>
+          (function() {
+            return document.getElementById('btn-enroll').onclick = () => fetch(
+                '/api/module/{{module.name}}/unenroll', {
+                  redirect: 'follow',
+                  cache: 'no-cache',
+                  mode: 'cors',
+                  credentials: 'include',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                  },
+                }).then(res => res.status >= 400
+                ? Promise.reject(res.json())
+                : Promise.resolve(res.json()))
+                .then(() => window.location = window.location.href)
+                .catch(err => alert(err.msg || err.message || 'failed to unenroll'));
+          })();
+        </script>
+      {{else}}
+        <button id="btn-enroll" class="button is-primary">Enroll</button>
+        <script>
+          (function() {
+            document.getElementById('btn-enroll').onclick = () => fetch(
+                '/api/module/{{module.name}}/enroll', {
+                  redirect: 'follow',
+                  cache: 'no-cache',
+                  mode: 'cors',
+                  credentials: 'include',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                  },
+                }).then(response => response.status >= 400
+                ? Promise.reject(response.json())
+                : Promise.resolve(response.json()),
+            ).then(jsonRes => window.location = window.location.href)
+                .catch(err => alert(err.msg || err.message || 'failed to enroll'));
+          })();
+        </script>
+      {{/if}}
+    {{else}}
+      <button class="button is-link">log in to enroll</button>
+    {{/if}}
+  </div>
+</section>
+<div style="margin: 0 15vw 50px;">
+  <section class="content" style="margin-top: 40px;">
+    <strong>Author</strong> <a href="/user/{{module.author}}">{{module.author}}</a>
+    <br>
+    <strong>Rating</strong> <span id="rating-module"> {{module.rating}}/5</span>
+    <script>
+      (function() {
+        const el = document.getElementById('rating-module');
+        el.innerText = `${((eval(el.innerText) * 100).toPrecision(3)).toString()}%`;
+      })();
+    </script>
+  </section>
+  <section class="is-medium" style="margin-bottom: 30px;">
+    <h2 class="title is-medium">Summary</h2>
+    <p class="is-medium" style="width: 80vw; word-wrap: break-word;">{{module.summary}}</p>
+  </section>
+  <section class="is-medium" style="margin-bottom: 30px;">
+    <h2 class="title is-medium">Lessons</h2>
+    <ol id="list-lessons">
+      {{#each module.lessons}}
+      <li>
+        {{#if loggedIn}}
+          <a href="/lesson/{{id}}">{{summary}}</a>
+        {{else}}
+          <a href="#!" onclick="alert('not enrolled')">{{summary}}</a>
+        {{/if}}
+      {{/each}}
+    </li>
+    </ol>
+  </section>
+  <section class="is-small">
+    <h2 class="title is-medium">Comments</h2>
+    {{#each module.ratings}}
+      <div class="box container" style="max-width: 70vw;">
+        <div style="margin-bottom: 10px;"><strong>{{stars}}/5</strong> by <em><a
+            href="/user/{{rater}}">{{rater}}</a></em></div>
+        <p class="content">{{comment}}</p>
+      </div>
+    {{/each}}
+  </section>
+</div>
