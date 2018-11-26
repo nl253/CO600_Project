@@ -7,28 +7,41 @@
         {{#if loggedIn.firstName}}
           <span>{{loggedIn.firstName}}</span>
         {{else}}
-          <span id="user-greeting">{{loggedIn.email}}</span>
-          <script>
-            (function () {
-              const el = document.getElementById("user-greeting");
-              const regex = /(.*)@(.*)/;
-              const result = regex.exec(el.innerText);
-              if (result !== null) el.innerText = result[1];
-            })();
-          </script>
+          <span class="greeting-email">{{loggedIn.email}}</span>
         {{/if}}
       </h1>
     </div>
   </div>
-  <div class="hero-body">
-    <div class="container">
-      <h1 class="title is-4">Created Modules</h1>
-    </div>
-    <div class="container">
-      <div style="overflow:auto; font-family:sans-serif; padding:10px;"> </div>
-    </div>
-    <div class="container">
-      <h1 class="title is-4">Enrollments</h1>
-    </div>
+  <div class="tabs is-centered is-boxed is-medium">
+    <ul>
+      <li class="is-active">
+        <a id="btn-enrollments-tab">
+          <span class="icon is-small"><i class="far fa-file-alt" aria-hidden="true"></i></span>
+          <span>Enrollments</span>
+        </a>
+      </li>
+      <li>
+        <a id="btn-created-modules-tab">
+          <span class="icon is-small"><i class="fas fa-image" aria-hidden="true"></i></span>
+          <span>Created Modules</span>
+        </a>
+      </li>
+    </ul>
   </div>
 </section>
+
+<script>
+  (function() {
+    const btnCreatedModules = document.getElementById('btn-created-modules-tab');
+    const btnEnrollments = document.getElementById('btn-enrollments-tab');
+    btnCreatedModules.onclick = () => {
+      btnCreatedModules.parentElement.classList.add('is-active');
+      btnEnrollments.parentElement.classList.remove('is-active');
+    };
+    btnEnrollments.onclick = () => {
+      btnCreatedModules.parentElement.classList.remove('is-active');
+      btnEnrollments.parentElement.classList.add('is-active');
+    };
+  })();
+</script>
+
