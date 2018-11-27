@@ -1,30 +1,23 @@
-<section class="hero">
-  <div class="hero-head"></div>
+<section class="hero" style="margin-top: 50px;">
   <div class="hero-body">
-    <div class="container is-widescreen">
+    <div class="container is-widescreen" style="padding: 0 5vw;">
       <div class="columns is-variable is-1">
-        <div class="column is-half">
+        <div class="column">
           <h1 class="title is-1">Oops !</h1>
           <h2 class="title is-4">Our robot can't find the page you're looking for, please try something else</h2>
-          <p>
-            {{error.status}} {{error.code}} {{error.message}}
-          </p>
+          <p>{{error.status}} {{error.code}} {{error.message}}</p>
           <br>
           <div class="field is-grouped">
             <p class="control">
-              <a class="button is-info" href="/">
-                            Back to Home page
-                            </a>
+              <a class="button is-info" href="/">Back to Home page</a>
             </p>
             <p class="control">
-              <a class="button is-light" href="/about">
-                            Contact Us
-                            </a>
+              <a class="button is-light" href="/about">Contact Us</a>
             </p>
           </div>
         </div>
-        <div class="column is-half">
-          <a><img src="/images/sadLogo.png" width="600" height="600" alt="Logo"></a>
+        <div class="column">
+          <img src="/images/sadLogo.png" alt="Logo">
         </div>
       </div>
     </div>
