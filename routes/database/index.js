@@ -233,22 +233,22 @@ const Rating = sequelize.define('Rating', {
 });
 
 const Enrollment = sequelize.define('Enrollment', {
-  module: {
-    type: STRING,
+  moduleId: {
+    type: INTEGER,
     references: {
       model: Module,
-      key: 'name'
+      key: 'id',
     },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     allowNull: false,
     unique: 'compositeIndex',
   },
-  student: {
-    type: STRING,
+  studentId: {
+    type: INTEGER,
     references: {
       model: User,
-      key: 'email'
+      key: 'id',
     },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
