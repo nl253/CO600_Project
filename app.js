@@ -119,6 +119,11 @@ const models = require('./routes/database');
 const {decrypt} = require('./routes/lib');
 
 app.use((req, res, next) => {
+  if (req.query) res.locals.query = req.query;
+  next();
+});
+
+app.use((req, res, next) => {
   function clearToken(res) {
     return res.clearCookie('token', {
       SameSite: true,
