@@ -19,43 +19,28 @@
  * @author Norbert
  */
 
-const msg = require('../lib').msg;
-const {decrypt} = require('../../lib');
-const {Session, Module, Enrollment, Lesson} = require('../../database');
+const {MissingDataErr} = require('../../errors');
+const {Session, Module, Enrollment} = require('../../database');
 const router = require('express').Router();
 
-const {suggestRoutes} = require('../lib');
+const {suggestRoutes, msg} = require('../lib');
 
 // Project
-const {
-  needs,
-  hasFreshSess,
-  exists,
-  validColumns,
-  notExists,
-  notRestrictedColumns,
-} = require('../../lib');
+const {needs, hasFreshSess, exists, decrypt} = require('../../lib');
 
-/**
- * Creates a new module.
- *
- * Requires that the module does not already exist.
- */
-router.post('/:module/create', () => undefined);
-
-router.get('/:module/enroll',
-  exists(Module, (req) => ({name: req.params.module})),
+router.get('/:id/enroll',
+  exists(Module, (req) => ({id: req.params.id})),
   needs('token', 'cookies'),
   exists(Session,
     (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
   hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
-  (req, res) => Enrollment.create({
-    module: req.params.module,
-    student: res.locals.loggedIn.email,
-  }).then(() => res.json(msg('successfully enrolled'))));
+  (req, res, next) => Enrollment.create({
+    moduleId: req.params.id,
+    studentId: res.locals.loggedIn.id,
+  }).then(() => res.json(msg('successfully enrolled')))
+    .catch(err => next(err)));
 
-router.get('/:module/unenroll',
-  exists(Module, (req) => ({name: req.params.module})),
+router.get('/:id/unenroll',
   needs('token', 'cookies'),
   exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
   // (req, res, next) => exists(Enrollment, (req) => ({
@@ -63,12 +48,38 @@ router.get('/:module/unenroll',
   //   module: req.params.module,
   // }))(),
   hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
-  (req, res) => Enrollment.findOne({
-    module: req.params.module,
-    student: res.locals.loggedIn.email,
+  exists(Module, (req) => ({id: req.params.id})),
+  (req, res, next) => Enrollment.findOne({
+    moduleId: req.params.id,
+    studentId: res.locals.loggedIn.email,
   }).then(enrollment => enrollment.destroy())
-    .then(() => res.json(msg('successfully unenrolled'))));
+    .then(() => res.json(msg('successfully un-enrolled')))
+    .catch(err => next(err)));
 
+router.get('/create',
+  needs('token', 'cookies'),
+  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
+  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
+  (req, res, next) => Module.create({
+    authorId: res.locals.loggedIn.id,
+  }).then(module => res.json(msg(`successfully created module`, module.id)))
+    .catch(err => next(err)));
+
+router.post('/:id',
+  needs('token', 'cookies'),
+  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
+  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
+  exists(Module, (req) => ({id: req.params.id})),
+  (req, res, next) => Module.findOne({
+    where: {
+      authorId: res.locals.loggedIn.id,
+      id: req.params.id
+    },
+  }).then(module => req.body && Object.entries(req.body).length >= 0
+    ? module.update(req.body)
+    : Promise.reject(new MissingDataErr('data to modify', 'request body')))
+    .then(() => res.json(msg('successfully updated the module')))
+    .catch(err => next(err)));
 
 router.get('/:module', () => undefined);
 
