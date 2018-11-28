@@ -71,10 +71,16 @@ const sequelize = new Sequelize({
 });
 
 const User = sequelize.define('User', {
+  id: {
+    type: INTEGER,
+    allowNull: false,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   email: {
     type: STRING,
     allowNull: false,
-    primaryKey: true,
+    unique: true,
     validate: {
       is: {
         args: [/.+@.+/],
