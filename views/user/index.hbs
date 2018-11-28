@@ -37,12 +37,12 @@
   <div class="hero-head">
     <br>
     <div class="container">
-      <h1 class="title is-1">
-        <i class="fas fa-user"></i>
-        {{#if loggedIn.firstName}}
-          <span>{{loggedIn.firstName}}</span>
+      <h1 class="title is-1 has-text-centered" style="margin: 50px 0;">
+        <!--<i class="fas fa-user"></i>-->
+        {{#if user.firstName}}
+          <span>{{user.firstName}}</span>
         {{else}}
-          <span class="greeting-email">{{loggedIn.email}}</span>
+          <span class="greeting-email">{{user.email}}</span>
         {{/if}}
       </h1>
     </div>
