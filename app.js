@@ -118,36 +118,55 @@ app.use(express.static(rootPath('public')));
 const models = require('./routes/database');
 const {decrypt} = require('./routes/lib');
 
-app.use((req, res, next) => req.cookies.token === null || req.cookies.token === undefined || req.cookies.token === ''
-  ? next()
-  : models.Session
+app.use((req, res, next) => {
+  if (req.query) res.locals.query = req.query;
+  next();
+});
+
+app.use((req, res, next) => {
+  function clearToken(res) {
+    return res.clearCookie('token', {
+      SameSite: true,
+      httpOnly: false,
+      Path: '/',
+    });
+  }
+
+  if (req.cookies.token === '') {
+    clearToken(res);
+    return next();
+  } else if (req.cookies.token === undefined) {
+    return next();
+  }
+
+  return models.Session
     .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
     .then((session) => {
       if (session === null) {
-        res.clearCookie('token', {
-          SameSite: true,
-          httpOnly: false,
-          Path: '/',
+        clearToken(res);
+        return next();
+      } else if ((Date.now() - session.updatedAt) >=
+        (process.env.SESSION_TIME || 20 * MINUTE)) {
+        return session.destroy().then(() => {
+          clearToken(res);
+          return next();
         });
-        return next();
-      } else if ((Date.now() - session.updatedAt) >= (process.env.SESSION_TIME || 20 * MINUTE)) {
-        res.clearCookie('token', {
-          SameSite: true,
-          httpOnly: false,
-          Path: '/',
+      } else {
+        return models.User.findOne({
+          where: {email: session.email},
+          attributes: Object.keys(models.User.attributes)
+            .filter(a => a !== 'password'),
+        }).then((user) => {
+          res.locals.loggedIn = user.dataValues;
+          return next();
         });
-        return next();
-      } else return models.User.findOne({
-        where: {email: session.email},
-        attributes: Object.keys(models.User.attributes).filter(a => a !== 'password'),
-      }).then((user) => {
-        res.locals.loggedIn = user.dataValues;
-        return next();
-      });
-    }));
+      }
+    });
+});
 
 app.use('/api', require('./routes/api'));
 app.use('/user', require('./routes/user'));
+app.use('/module', require('./routes/module'));
 app.use('/', require('./routes'));
 
 // catch 404 and forward to error handler

@@ -9,51 +9,125 @@
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css"
         integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU"
         crossorigin="anonymous">
-  <link rel='stylesheet' href='/stylesheets/style.css'/>
   <link rel='stylesheet' href='/stylesheets/bulma.css'/>
+  <link rel='stylesheet' href='/stylesheets/style.css'/>
   <script src='/javascripts/lib.js'></script>
 </head>
 
 <body>
 
-{{#if error}}
-
-{{else}}
+{{#unless error}}
   <nav class="navbar">
 
-    <div class="navbar-brand">
-      <a href="/" class="navbar-item">
+    <div class="navbar-brand" style="background: #f7f7f7;">
+      <a href="/" class="navbar-item" style="background: #f7f7f7;">
         <img src="/images/logo.png" width="30" height="30" alt="Logo">
       </a>
     </div>
 
-    <div class="navbar-menu">
+    <div class="navbar-menu" style="background: #f7f7f7;">
       <div class="navbar-start">
-        <a href="/user/profile" class="navbar-item"> Home </a>
-        <a href="/module/search" class="navbar-item"> Search </a>
-        <a href="/module/create" class="navbar-item"> Create </a>
+        {{#if loggedIn}}
+          <a href="/user" id="btn-user-profile" class="navbar-item">Profile</a>
+        {{else}}
+          <a href="/" id="btn-user-profile" class="navbar-item">Home</a>
+        {{/if}}
+        {{#if user.isMe}}
+          <script>
+            (function() {
+              if (window.location.href.match('/user/.*$')) {
+                document.getElementById('btn-user-profile').onclick = function(event) {
+                  event.preventDefault();
+                  toggleTabPersonalDetails();
+                };
+              }
+            })();
+          </script>
+        {{/if}}
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a href="/user" class="navbar-link">Search</a>
+          <div class="navbar-dropdown">
+            <a href="/module/search" class="navbar-item">Modules</a>
+            <a href="/user/search" class="navbar-item">Users</a>
+          </div>
+        </div>
+        {{#if loggedIn}}
+          <div class="navbar-item has-dropdown is-hoverable">
+            <a href="/user" class="navbar-link">Create</a>
+            <div class="navbar-dropdown">
+              <a id="layout-btn-create-module" class="navbar-item">Module</a>
+              <a id="layout-btn-create-lesson" class="navbar-item">Lesson</a>
+              <script>
+                (function() {
+                  document.getElementById('layout-btn-create-module').onclick = function(event) {
+                    event.preventDefault();
+                    return fetch(`/api/module/create`, {
+                      redirect: 'follow',
+                      cache: 'no-cache',
+                      mode: 'cors',
+                      credentials: 'include',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                      },
+                    }).then(res => res.status >= 400
+                        ? res.json().then(json => Promise.reject(json))
+                        : res.json())
+                        .then(res => window.location.href = `/module/${res.result.toString()}`)
+                        .catch(err => {
+                          console.log(err);
+                          return alert(err.msg || err.message || 'failed to create a new module');
+                        });
+                  };
+                })();
+              </script>
+            </div>
+          </div>
+        {{/if}}
         <a href="/about" class="navbar-item"> About Us </a>
       </div>
     </div>
 
     {{#if loggedIn}}
-      <div class="navbar-end">
-        {{#if loggedin.firstname}}
-          <div class="navbar-item">Hi {{loggedIn.firstName}}!</div>
-        {{else}}
-          <div class="navbar-item">Hi <span class="greeting-email" style="margin-left: 3px;"> {{loggedIn.email}}</span>!</div>
-        {{/if}}
+      <div class="navbar-end" style="padding-right: 100px; background: #f7f7f7;">
         <div class="navbar-item has-dropdown is-hoverable">
-          <a href="/user" class="navbar-link">Account Overview</a>
+          <a href="/user" class="navbar-link">
+            {{#if loggedin.firstname}}
+              Hi {{loggedIn.firstName}}!
+            {{else}}
+              Hi <span class="greeting-email" style="margin-left: 3px;"> {{loggedIn.email}}</span>!
+            {{/if}}
+          </a>
           <div class="navbar-dropdown">
-            <a href="/user/settings" class="navbar-item">Settings</a>
+            <a href="/user?tab=enrollments" id="btn-user-enrollments" class="navbar-item">Enrollments</a>
+            <a href="/user?tab=created-modules" id="btn-user-created-modules" class="navbar-item">Created Modules</a>
+            <a href="/user?tab=personal-details" id="btn-user-settings" class="navbar-item">Settings</a>
+            <script>
+              (function() {
+                if (window.location.href.match('/user/.*$')) {
+                  document.getElementById('btn-user-settings').onclick = function(event) {
+                    event.preventDefault();
+                    toggleTabPersonalDetails();
+                  };
+                  document.getElementById('btn-user-created-modules').onclick = function(event) {
+                    event.preventDefault();
+                    toggleTabCreatedModules();
+                  };
+                  document.getElementById('btn-user-enrollments').onclick = function(event) {
+                    event.preventDefault();
+                    toggleTabEnrollments();
+                  };
+                }
+              })();
+            </script>
             <a href="/help" class="navbar-item">Help</a>
             <hr class="navbar-divider">
             <a href="#" id="btn-log-out" class="navbar-item">Log out</a>
             <script>
               (function() {
-                document.getElementById('btn-log-out').onclick = () => {
-                  const cfg = {
+                document.getElementById('btn-log-out').onclick = (event) => {
+                  event.preventDefault();
+                  return fetch('/api/user/logout', {
                     method: 'GET',
                     redirect: 'follow',
                     cache: 'no-cache',
@@ -63,10 +137,9 @@
                       'Content-Type': 'application/json',
                       'Accept': 'application/json',
                     },
-                  };
-                  return fetch('/api/user/logout', cfg).then(response => {
-                    window.location = '/user/register';
-                  });
+                  }).then(response => response.json())
+                      .then(response => window.location.href = '/')
+                      .catch(err => alert(err.msg || err.message || 'failed to log out'));
                 };
               })();
             </script>
@@ -74,7 +147,7 @@
         </div>
       </div>
     {{else}}
-      <form action="" method='post'>
+      <form action="" method='post' style="background: #f7f7f7;">
         <div class="navbar-end">
           <div class="navbar-item">
             <div class="control has-icons-left">
@@ -97,6 +170,8 @@
           </div>
           <div class="navbar-item">
             <input type="submit" id="btn-log-in" value="Log In" class="button is-primary is-small">
+            <a id="btn-register-redirect" href="/user/register" class="button is-warning is-small"
+               style="margin-left: 10px;">Register</a>
             <script>
               (function() {
                 document.getElementById('btn-log-in').onclick = (event) => {
@@ -110,8 +185,7 @@
                     email,
                     password,
                   };
-
-                  const cfg = {
+                  return fetch(`/api/user/login`, {
                     method: 'POST',
                     redirect: 'follow',
                     cache: 'no-cache',
@@ -122,31 +196,23 @@
                       'Accept': 'application/json',
                     },
                     body: JSON.stringify(credentials),
-                  };
-
-                  // error codes 400..499 and 500..599 are client and server errors
-                  return fetch(`/api/user/login`, cfg)
-                      .then(response => response.status >= 400 ?
-                          // if it goes wrong force it to jump to reject
-                          Promise.reject(response.json()) :
-                          // the JSON object is guaranteed to have a "msg" property
-                          response.json())
-                      .then(json => {
-                        // result should store the token if things go well
-                        const token = json.result;
-                        setCookie('token', token);
-                        // redirect
-                        for (const suffix of ['register', '/']) {
-                          if (window.location.href.endsWith(suffix)) {
-                            window.location = '/user/profile';
-                            break;
-                          }
-                        }
-                      })
-                      .catch(err => {
-                        console.error(err);
-                        return err.then(e => alert(e.msg || e.message || e.toString()));
-                      });
+                  }).then(response => response.status >= 400 ?
+                      // error codes 400..499 and 500..599 are client and server errors
+                      // if it goes wrong force it to jump to reject
+                      Promise.reject(response.json()) :
+                      // the JSON object is guaranteed to have a "msg" property
+                      response.json()).then(json => {
+                    // result should store the token if things go well
+                    const token = json.result;
+                    setCookie('token', token);
+                    // redirect
+                    window.location.href = window.location.href.endsWith('register')
+                        ? '/user/profile'
+                        : window.location.href;
+                  }).catch(err => {
+                    console.error(err);
+                    return err.then(e => alert(e.msg || e.message || e.toString()));
+                  });
                 };
               })();
             </script>
@@ -155,16 +221,20 @@
       </form>
     {{/if}}
   </nav>
-{{/if}}
+{{/unless}}
 
 {{{body}}}
 
 </body>
-<footer class="footer">
-  <div class="content has-text-centered">
-    <p><a href="/about">About Us</a></p>
-  </div>
-</footer>
+
+{{#unless error}}
+  <footer class="footer">
+    <div class="content has-text-centered">
+      <p><a href="/about">About Us</a></p>
+    </div>
+  </footer>
+{{/unless}}
+
 <script>
   (function() {
     /** Strip email suffix. I.e. all after the '@' at symbol. */

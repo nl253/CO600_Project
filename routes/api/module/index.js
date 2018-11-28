@@ -19,68 +19,77 @@
  * @author Norbert
  */
 
+const {MissingDataErr} = require('../../errors');
+const {Session, Module, Enrollment} = require('../../database');
 const router = require('express').Router();
 
-const {suggestRoutes} = require('../lib');
+const {suggestRoutes, msg} = require('../lib');
 
+// Project
+const {needs, hasFreshSess, exists, decrypt} = require('../../lib');
 
-/**
- * Creates a new module.
- *
- * Requires that the module does not already exist.
- */
-router.post('/:module/create', () => undefined);
+router.get('/:id/enroll',
+  exists(Module, (req) => ({id: req.params.id})),
+  needs('token', 'cookies'),
+  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
+  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
+  (req, res, next) => Enrollment.create({
+    moduleId: req.params.id,
+    studentId: res.locals.loggedIn.id,
+  }).then(() => res.json(msg('successfully enrolled')))
+    .catch(err => next(err)));
 
-/**
- * Deletes a new module.
- *
- * Requires that the module exists.
- */
-router.post('/:module/delete', () => undefined);
+router.get('/:id/unenroll',
+  needs('token', 'cookies'),
+  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
+  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
+  exists(Module, (req) => ({id: req.params.id})),
+  (req, res, next) => Enrollment.findOne({
+    moduleId: req.params.id,
+    studentId: res.locals.loggedIn.email,
+  }).then(enrollment => enrollment.destroy())
+    .then(() => res.json(msg('successfully un-enrolled')))
+    .catch(err => next(err)));
 
-/**
- * If an API user tries to query the database for modules's info with POST suggest using GET.
- */
-router.post('/:module', () => undefined);
+router.get('/create',
+  needs('token', 'cookies'),
+  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
+  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
+  (req, res, next) => Module.create({
+    authorId: res.locals.loggedIn.id,
+  }).then(module => res.json(msg(`successfully created module`, module.id)))
+    .catch(err => next(err)));
 
-/**
- * Update property to value in a module.
- *
- * Requires that the module exists and value is passed in request body.
- */
-router.post('/:module/:property', () => undefined);
+router.post('/:id',
+  needs('token', 'cookies'),
+  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
+  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
+  exists(Module, (req) => ({id: req.params.id})),
+  (req, res, next) => Module.findOne({
+    where: {
+      authorId: res.locals.loggedIn.id,
+      id: req.params.id
+    },
+  }).then(module => req.body && Object.entries(req.body).length >= 0
+    ? module.update(req.body)
+    : Promise.reject(new MissingDataErr('data to modify', 'request body')))
+    .then(() => res.json(msg('successfully updated the module')))
+    .catch(err => next(err)));
 
-/**
- * Query the database for a property of a certain module.
- *
- * Requires that the module exists.
- */
-router.get('/:module/:property', () => undefined);
-
-/**
- * Suggest using GET when an API user uses POST instead of GET to get a module's property.
- */
-router.post('/:module', () => undefined);
-
-/**
- * Shows all info about a module.
- *
- * Requires that the module exists.
- */
-router.get('/:module', () => undefined);
+// router.get('/:module', () => undefined);
 
 /**
  * If none of the above match, shows help.
  */
 suggestRoutes(router, /.*/, {
   GET: {
-    ':module/:property': 'to lookup a property of a module (the module must exist)',
-    ':module': 'to lookup a module (the module must exist)',
+    '/:module': 'to lookup a module (the module must exist)',
+    '/:module/delete': 'to delete a module (you must be it\'s creator & provide a a valid session token in the Cookie header)',
+    '/': 'to search through modules',
   },
   POST: {
-    ':module/create': 'to create module with name :module (you must provide credentials in cookies or request body, another module with the same name cannot exist)',
-    ':module/delete': 'to delete module with name :module (you must provide credentials in cookies or request body, the module must exist)',
-    ':module/:property': 'to set property to value in a module (`value` needs to be set in request body)',
+    '/': 'to update a module (you must be it\'s creator & provide a a valid session token in the Cookie header)',
+    '/create': 'to create a module (you must provide a a valid session token in the Cookie header)',
   },
 });
 

@@ -59,7 +59,7 @@ const sequelize = new Sequelize({
 
   // similar for sync: you can define this to always force sync for models
   sync: {
-    force: process.env.DB_SYNC === '1' || process.env.DB_SYNC === 'true' || false,
+    force: process.env.DB_SYNC === '1' || false,
   },
 
   // pool configuration used to pool database connections
@@ -71,24 +71,30 @@ const sequelize = new Sequelize({
 });
 
 const User = sequelize.define('User', {
+  id: {
+    type: INTEGER,
+    allowNull: false,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   email: {
     type: STRING,
     allowNull: false,
-    primaryKey: true,
+    unique: true,
     validate: {
       is: {
-        args: /.+@.+/,
-        mgs: 'not a valid email'
-      }
+        args: [/.+@.+/],
+        mgs: 'not a valid email',
+      },
     },
   },
   password: {
     type: STRING,
     validate: {
       is: {
-        args: /.{2,}/,
-        msg: 'password is too short'
-      }
+        args: [/.{2,}/],
+        msg: 'password is too short',
+      },
     },
     allowNull: false,
   },
@@ -96,18 +102,18 @@ const User = sequelize.define('User', {
     type: STRING,
     validate: {
       is: {
-        args: /.+/,
-        msg: 'first name is too short'
-      }
+        args: [/.+/],
+        msg: 'first name is too short',
+      },
     },
   },
   lastName: {
     type: STRING,
     validate: {
       is: {
-        args: /.+/,
-        msg: 'last name is too short'
-      }
+        args: [/.+/],
+        msg: 'last name is too short',
+      },
     },
   },
   isAdmin: {
@@ -125,9 +131,9 @@ const Session = sequelize.define('Session', {
     type: STRING,
     validate: {
       is: {
-        args: /.{6}/,
-        mgs: 'access token not long enough'
-      }
+        args: [/.{6}/],
+        mgs: 'access token not long enough',
+      },
     },
   },
   email: {
@@ -143,25 +149,22 @@ const Session = sequelize.define('Session', {
 });
 
 const Module = sequelize.define('Module', {
-  name: {
-    type: STRING,
+  id: {
+    type: INTEGER,
     allowNull: false,
-    primaryKey: true
+    primaryKey: true,
+    autoIncrement: true,
   },
-  topic: STRING,
-  author: {
-    type: STRING,
+  authorId: {
+    type: INTEGER,
     references: {
       model: User,
-      key: 'email'
+      key: 'id',
     },
     onUpdate: 'CASCADE',
   },
-  isTested: {
-    type: BOOLEAN,
-    defaultValue: false,
-    allowNull: false,
-  },
+  name: STRING,
+  topic: STRING,
   summary: TEXT,
 });
 
@@ -172,11 +175,11 @@ const Lesson = sequelize.define('Lesson', {
     primaryKey: true,
     autoIncrement: true,
   },
-  module: {
-    type: STRING,
+  moduleId: {
+    type: INTEGER,
     references: {
       model: Module,
-      key: 'name'
+      key: 'id',
     },
     onUpdate: 'CASCADE',
     allowNull: false,
@@ -194,19 +197,19 @@ const Rating = sequelize.define('Rating', {
     primaryKey: true,
     autoIncrement: true,
   },
-  rater: {
-    type: STRING,
+  raterId: {
+    type: INTEGER,
     references: {
       model: User,
-      key: 'email'
+      key: 'id',
     },
     onUpdate: 'CASCADE',
   },
-  module: {
-    type: STRING,
+  moduleId: {
+    type: INTEGER,
     references: {
       model: Module,
-      key: 'name'
+      key: 'id',
     },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -217,12 +220,12 @@ const Rating = sequelize.define('Rating', {
     type: TINYINT,
     validate: {
       min: {
-        args: minRating,
-        msg: badRatingMsg
+        args: [minRating],
+        msg: badRatingMsg,
       },
       max: {
-        args: maxRating,
-        msg: badRatingMsg
+        args: [maxRating],
+        msg: badRatingMsg,
       },
     },
     allowNull: false,
@@ -230,22 +233,22 @@ const Rating = sequelize.define('Rating', {
 });
 
 const Enrollment = sequelize.define('Enrollment', {
-  module: {
-    type: STRING,
+  moduleId: {
+    type: INTEGER,
     references: {
       model: Module,
-      key: 'name'
+      key: 'id',
     },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     allowNull: false,
     unique: 'compositeIndex',
   },
-  student: {
-    type: STRING,
+  studentId: {
+    type: INTEGER,
     references: {
       model: User,
-      key: 'email'
+      key: 'id',
     },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -261,11 +264,11 @@ const Question = sequelize.define('Question', {
     primaryKey: true,
     autoIncrement: true,
   },
-  module: {
-    type: STRING,
+  moduleId: {
+    type: INTEGER,
     references: {
       model: Module,
-      key: 'name'
+      key: 'id',
     },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -281,9 +284,62 @@ const Question = sequelize.define('Question', {
 // Sync all models that aren't already in the database
 // NOTE this seems to delete * from all tables!
 // ONLY RUN ONCE AT THE BEGINNING
-if (process.env.DB_SYNC === '1' || process.env.DB_SYNC === 'true' || (process.env.DB_PATH !== undefined && !existsSync(process.env.DB_PATH))) {
+if (process.env.DB_SYNC === '1' || (process.env.DB_PATH !== undefined && !existsSync(process.env.DB_PATH))) {
   log.warn(`syncing database to ${process.env.DB_PATH}`);
-  sequelize.sync();
+  sequelize.sync().then(() => {
+    if (process.env.NODE_ENV !== 'production') {
+      // write info about mock data to a separate file
+      const log = createLogger({label: 'MOCKS', logFileName: 'mocks'});
+      const faker = require('faker');
+      const {sha256} = require('../lib');
+      const email = faker.internet.email();
+      const password = faker.internet.password();
+      let user;
+      let module;
+      User.create({
+        firstName: faker.name.firstName(),
+        lastName: faker.name.lastName(),
+        info: faker.random.words(10),
+        email,
+        password: sha256(password),
+      }).then(u => {
+        user = u;
+        return Module.create({
+          name: faker.random.words(3),
+          topic: faker.random.word(),
+          authorId: user.id,
+          summary: faker.random.words(20),
+        });
+      }).then(m => module = m)
+        .then(() => Promise.all([...Array(10).keys()].map(_ => Rating.create({
+            raterId: user.id,
+            moduleId: module.id,
+            comment: faker.random.words(6),
+            stars: faker.random.number(5),
+          }),
+        ))).then(
+        () => Promise.all([...Array(10).keys()].map(_ => Lesson.create({
+          moduleId: module.id,
+          summary: faker.random.words(10),
+          content: faker.random.words(500),
+        }))))
+        .then(() => User.findAll())
+        .then(users => {
+          for (const u of users) {
+            u.dataValues.password = password;
+            log.info(
+              `User ${u.dataValues.id} ${u.dataValues.email} ${u.dataValues.password}`);
+          }
+        })
+        .then(() => Module.findAll())
+        .then((modules) => {
+          for (const m of modules) {
+            log.info(
+              `Module ${m.dataValues.id} ${m.dataValues.name} by ${m.dataValues.authorId} ${m.dataValues.email}`);
+          }
+        });
+    }
+  });
 }
 
 module.exports = {
@@ -292,6 +348,8 @@ module.exports = {
   Module,
   Question,
   Rating,
+  sequelize,
   Session,
+  Sequelize,
   User,
 };

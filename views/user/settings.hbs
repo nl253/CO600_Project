@@ -1,6 +1,6 @@
 <section class="hero">
   <section class="hero is-light">
-    <div class="hero-body">
+    <div class="hero-body" style="margin-left: 15vw;">
       <div class="container">
         <h1 class="title">
           Modify Personal Details
@@ -119,21 +119,26 @@
             const elEmail = document.getElementById('email-current');
             const elNewPass = document.getElementById('password-new');
             const elNewPass2 = document.getElementById('password-new-2');
-            for (const el of [elOldPass, elNewPass, elNewPass2]) {
-              if (el.value === '') {
-                return alert('empty password');
-              }
-            }
-            if (elNewPass.value !== elNewPass2.value) {
-              return alert('new passwords don\'t match');
+            // if all password fields empty
+            if ([elOldPass, elNewPass, elNewPass2].reduce((prev, cur) => cur['value'] === '' && prev, true)) {
+              return alert(`successfully modified ${changedAttrs.join(', ')}`);
             }
             changedAttrs.push('password');
-            const postBody = {value: elNewPass.value, password: elOldPass.value, email: elEmail.value};
-            return fetch('/api/user/password', Object.assign(cfg, {body: JSON.stringify(postBody)}))
-                .then(result => result.status >= 400
+            for (const p of [elOldPass, elNewPass, elNewPass2]) {
+              if (p === '') return alert('empty password');
+            }
+            return elNewPass.value !== elNewPass2.value ?
+                alert('new passwords don\'t match') :
+                fetch('/api/user/password', Object.assign(cfg, {
+                  body: JSON.stringify({
+                    value: elNewPass.value,
+                    password: elOldPass.value,
+                    email: elEmail.value,
+                  }),
+                })).then(result => result.status >= 400
                     ? Promise.reject(result.json())
                     : result.json())
-                .then(json => alert(`successfully modified ${changedAttrs.join(', ')}`));
+                    .then(json => alert(`successfully modified ${changedAttrs.join(', ')}`));
           }).catch(json => alert(json.msg || json.message || `failed to change ${changedAttrs.join(', ')}`));
     };
   })();
