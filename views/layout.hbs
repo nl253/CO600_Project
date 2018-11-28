@@ -16,18 +16,16 @@
 
 <body>
 
-{{#if error}}
-
-{{else}}
+{{#unless error}}
   <nav class="navbar">
 
-    <div class="navbar-brand">
-      <a href="/" class="navbar-item">
+    <div class="navbar-brand" style="background: #f7f7f7;">
+      <a href="/" class="navbar-item" style="background: #f7f7f7;">
         <img src="/images/logo.png" width="30" height="30" alt="Logo">
       </a>
     </div>
 
-    <div class="navbar-menu">
+    <div class="navbar-menu" style="background: #f7f7f7;">
       <div class="navbar-start">
         <a href="/user/profile" class="navbar-item"> Home </a>
         <a href="/module/search" class="navbar-item"> Search </a>
