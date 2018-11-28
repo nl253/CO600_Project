@@ -159,7 +159,6 @@ router.get('/:email',
  *
  * Requires a session token to be passed in cookies.
  *
- * XXX changing emails (PK) does not work! (this is a flaw in sequelize)
  * XXX modifying password through this call if forbidden, POST to `/api/user/password`
  */
 router.post('/',
@@ -167,7 +166,7 @@ router.post('/',
   exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
   hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
   validColumns(User, (req) => Object.keys(req.body)),
-  notRestrictedColumns((req) => Object.keys(req.body), ['createdAt', 'updatedAt', 'isAdmin', 'password', 'email']),
+  notRestrictedColumns((req) => Object.keys(req.body), ['createdAt', 'updatedAt', 'isAdmin', 'password']),
   (req, res, next) => Session
     .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
     .then((session) => User.findOne({where: {email: session.email}}))
