@@ -138,9 +138,7 @@
                       'Accept': 'application/json',
                     },
                   }).then(response => response.json())
-                      .then(response => {
-                        window.location.href = window.location.href;
-                      })
+                      .then(response => window.location.href = '/')
                       .catch(err => alert(err.msg || err.message || 'failed to log out'));
                 };
               })();
