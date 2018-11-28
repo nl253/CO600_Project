@@ -31,8 +31,7 @@ const {needs, hasFreshSess, exists, decrypt} = require('../../lib');
 router.get('/:id/enroll',
   exists(Module, (req) => ({id: req.params.id})),
   needs('token', 'cookies'),
-  exists(Session,
-    (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
+  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
   hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
   (req, res, next) => Enrollment.create({
     moduleId: req.params.id,
@@ -43,10 +42,6 @@ router.get('/:id/enroll',
 router.get('/:id/unenroll',
   needs('token', 'cookies'),
   exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
-  // (req, res, next) => exists(Enrollment, (req) => ({
-  //   student: res.locals.loggedIn.email,
-  //   module: req.params.module,
-  // }))(),
   hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
   exists(Module, (req) => ({id: req.params.id})),
   (req, res, next) => Enrollment.findOne({
@@ -81,7 +76,7 @@ router.post('/:id',
     .then(() => res.json(msg('successfully updated the module')))
     .catch(err => next(err)));
 
-router.get('/:module', () => undefined);
+// router.get('/:module', () => undefined);
 
 /**
  * If none of the above match, shows help.
