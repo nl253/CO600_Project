@@ -149,20 +149,22 @@ const Session = sequelize.define('Session', {
 });
 
 const Module = sequelize.define('Module', {
-  name: {
-    type: STRING,
+  id: {
+    type: INTEGER,
     allowNull: false,
-    primaryKey: true
+    primaryKey: true,
+    autoIncrement: true,
   },
-  topic: STRING,
-  author: {
-    type: STRING,
+  authorId: {
+    type: INTEGER,
     references: {
       model: User,
-      key: 'email'
+      key: 'id',
     },
     onUpdate: 'CASCADE',
   },
+  name: STRING,
+  topic: STRING,
   summary: TEXT,
 });
 
@@ -173,11 +175,11 @@ const Lesson = sequelize.define('Lesson', {
     primaryKey: true,
     autoIncrement: true,
   },
-  module: {
-    type: STRING,
+  moduleId: {
+    type: INTEGER,
     references: {
       model: Module,
-      key: 'name'
+      key: 'id',
     },
     onUpdate: 'CASCADE',
     allowNull: false,
@@ -195,19 +197,19 @@ const Rating = sequelize.define('Rating', {
     primaryKey: true,
     autoIncrement: true,
   },
-  rater: {
-    type: STRING,
+  raterId: {
+    type: INTEGER,
     references: {
       model: User,
-      key: 'email'
+      key: 'id',
     },
     onUpdate: 'CASCADE',
   },
-  module: {
-    type: STRING,
+  moduleId: {
+    type: INTEGER,
     references: {
       model: Module,
-      key: 'name'
+      key: 'id',
     },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -262,11 +264,11 @@ const Question = sequelize.define('Question', {
     primaryKey: true,
     autoIncrement: true,
   },
-  module: {
-    type: STRING,
+  moduleId: {
+    type: INTEGER,
     references: {
       model: Module,
-      key: 'name'
+      key: 'id',
     },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
