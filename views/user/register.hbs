@@ -22,19 +22,19 @@
                 <div class="field">
                   <label class="label">First Name</label>
                   <div class="control">
-                    <input class="input" id="firstName" type="text" placeholder="e.g. Amy">
+                    <input class="input" id="first-name" type="text" placeholder="e.g. Amy">
                   </div>
                 </div>
                 <div class="field">
                   <label class="label">Last Name</label>
                   <div class="control">
-                    <input class="input" id="lastName" type="text" placeholder="e.g. Adams">
+                    <input class="input" id="last-name" type="text" placeholder="e.g. Adams">
                   </div>
                 </div>
                 <div class="field">
                   <label class="label">Email</label>
                   <div class="control has-icons-left">
-                    <input class="input" id="regEmail" type="email" pattern=".{2,}@.{2,}\..{2,}"
+                    <input class="input" id="reg-email" type="email" pattern=".{2,}@.{2,}\..{2,}"
                            placeholder="example@email.com" autocomplete="on" required>
                     <span class="icon is-small is-left">
                       <i class="fa fa-envelope"></i>
@@ -54,7 +54,7 @@
                 <div class="field">
                   <label class="label">Password</label>
                   <div class="control has-icons-left">
-                    <input class="input" id="regPassword" type="password" pattern=".{6,}" required>
+                    <input class="input" id="reg-password" type="password" pattern=".{6,}" required>
                     <span class="icon is-small is-left">
                       <i class="fa fa-lock"></i>
                     </span>
@@ -70,7 +70,7 @@
                   </div>
                 </div>
                 <div class="control">
-                  <button class="button is-primary" id="registerBtn">Submit</button>
+                  <button class="button is-primary" id="btn-register">Submit</button>
                 </div>
               </form>
             </div>
@@ -83,20 +83,23 @@
 
 
 <script>
-  document.getElementById('registerBtn').onclick = (event) => {
+  document.getElementById('btn-register').onclick = (event) => {
 
     event.preventDefault();
 
     let [firstName, lastName] = [null, null];
 
-    let maybeFirstName = document.getElementById('firstName').value;
+    let maybeFirstName = document.getElementById('first-name').value;
     if (maybeFirstName !== '') firstName = maybeFirstName;
 
-    let maybeLastName = document.getElementById('lastName').value;
+    let maybeLastName = document.getElementById('last-name').value;
     if (maybeLastName !== '') lastName = maybeLastName;
 
-    const email = document.getElementById('regEmail').value;
-    const password = document.getElementById('regPassword').value;
+    const email = document.getElementById('reg-email').value;
+    const password = document.getElementById('reg-password').value;
+    if (document.getElementById('reg-password-2').value !== password) {
+      return alert('passwords don\'t match');
+    }
     const userDetails = {firstName, lastName, email, password};
 
     return fetch(`/api/user/register`, {
