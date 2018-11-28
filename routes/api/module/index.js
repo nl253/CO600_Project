@@ -26,7 +26,7 @@ const router = require('express').Router();
 const {suggestRoutes, msg} = require('../lib');
 
 // Project
-const {needs, hasFreshSess, exists, decrypt} = require('../../lib');
+const {needs, hasFreshSess, exists, decrypt, validColumns} = require('../../lib');
 
 router.get('/:id/enroll',
   exists(Module, (req) => ({id: req.params.id})),
@@ -60,7 +60,27 @@ router.get('/create',
   }).then(module => res.json(msg(`successfully created module`, module.id)))
     .catch(err => next(err)));
 
-router.post('/:id',
+router.get(['/', '/search'],
+  validColumns(Module, (req) => Object.keys(req.query)),
+  (req, res) => {
+    const queryParams = {};
+    for (const q in req.query) {
+      queryParams[q] = req.query[q];
+    }
+    return Module.findAll({
+      limit: process.env.MAX_RESULTS || 100,
+      where: queryParams,
+    }).then(modules => modules.map(r => r.dataValues))
+      .then(modules => {
+        let s = `found ${modules.length} modules`;
+        if (Object.keys(req.query).length > 0) {
+          s += ` matching given ${Object.keys(req.query).join(', ')}`;
+        }
+        return res.json(msg(s, modules));
+      });
+  });
+
+router.post(['/:id', '/:id/update'],
   needs('token', 'cookies'),
   exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
   hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
