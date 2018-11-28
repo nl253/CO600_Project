@@ -223,16 +223,20 @@
       </form>
     {{/if}}
   </nav>
-{{/if}}
+{{/unless}}
 
 {{{body}}}
 
 </body>
-<footer class="footer">
-  <div class="content has-text-centered">
-    <p><a href="/about">About Us</a></p>
-  </div>
-</footer>
+
+{{#unless error}}
+  <footer class="footer">
+    <div class="content has-text-centered">
+      <p><a href="/about">About Us</a></p>
+    </div>
+  </footer>
+{{/unless}}
+
 <script>
   (function() {
     /** Strip email suffix. I.e. all after the '@' at symbol. */
