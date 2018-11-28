@@ -1,59 +1,73 @@
 <section class="hero">
   <div class="hero-body" style="margin-left: 13.5vw;">
-    <h1 class="title">{{module.name}}</h1>
-    <h3 class="subtitle">{{module.topic}}</h3>
-    {{#if loggedIn}}
-      {{#if module.enrolled}}
-        <button id="btn-enroll" class="button is-danger">Unenroll</button>
-        <script>
-          (function() {
-            return document.getElementById('btn-enroll').onclick = () => fetch(
-                '/api/module/{{module.name}}/unenroll', {
-                  redirect: 'follow',
-                  cache: 'no-cache',
-                  mode: 'cors',
-                  credentials: 'include',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                  },
-                }).then(res => res.status >= 400
-                ? Promise.reject(res.json())
-                : Promise.resolve(res.json()))
-                .then(() => window.location = window.location.href)
-                .catch(err => alert(err.msg || err.message || 'failed to unenroll'));
-          })();
-        </script>
-      {{else}}
-        <button id="btn-enroll" class="button is-primary">Enroll</button>
-        <script>
-          (function() {
-            document.getElementById('btn-enroll').onclick = () => fetch(
-                '/api/module/{{module.name}}/enroll', {
-                  redirect: 'follow',
-                  cache: 'no-cache',
-                  mode: 'cors',
-                  credentials: 'include',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                  },
-                }).then(response => response.status >= 400
-                ? Promise.reject(response.json())
-                : Promise.resolve(response.json()),
-            ).then(jsonRes => window.location = window.location.href)
-                .catch(err => alert(err.msg || err.message || 'failed to enroll'));
-          })();
-        </script>
-      {{/if}}
+    {{#if module.isMine}}
+      <h1 class="title" style="margin-bottom: 10px;">Module Name</h1>
+      <div id="module-name" contenteditable="true" style="max-width: 300px;">
+        {{module.name}}
+      </div>
+      <br>
+      <h3 class="subtitle">Topic</h3>
+      <div id="module-topic" contenteditable="true" style="max-width: 300px;">
+        {{module.topic}}
+      </div>
     {{else}}
-      <button class="button is-link">log in to enroll</button>
+      <h1 class="title">{{module.name}}</h1>
+      <h3 class="subtitle">{{module.topic}}</h3>
+    {{/if}}
+    {{#if loggedIn}}
+      {{#unless module.isMine}}
+        {{#if module.enrolled}}
+          <button id="btn-enroll" class="button is-danger">Unenroll</button>
+          <script>
+            (function() {
+              return document.getElementById('btn-enroll').onclick = () => fetch(
+                  '/api/module/{{module.id}}/unenroll', {
+                    redirect: 'follow',
+                    cache: 'no-cache',
+                    mode: 'cors',
+                    credentials: 'include',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Accept': 'application/json',
+                    },
+                  }).then(res => res.status >= 400
+                  ? Promise.reject(res.json())
+                  : Promise.resolve(res.json()))
+                  .then(() => window.location = window.location.href)
+                  .catch(err => alert(err.msg || err.message || 'failed to unenroll'));
+            })();
+          </script>
+        {{else}}
+          <button id="btn-enroll" class="button is-primary">Enroll</button>
+          <script>
+            (function() {
+              document.getElementById('btn-enroll').onclick = () => fetch(
+                  '/api/module/{{module.id}}/enroll', {
+                    redirect: 'follow',
+                    cache: 'no-cache',
+                    mode: 'cors',
+                    credentials: 'include',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Accept': 'application/json',
+                    },
+                  }).then(response => response.status >= 400
+                  ? Promise.reject(response.json())
+                  : Promise.resolve(response.json()),
+              ).then(jsonRes => window.location = window.location.href)
+                  .catch(err => alert(err.msg || err.message || 'failed to enroll'));
+            })();
+          </script>
+        {{/if}}
+      {{/unless}}
+    {{else}}
+      <button style="margin-top: 10px;" class="button is-link">log in to enroll</button>
     {{/if}}
   </div>
 </section>
 <div style="margin: 0 15vw 50px;">
   <section class="content" style="margin-top: 40px;">
-    <strong>Author</strong> <a href="/user/{{module.author}}">{{module.author}}</a>
+    <strong>Author</strong> <a href="/user/{{module.author.id}}">{{module.author.email}}</a>
     <br>
     <strong>Rating</strong> <span id="rating-module"> {{module.rating}}/5</span>
     <script>
@@ -64,31 +78,104 @@
     </script>
   </section>
   <section class="is-medium" style="margin-bottom: 30px;">
-    <h2 class="title is-medium">Summary</h2>
-    <p class="is-medium" style="width: 80vw; word-wrap: break-word;">{{module.summary}}</p>
+    <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
+    {{#if module.isMine}}
+      <textarea id="module-summary" style="width: 80%; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">{{module.summary}}</textarea>
+    {{else}}
+      {{#if module.summary}}
+        <p class="is-medium" style="width: 80vw; word-wrap: break-word;">{{module.summary}}</p>
+      {{else}}
+        <p class="is-medium has-text-centered">No summary</p>
+      {{/if}}
+    {{/if}}
   </section>
   <section class="is-medium" style="margin-bottom: 30px;">
     <h2 class="title is-medium">Lessons</h2>
-    <ol id="list-lessons">
-      {{#each module.lessons}}
-      <li>
-        {{#if loggedIn}}
-          <a href="/lesson/{{id}}">{{summary}}</a>
+    {{#if module.lessons}}
+      <ol id="list-lessons">
+        {{#if module.isMine}}
+          {{#each module.lessons}}
+            <li style="margin-bottom: 2px;">
+              <a href="/lesson/{{id}}" class="button is-small is-warning" style="padding: -4px;">Modify</a>
+              <a href="/lesson/{{id}}">{{summary}}</a>
+            </li>
+          {{/each}}
         {{else}}
-          <a href="#!" onclick="alert('not enrolled')">{{summary}}</a>
+          {{#each module.lessons}}
+            <li>
+              {{#if loggedIn}}
+                <a href="/lesson/{{id}}">{{summary}}</a>
+              {{else}}
+                <a href="#!" onclick="alert('not logged in')">{{summary}}</a>
+              {{/if}}
+            </li>
+          {{/each}}
         {{/if}}
-      {{/each}}
-    </li>
-    </ol>
+      </ol>
+    {{else}}
+      <p class="has-text-centered">No lessons</p>
+    {{/if}}
+
+    {{#if module.isMine}}
+      <br>
+      <button class="button is-link" style="display: block; margin: auto;" onclick="alert('not implemneted yet')">Add Lesson</button>
+    {{/if}}
   </section>
+
+  {{#if module.isMine}}
+    <button id="btn-module-apply-changes" class="button is-primary" style="margin: auto; display: block;">
+      Apply Changes
+    </button>
+    <script>
+      (function() {
+        const btn = document.getElementById('btn-module-apply-changes');
+        btn.onclick = function() {
+          const regex = /(\d+)$/;
+          const match = regex.exec(window.location.pathname);
+          if (match !== null) {
+            const id = match[1];
+            const postBody = {};
+            let summary = document.getElementById('module-summary');
+            let topic = document.getElementById('module-topic');
+            let name = document.getElementById('module-name');
+            postBody.name = name.innerText !== '' ? name.innerText : null;
+            postBody.topic = topic.innerText !== '' ? topic.innerText : null;
+            postBody.summary = summary.value !== '' ? summary.value : null;
+            return fetch(`/api/module/${id}`, {
+              method: 'post',
+              redirect: 'follow',
+              cache: 'no-cache',
+              mode: 'cors',
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              body: JSON.stringify(postBody),
+            }).then(res => res.status >= 400
+                ? res.json(json => Promise.reject(json))
+                : res.json())
+            .then(json => alert(json.msg))
+            .catch(err => alert(err.msg || err.message || 'failed to modify the module'));
+          }
+        };
+      })();
+    </script>
+  {{/if}}
+
   <section class="is-small">
     <h2 class="title is-medium">Comments</h2>
-    {{#each module.ratings}}
-      <div class="box container" style="max-width: 70vw;">
-        <div style="margin-bottom: 10px;"><strong>{{stars}}/5</strong> by <em><a
-            href="/user/{{rater}}">{{rater}}</a></em></div>
-        <p class="content">{{comment}}</p>
-      </div>
-    {{/each}}
+    {{#if module.ratings}}
+      {{#each module.ratings}}
+        <div class="box container" style="max-width: 70vw;">
+          <div style="margin-bottom: 10px;">
+            <strong>{{stars}}/5</strong> by <em><a href="/user/{{rater.email}}">{{rater.email}}</a></em>
+          </div>
+          <p class="content">{{comment}}</p>
+        </div>
+      {{/each}}
+    {{else}}
+      <p class="has-text-centered">No comments</p>
+    {{/if}}
   </section>
 </div>
