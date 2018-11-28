@@ -63,7 +63,16 @@
                 <div class="field">
                   <label class="label">Confirm Password</label>
                   <div class="control has-icons-left">
-                    <input class="input" type="password" pattern=".{6,}" required>
+                    <input class="input" id="reg-password-2" type="password" pattern=".{6,}" required>
+                    <script>
+                      (function() {
+                        document.getElementById('reg-password-2').oninput = function () {
+                          const elPassword = document.getElementById('reg-password');
+                          this.style.background = elPassword.value !== this.value ? '#ffbaba' : '#e7fdd1';
+                          elPassword.style.background = elPassword.value !== this.value ? '#ffbaba' : '#e7fdd1';
+                        };
+                      })();
+                    </script>
                     <span class="icon is-small is-left">
                       <i class="fa fa-lock"></i>
                     </span>
