@@ -27,25 +27,99 @@
 
     <div class="navbar-menu" style="background: #f7f7f7;">
       <div class="navbar-start">
-        <a href="/user/profile" class="navbar-item"> Home </a>
-        <a href="/module/search" class="navbar-item"> Search </a>
-        <a href="/module/create" class="navbar-item"> Create </a>
+        {{#if loggedIn}}
+          <a href="/user" id="btn-user-profile" class="navbar-item">Profile</a>
+        {{else}}
+          <a href="/" id="btn-user-profile" class="navbar-item">Home</a>
+        {{/if}}
+        {{#if user.isMe}}
+          <script>
+            (function() {
+              if (window.location.href.match('/user/.*$')) {
+                document.getElementById('btn-user-profile').onclick = function(event) {
+                  event.preventDefault();
+                  toggleTabPersonalDetails();
+                };
+              }
+            })();
+          </script>
+        {{/if}}
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a href="/user" class="navbar-link">Search</a>
+          <div class="navbar-dropdown">
+            <a href="/module/search" class="navbar-item">Modules</a>
+            <a href="/user/search" class="navbar-item">Users</a>
+          </div>
+        </div>
+        {{#if loggedIn}}
+          <div class="navbar-item has-dropdown is-hoverable">
+            <a href="/user" class="navbar-link">Create</a>
+            <div class="navbar-dropdown">
+              <a id="layout-btn-create-module" class="navbar-item">Module</a>
+              <a id="layout-btn-create-lesson" class="navbar-item">Lesson</a>
+              <script>
+                (function() {
+                  document.getElementById('layout-btn-create-module').onclick = function(event) {
+                    event.preventDefault();
+                    return fetch(`/api/module/create`, {
+                      redirect: 'follow',
+                      cache: 'no-cache',
+                      mode: 'cors',
+                      credentials: 'include',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                      },
+                    }).then(res => res.status >= 400
+                        ? res.json().then(json => Promise.reject(json))
+                        : res.json())
+                        .then(res => window.location.href = `/module/${res.result.toString()}`)
+                        .catch(err => {
+                          console.log(err);
+                          return alert(err.msg || err.message || 'failed to create a new module');
+                        });
+                  };
+                })();
+              </script>
+            </div>
+          </div>
+        {{/if}}
         <a href="/about" class="navbar-item"> About Us </a>
       </div>
     </div>
 
     {{#if loggedIn}}
-      <div class="navbar-end">
-        {{#if loggedin.firstname}}
-          <div class="navbar-item">Hi {{loggedIn.firstName}}!</div>
-        {{else}}
-          <div class="navbar-item">Hi <span class="greeting-email" style="margin-left: 3px;"> {{loggedIn.email}}</span>!
-          </div>
-        {{/if}}
+      <div class="navbar-end" style="padding-right: 100px; background: #f7f7f7;">
         <div class="navbar-item has-dropdown is-hoverable">
-          <a href="/user" class="navbar-link">Account Overview</a>
+          <a href="/user" class="navbar-link">
+            {{#if loggedin.firstname}}
+              Hi {{loggedIn.firstName}}!
+            {{else}}
+              Hi <span class="greeting-email" style="margin-left: 3px;"> {{loggedIn.email}}</span>!
+            {{/if}}
+          </a>
           <div class="navbar-dropdown">
-            <a href="/user/settings" class="navbar-item">Settings</a>
+            <a href="/user?tab=enrollments" id="btn-user-enrollments" class="navbar-item">Enrollments</a>
+            <a href="/user?tab=created-modules" id="btn-user-created-modules" class="navbar-item">Created Modules</a>
+            <a href="/user?tab=personal-details" id="btn-user-settings" class="navbar-item">Settings</a>
+            <script>
+              (function() {
+                if (window.location.href.match('/user/.*$')) {
+                  document.getElementById('btn-user-settings').onclick = function(event) {
+                    event.preventDefault();
+                    toggleTabPersonalDetails();
+                  };
+                  document.getElementById('btn-user-created-modules').onclick = function(event) {
+                    event.preventDefault();
+                    toggleTabCreatedModules();
+                  };
+                  document.getElementById('btn-user-enrollments').onclick = function(event) {
+                    event.preventDefault();
+                    toggleTabEnrollments();
+                  };
+                }
+              })();
+            </script>
             <a href="/help" class="navbar-item">Help</a>
             <hr class="navbar-divider">
             <a href="#" id="btn-log-out" class="navbar-item">Log out</a>
