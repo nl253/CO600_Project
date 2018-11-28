@@ -2,9 +2,9 @@
   <div class="hero-body">
     <div class="container is-widescreen" style="padding: 0 5vw;">
       <div class="columns is-variable is-1">
-        <div class="column">
+        <div class="column is-two-thirds">
           <h1 class="title is-1">Oops !</h1>
-          <h2 class="title is-4">Our robot can't find the page you're looking for, please try something else</h2>
+          <h2 class="title is-4" style="max-width: 700px;">Our robot can't find the page you're looking for, please try something else</h2>
           <p>{{error.status}} {{error.code}} {{error.message}}</p>
           <br>
           <div class="field is-grouped">
@@ -16,8 +16,8 @@
             </p>
           </div>
         </div>
-        <div class="column">
-          <img src="/images/sadLogo.png" alt="Logo">
+        <div class="column is-hidden-mobile">
+          <img src="/images/sadLogo.png" alt="Logo" style="max-width: 300px; position: relative; bottom: 60px;">
         </div>
       </div>
     </div>
