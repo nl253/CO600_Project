@@ -139,6 +139,60 @@ router.post('/password',
     .catch((err) => next(err)));
 
 /**
+ * Get all users matching properties specified in query params.
+ *
+ * On success sends: {msg: String, status: String, result: Array<Object<!String, ?String>>}
+ *
+ * Doesn't require authentication.
+ */
+router.get(['/', '/search'],
+  validColumns(User, (req) => Object.keys(req.query)),
+  notRestrictedColumns((req) => Object.keys(req.query), ['password']),
+  (req, res, next) => {
+    const queryParams = {};
+    if (req.query) {
+      for (const q in req.query) {
+        queryParams[q] = req.query[q];
+      }
+    }
+    return User.findAll({
+      limit: process.env.MAX_RESULTS || 100,
+      where: queryParams,
+      attributes: Object.keys(User.attributes).filter(attr => attr !== 'password'),
+    }).then((results) => results.map((u) => u.dataValues))
+      .then((users) => {
+        let s = `found ${users.length} users`;
+        if (Object.keys(req.query).length > 0) {
+          s += ` matching given ${Object.keys(req.query).join(', ')}`;
+        }
+        return res.json(msg(s, users));
+      }).catch((err) => next(err));
+  },
+);
+
+/**
+ * Modifies user's properties (e.g. email AND firstName etc.).
+ *
+ * Requires a session token to be passed in cookies.
+ *
+ * XXX modifying password through this call if forbidden, POST to `/api/user/password`
+ */
+router.post(['/', '/update', '/modify'],
+  needs('token', 'cookies'),
+  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
+  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
+  validColumns(User, (req) => Object.keys(req.body)),
+  notRestrictedColumns((req) => Object.keys(req.body), ['createdAt', 'updatedAt', 'isAdmin', 'password']),
+  (req, res, next) => Session
+    .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
+    .then((session) => User.findOne({where: {email: session.email}}))
+    .then((user) => user === null
+      ? Promise.reject(new NoSuchRecord('User'))
+      : user.update(JSON.parse(JSON.stringify(req.body))))
+    .then(() => res.json(msg(`updated ${Object.keys(req.body).join(', ')}`)))
+    .catch((err) => next(err)));
+
+/**
  * Get details of a single user.
  *
  * Doesn't require authentication.
@@ -154,61 +208,7 @@ router.get('/:email',
     .catch((err) => next(err)),
 );
 
-/**
- * Modifies user's properties (e.g. email AND firstName etc.).
- *
- * Requires a session token to be passed in cookies.
- *
- * XXX modifying password through this call if forbidden, POST to `/api/user/password`
- */
-router.post('/',
-  needs('token', 'cookies'),
-  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
-  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
-  validColumns(User, (req) => Object.keys(req.body)),
-  notRestrictedColumns((req) => Object.keys(req.body), ['createdAt', 'updatedAt', 'isAdmin', 'password']),
-  (req, res, next) => Session
-    .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
-    .then((session) => User.findOne({where: {email: session.email}}))
-    .then((user) => user === null
-      ? Promise.reject(new NoSuchRecord('User'))
-      : user.update(JSON.parse(JSON.stringify(req.body))))
-    .then(() => res.json(msg(`updated ${Object.keys(req.body).join(', ')}`)))
-    .catch((err) => next(err)));
 
-
-/**
- * Get all users matching properties specified in query params.
- *
- * On success sends: {msg: String, status: String, result: Array<Object<!String, ?String>>}
- *
- * Doesn't require authentication.
- */
-router.get('/',
-  validColumns(User, (req) => Object.keys(req.query)),
-  (req, res, next) => {
-    const queryParams = {};
-    for (const q in req.query) {
-      if (q === 'password') {
-        queryParams[q] = sha256(req.query[q]);
-      } else queryParams[q] = req.query[q];
-    }
-    return User.findAll({
-      limit: process.env.MAX_RESULTS || 100,
-      where: queryParams,
-      attributes: Object.keys(User.attributes).filter(attr => attr !== 'password'),
-    })
-      .then((results) => results.map((u) => u.dataValues))
-      .then((users) => {
-        let s = `found ${users.length} users`;
-        if (Object.keys(req.query).length > 0) {
-          s += ` matching given ${Object.keys(req.query).join(', ')}`;
-        }
-        return res.json(msg(s, users));
-      })
-      .catch((err) => next(err));
-  },
-);
 
 /**
  * If an API user tries to query the database for users' info with POST suggest using GET.
