@@ -9,13 +9,13 @@ const router = express.Router();
 
 // Project
 const {log} = require('../lib');
-const {User, Enrollment} = require('../database');
+const {User, Enrollment, Module} = require('../database');
 
 /**
  * Registration page if not logged in, otherwise redirect to user profile page.
  */
-router.get('/register', (req, res) => res.locals.loggedIn 
-  ? res.redirect('/user/') 
+router.get('/register', (req, res) => res.locals.loggedIn
+  ? res.redirect('/user/')
   : res.render(join('user', 'register')));
 
 router.get([
