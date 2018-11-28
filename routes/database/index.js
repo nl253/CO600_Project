@@ -294,42 +294,50 @@ if (process.env.DB_SYNC === '1' || (process.env.DB_PATH !== undefined && !exists
       const {sha256} = require('../lib');
       const email = faker.internet.email();
       const password = faker.internet.password();
-      const module = faker.random.words(2);
+      let user;
+      let module;
       User.create({
         firstName: faker.name.firstName(),
         lastName: faker.name.lastName(),
         info: faker.random.words(10),
         email,
         password: sha256(password),
-      }).then(() => Module.create({
-        name: module,
-        topic: faker.random.word(),
-        author: email,
-        summary: faker.random.words(20),
-      })).then(
-        () => Promise.all([1, 2, 3, 4, 5, 6, 7, 8, 9].map(_ => Rating.create({
-            rater: email,
-            module,
+      }).then(u => {
+        user = u;
+        return Module.create({
+          name: faker.random.words(3),
+          topic: faker.random.word(),
+          authorId: user.id,
+          summary: faker.random.words(20),
+        });
+      }).then(m => module = m)
+        .then(() => Promise.all([...Array(10).keys()].map(_ => Rating.create({
+            raterId: user.id,
+            moduleId: module.id,
             comment: faker.random.words(6),
             stars: faker.random.number(5),
           }),
-        )))
-        .then(
-          () => Promise.all([1, 2, 3, 4, 5, 6, 7, 8, 9].map(_ => Lesson.create({
-            module,
-            summary: faker.random.words(10),
-            content: faker.random.words(500),
-          }))))
-        .then(() => User.findAll()).then(users => {
-        for (const u of users) {
-          u.dataValues.password = password;
-          log.info(`User ${u.dataValues.email} ${u.dataValues.password}`);
-        }
-      }).then(() => Module.findAll()).then((modules) => {
-        for (const m of modules) {
-          log.info(`Module ${m.dataValues.name} by ${m.dataValues.author}`);
-        }
-      });
+        ))).then(
+        () => Promise.all([...Array(10).keys()].map(_ => Lesson.create({
+          moduleId: module.id,
+          summary: faker.random.words(10),
+          content: faker.random.words(500),
+        }))))
+        .then(() => User.findAll())
+        .then(users => {
+          for (const u of users) {
+            u.dataValues.password = password;
+            log.info(
+              `User ${u.dataValues.id} ${u.dataValues.email} ${u.dataValues.password}`);
+          }
+        })
+        .then(() => Module.findAll())
+        .then((modules) => {
+          for (const m of modules) {
+            log.info(
+              `Module ${m.dataValues.id} ${m.dataValues.name} by ${m.dataValues.authorId} ${m.dataValues.email}`);
+          }
+        });
     }
   });
 }
