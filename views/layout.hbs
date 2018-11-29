@@ -199,12 +199,12 @@
                       'Accept': 'application/json',
                     },
                     body: JSON.stringify(credentials),
-                  }).then(response => response.status >= 400 ?
+                  }).then(response => response.status >= 400
                       // error codes 400..499 and 500..599 are client and server errors
                       // if it goes wrong force it to jump to reject
-                      Promise.reject(response.json()) :
+                      ? response.json().then(err => Promise.reject(err))
                       // the JSON object is guaranteed to have a "msg" property
-                      response.json()).then(json => {
+                      : response.json()).then(json => {
                     // result should store the token if things go well
                     const token = json.result;
                     setCookie('token', token);
