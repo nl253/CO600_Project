@@ -251,14 +251,15 @@
           <a href="/module/{{id}}" class="has-text-link" style="display: inline;">
             {{name}}
           </a>
-          <script>
-            (function() {
-              const el = document.querySelector('#user-created-modules li a:last-of-type');
-              if (el.innerText.trim() === '') el.innerText = 'unnamed';
-            })();
-          </script>
         </li>
       {{/each}}
+      <script>
+        (function() {
+          for (const el of document.querySelectorAll('#user-created-modules li a')) {
+            if (el.innerText.trim() === '') el.innerText = 'unnamed';
+          }
+        })();
+      </script>
     </ul>
   {{else}}
     <p class="has-text-centered">
