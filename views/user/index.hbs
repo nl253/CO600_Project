@@ -395,6 +395,27 @@
   {{else}}
     {{#if tab.enrollments}}
       <script>toggleTabEnrollments();</script>
+    {{else}}
+      <script>
+        const cookies = document.cookie.split(';').map(cookie => cookie.trim().split('=').map(x => x.trim()));
+        for (const pair of cookies) {
+          const [key, val] = pair;
+          if (key === 'homeTab') {
+            switch (val) {
+              case 'personal-details':
+                toggleTabPersonalDetails();
+                break;
+              case 'enrollments':
+                toggleTabEnrollments();
+                break;
+              case 'created-modules':
+                toggleTabCreatedModules();
+                break;
+            }
+            break;
+          }
+        }
+      </script>
     {{/if}}
   {{/if}}
 {{/if}}
