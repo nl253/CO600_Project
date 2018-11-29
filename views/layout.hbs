@@ -47,12 +47,12 @@
             <a href="/user/search" class="navbar-item">Users</a>
           </div>
         </div>
-        {{#if loggedIn}}
-          <div class="navbar-item has-dropdown is-hoverable">
-            <a href="/user" class="navbar-link">Create</a>
-            <div class="navbar-dropdown">
-              <a id="layout-btn-create-module" class="navbar-item">Module</a>
-              <a id="layout-btn-create-lesson" class="navbar-item">Lesson</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a href="/user" class="navbar-link">Create</a>
+          <div class="navbar-dropdown">
+            <a id="layout-btn-create-module" class="navbar-item">Module</a>
+            <a id="layout-btn-create-lesson" class="navbar-item">Lesson</a>
+            {{#if loggedIn}}
               <script>
                 (function() {
                   document.getElementById('layout-btn-create-module').onclick = function(event) {
