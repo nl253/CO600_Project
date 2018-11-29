@@ -27,16 +27,12 @@
 
     <div class="navbar-menu has-background-grey-lighter">
       <div class="navbar-start">
-        {{#if loggedIn}}
-          <a href="/user" id="btn-user-profile" class="navbar-item">Profile</a>
-        {{else}}
-          <a href="/" id="btn-user-profile" class="navbar-item">Home</a>
-        {{/if}}
+        <a href="/" id="btn-user-home" class="navbar-item">Home</a>
         {{#if user.isMe}}
           <script>
             (function() {
               if (window.location.href.match('/user/.*$')) {
-                document.getElementById('btn-user-profile').onclick = function(event) {
+                document.getElementById('btn-user-home').onclick = function(event) {
                   event.preventDefault();
                   toggleTabPersonalDetails();
                 };
