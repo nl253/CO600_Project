@@ -338,17 +338,42 @@
     })();
     (function() {
       for (const el of document.querySelectorAll('#user-created-modules li')) {
-        const btn = document.createElement('button');
-        btn.classList.add('button');
-        btn.classList.add('is-small');
-        btn.classList.add('is-warning');
-        btn.style.float = 'right';
-        btn.style.margin = '-5px';
-        btn.innerText = 'Modify';
-        btn.onclick = function(event) {
+
+        const btnDelete = document.createElement('button');
+        btnDelete.classList.add('button');
+        btnDelete.classList.add('is-small');
+        btnDelete.classList.add('is-danger');
+        btnDelete.style.float = 'right';
+        btnDelete.style.margin = '-5px';
+        btnDelete.innerText = 'Delete';
+        btnDelete.onclick = function(event) {
+          event.preventDefault();
+          const regex = /(\d+)$/;
+          const match = regex.exec(el.querySelector('a').href);
+          const id = match[1];
+          if (!confirm('Delete module ?')) return;
+          return fetch(`/api/module/${id}/delete`)
+              .then(res => res.status >= 400
+                  ? res.json().then(err => Promise.reject(err))
+                  : res.json())
+              .then(json => el.remove())
+              .catch(err => alert(err.msg || err.message || err.toString()));
+        };
+        el.appendChild(btnDelete);
+
+        const btnModify = document.createElement('button');
+        btnModify.classList.add('button');
+        btnModify.classList.add('is-small');
+        btnModify.classList.add('is-warning');
+        btnModify.style.float = 'right';
+        btnModify.style.marginTop = '-5px';
+        btnModify.style.marginRight = '12px';
+        btnModify.innerText = 'Modify';
+        btnModify.onclick = function(event) {
           window.location.href = this.parentElement.querySelector('a').href;
         };
-        el.appendChild(btn);
+        el.appendChild(btnModify);
+
       }
     })();
   </script>
