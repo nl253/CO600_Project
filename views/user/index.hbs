@@ -1,37 +1,34 @@
 <script>
-  function toggleTabPersonalDetails(event) {
-    document.getElementById('user-personal-details').style.display = 'block';
-    document.getElementById('user-enrollments').style.display = 'none';
-    document.getElementById('user-created-modules').style.display = 'none';
-    document.getElementById('user-btn-personal-details').parentElement.classList.add('is-active');
-    document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
-    document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
-  }
-
   function toggleTabEnrollments(event) {
-    document.getElementById('user-created-modules').style.display = 'none';
-    document.getElementById('user-enrollments').style.display = 'block';
-    document.getElementById('user-personal-details').style.display = 'none';
+    document.getElementById('user-created-modules').classList.add('is-hidden');
+    document.getElementById('user-enrollments').classList.remove('is-hidden');
+    document.getElementById('user-personal-details').classList.add('is-hidden');
     document.getElementById('user-btn-personal-details').parentElement.classList.remove('is-active');
     document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
     document.getElementById('user-btn-enrollments-tab').parentElement.classList.add('is-active');
+    document.cookie = 'homeTab=enrollments';
   }
 
   function toggleTabCreatedModules(event) {
-    document.getElementById('user-personal-details').style.display = 'none';
-    document.getElementById('user-enrollments').style.display = 'none';
-    document.getElementById('user-created-modules').style.display = 'block';
+    document.getElementById('user-personal-details').classList.add('is-hidden');
+    document.getElementById('user-enrollments').classList.add('is-hidden');
+    document.getElementById('user-created-modules').classList.remove('is-hidden');
     document.getElementById('user-btn-created-modules-tab').parentElement.classList.add('is-active');
     document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
     document.getElementById('user-btn-personal-details').parentElement.classList.remove('is-active');
+    document.cookie = 'homeTab=created-modules';
+  }
+
+  function toggleTabPersonalDetails(event) {
+    document.getElementById('user-personal-details').classList.remove('is-hidden');
+    document.getElementById('user-enrollments').classList.add('is-hidden');
+    document.getElementById('user-created-modules').classList.add('is-hidden');
+    document.getElementById('user-btn-personal-details').parentElement.classList.add('is-active');
+    document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
+    document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
+    document.cookie = 'homeTab=personal-details';
   }
 </script>
-
-<style>
-  .tabs li.is-active, .tabs li.is-active span {
-    color: black !important;
-  }
-</style>
 
 <section class="hero is-primary is-bold">
   <div class="hero-head">
@@ -49,12 +46,6 @@
   </div>
   <div class="tabs is-centered is-boxed is-medium">
     <ul>
-      <li class="is-active">
-        <a id="user-btn-personal-details">
-          <span class="icon is-small"><i class="far fa-file-alt" aria-hidden="true"></i></span>
-          <span>Personal Details</span>
-        </a>
-      </li>
       <li>
         <a id="user-btn-enrollments-tab">
           <span class="icon is-small"><i class="far fa-file-alt" aria-hidden="true"></i></span>
@@ -67,11 +58,17 @@
           <span>Created Modules</span>
         </a>
       </li>
+      <li>
+        <a id="user-btn-personal-details">
+          <span class="icon is-small"><i class="far fa-file-alt" aria-hidden="true"></i></span>
+          <span>Personal Details</span>
+        </a>
+      </li>
     </ul>
   </div>
 </section>
 
-<section id="user-personal-details">
+<section id="user-personal-details" class="is-hidden">
   {{#if user.isMe}}
     <form style="margin: 3vw 30vw;">
       <div class="field">
@@ -244,10 +241,9 @@
       })();
     </script>
   {{/if}}
-
 </section>
 
-<section id="user-created-modules" style="margin: 70px 25vw; display: none;">
+<section id="user-created-modules" class="is-hidden" style="margin: 70px 25vw;">
   {{#if user.createdModules}}
     <ul class="list" style="width: 100%;">
       {{#each user.createdModules}}
@@ -275,7 +271,7 @@
   {{/if}}
 </section>
 
-<section id="user-enrollments" style="margin: 70px 25vw; display: none;">
+<section id="user-enrollments" style="margin: 70px 25vw;">
   {{#if user.enrollments}}
     <ul class="list" style="width: 100%;">
       {{#each user.enrollments}}
