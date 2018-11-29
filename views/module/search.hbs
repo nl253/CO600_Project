@@ -1,0 +1,161 @@
+<section class="hero is-info is-bold">
+  <div class="hero-body">
+    <form action="">
+      <div class="columns">
+        <div class="column is-half is-offset-one-fifth">
+          <div class="field">
+            <div class="control has-icons-left">
+              <input class="input is-large is-rounded" id="searchBar" type="text" placeholder="Search">
+              <span class="icon is-left">
+                <i class="fas fa-search"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          <button class="button is-rounded is-large">Search</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="section">
+  <div class="columns">
+    <div class="column is-one-fifth">
+      <nav class="panel">
+        <p class="panel-heading">
+          Filter by Date
+        </p>
+        <p class="panel-tabs">
+            <a class="" id="dateCreated" onclick="selectDateCreated()">Date created</a>
+            <a class="" id="dateUpdated" onclick="selectDateUpdated()">Date updated</a>
+          </p>
+        <a class="panel-block">
+            <span class="panel-icon">
+              <i class="fas fa-check-square" aria-hidden="true"></i>
+            </span>
+            1 Week
+          </a>
+          <a class="panel-block">
+            <span class="panel-icon">
+              <i class="fas fa-check-square" aria-hidden="true"></i>
+            </span>
+            1 Month
+          </a>
+          <a class="panel-block">
+            <span class="panel-icon">
+              <i class="fas fa-check-square" aria-hidden="true"></i>
+            </span>
+            6 Months
+          </a>
+          <a class="panel-block">
+            <span class="panel-icon">
+              <i class="fas fa-check-square" aria-hidden="true"></i>
+            </span>
+            1 Year
+          </a>
+          <a class="panel-block">
+            <span class="panel-icon">
+              <i class="fas fa-check-square" aria-hidden="true"></i>
+            </span>
+            5 Years
+          </a>
+          <a class="panel-block">
+            <span class="panel-icon">
+              <i class="fas fa-check-square" aria-hidden="true"></i>
+            </span>
+            Older
+          </a>
+        <div class="panel-block">
+          <button class="button is-link is-outlined is-fullwidth">
+            reset all filters
+          </button>
+        </div>
+      </nav>
+    </div>
+    <div class="column is-three-fifths">
+      <div id="searchResults">
+        
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+const searchBtn  = document.getElementById('searchBtn');
+if (searchBtn) {
+
+  searchBtn.onclick = (event) => {
+
+    // don't send the HTML form
+    event.preventDefault();
+
+    const searchTerm = document.getElementById('searchBar').value;
+
+    const queryParams = {name: searchTerm};
+
+    const cfg = {
+      redirect:'follow',
+      cache: "no-cache",
+      mode: "cors",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+    };
+
+    let uri = `/api/module/search`;
+
+    if ([...Object.keys(queryParams)].length > 0) {
+     uri += '?' + Object.entries(queryParams).map(pair => pair.join('=')).join('&');
+    }
+
+    // error codes 400..499 and 500..599 are client and server errors
+    return fetch(uri, cfg)
+      .then(response => response.status >= 400 
+        // if it goes wrong force it to jump to reject
+        ? response.json().then(errMsg => Promise.reject(errMsg))
+        // the JSON object is guaranteed to have a "msg" property
+        : response.json())
+      .then(json => {
+        //Display results
+
+        for(module in json.result) {
+          console.log(json.result[module]);
+          const moduleName = json.result[module].name;
+          console.log(json.result[module].summary)
+          const moduleSummary = json.result[module].summary;
+
+          document.getElementById('searchResults').innerHTML += 
+          `<div class="box" onclick="location.href = "/module">
+            <div class="media-content">
+              <div class="content">
+                <p class="is-size-5">
+                  <a href="module/"><strong>${moduleName}</strong></a>
+                  <br>
+                  ${moduleSummary}
+                </p>
+              </div>
+            </div>
+            <br>
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+          </div>
+          `;
+        }
+        
+        //forLoop through array        
+
+      })
+      .catch(err => {
+        console.error(err);
+        return alert(err.msg || err.message || err.toString());
+      });
+  }
+}
+
+function displayResult() {
+
+}
+</script>
