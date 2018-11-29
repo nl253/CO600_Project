@@ -138,11 +138,13 @@ function validColumn(model, columnNameSupplier) {
  */
 function validColumns(model, columnsNamesSupplier) {
   return (req, res, next) => {
-    for (let col of columnsNamesSupplier(req)) {
-      if (model.attributes[col] === undefined) {
-        return next(new InvalidRequestErr('User', col));
+    try {
+      for (let col of columnsNamesSupplier(req)) {
+        if (model.attributes[col] === undefined) {
+          return next(new InvalidRequestErr('User', col));
+        }
       }
-    }
+    } catch (e) {}
     return next();
   };
 }
@@ -154,12 +156,15 @@ function validColumns(model, columnsNamesSupplier) {
  * @param {Array<String>} forbidden banned columns
  * @return {Function} Express middleware
  */
-function notRestrictedColumn(
-  columnNameSupplier, forbidden = ['updatedAt', 'createdAt']) {
-  return (req, res, next) =>
-    new Set(forbidden).has(columnNameSupplier(req))
-      ? next(new InvalidRequestErr('User', columnNameSupplier(req)))
-      : next();
+function notRestrictedColumn(columnNameSupplier, forbidden = ['updatedAt', 'createdAt']) {
+  return (req, res, next) => {
+    try {
+      if (new Set(forbidden).has(columnNameSupplier(req))) {
+        return next(new InvalidRequestErr('User', columnNameSupplier(req)));
+      }
+    } catch (e) {}
+    return next();
+  }
 }
 
 /**
@@ -169,15 +174,16 @@ function notRestrictedColumn(
  * @param {Array<String>} forbidden banned columns
  * @return {Function} Express middleware
  */
-function notRestrictedColumns(columnsNamesSupplier = (request) => [],
-                              forbidden = ['updatedAt', 'createdAt']) {
+function notRestrictedColumns(columnsNamesSupplier = (request) => [], forbidden = ['updatedAt', 'createdAt']) {
   return (req, res, next) => {
     const bannedCols = new Set(forbidden);
-    for (const col of columnsNamesSupplier(req)) {
-      if (bannedCols.has(col)) {
-        return next(new InvalidRequestErr('User', col));
+    try {
+      for (const c of columnsNamesSupplier(req)) {
+        if (bannedCols.has(c)) {
+          return next(new InvalidRequestErr('User', c));
+        }
       }
-    }
+    } catch (e) {}
     return next();
   };
 }
