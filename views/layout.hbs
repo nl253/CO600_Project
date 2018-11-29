@@ -19,13 +19,13 @@
 {{#unless error}}
   <nav class="navbar">
 
-    <div class="navbar-brand" style="background: #f7f7f7;">
-      <a href="/" class="navbar-item" style="background: #f7f7f7;">
+    <div class="navbar-brand has-background-grey-lighter">
+      <a href="/" class="navbar-item has-background-grey-lighter">
         <img src="/images/logo.png" width="30" height="30" alt="Logo">
       </a>
     </div>
 
-    <div class="navbar-menu" style="background: #f7f7f7;">
+    <div class="navbar-menu has-background-grey-lighter">
       <div class="navbar-start">
         {{#if loggedIn}}
           <a href="/user" id="btn-user-profile" class="navbar-item">Profile</a>
@@ -81,15 +81,22 @@
                   };
                 })();
               </script>
-            </div>
+            {{else}}
+              <script>
+                (function() {
+                  document.getElementById('layout-btn-create-module').onclick = () => alert('log in to create modules');
+                  document.getElementById('layout-btn-create-lesson').onclick = () => alert('log in to create lessons');
+                })();
+              </script>
+            {{/if}}
           </div>
-        {{/if}}
-        <a href="/about" class="navbar-item"> About Us </a>
+        </div>
+        <a href="/about" class="navbar-item">About Us</a>
       </div>
     </div>
 
     {{#if loggedIn}}
-      <div class="navbar-end" style="padding-right: 100px; background: #f7f7f7;">
+      <div class="navbar-end has-background-grey-lighter" style="padding-right: 100px;">
         <div class="navbar-item has-dropdown is-hoverable">
           <a href="/user" class="navbar-link">
             {{#if loggedin.firstname}}
@@ -147,7 +154,7 @@
         </div>
       </div>
     {{else}}
-      <form action="" method='post' style="background: #f7f7f7;">
+      <form action="" method="post" class="has-background-grey-lighter">
         <div class="navbar-end">
           <div class="navbar-item">
             <div class="control has-icons-left">
