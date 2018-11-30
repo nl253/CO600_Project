@@ -16,4 +16,8 @@ a {
   border: 1px #c9c3c3 dashed;
 }
 
+.tabs li.is-active, .tabs li.is-active span {
+  color: black !important;
+}
+
 /*# sourceMappingURL=style.css.map */
