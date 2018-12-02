@@ -18,7 +18,6 @@
 
 {{#unless error}}
   <nav class="navbar">
-
     <div class="navbar-brand has-background-grey-lighter">
       <a href="/" class="navbar-item has-background-grey-lighter">
         <img src="/images/logo.png" width="30" height="30" alt="Logo">
@@ -27,14 +26,14 @@
 
     <div class="navbar-menu has-background-grey-lighter">
       <div class="navbar-start">
-        <a href="/" id="btn-user-home" class="navbar-item">Home</a>
+        <a href="/" id="layout-btn-user-home" class="navbar-item">Home</a>
         {{#if user.isMe}}
           <script>
             (function() {
-              if (window.location.href.match('/user/.*$')) {
-                document.getElementById('btn-user-home').onclick = function(event) {
+              if (window.location.pathname.match(/\/user\/\d+$/)) {
+                document.getElementById('layout-btn-user-home').onclick = function(event) {
                   event.preventDefault();
-                  toggleTabPersonalDetails();
+                  return alert('already at home');
                 };
               }
             })();
@@ -90,7 +89,6 @@
         <a href="/about" class="navbar-item">About Us</a>
       </div>
     </div>
-
     {{#if loggedIn}}
       <div class="navbar-end has-background-grey-lighter" style="padding-right: 100px;">
         <div class="navbar-item has-dropdown is-hoverable">
@@ -102,21 +100,21 @@
             {{/if}}
           </a>
           <div class="navbar-dropdown">
-            <a href="/user?tab=enrollments" id="btn-user-enrollments" class="navbar-item">Enrollments</a>
-            <a href="/user?tab=created-modules" id="btn-user-created-modules" class="navbar-item">Created Modules</a>
-            <a href="/user?tab=personal-details" id="btn-user-settings" class="navbar-item">Settings</a>
+            <a href="/user?tab=enrollments" id="layout-btn-user-enrollments" class="navbar-item">Enrollments</a>
+            <a href="/user?tab=created-modules" id="layout-btn-user-created-modules" class="navbar-item">Created Modules</a>
+            <a href="/user?tab=personal-details" id="layout-btn-user-settings" class="navbar-item">Settings</a>
             <script>
               (function() {
-                if (window.location.href.match('/user/.*$')) {
-                  document.getElementById('btn-user-settings').onclick = function(event) {
+                if (window.location.pathname.match(/\/user\/\d+$/)) {
+                  document.getElementById('layout-btn-user-settings').onclick = function(event) {
                     event.preventDefault();
                     toggleTabPersonalDetails();
                   };
-                  document.getElementById('btn-user-created-modules').onclick = function(event) {
+                  document.getElementById('layout-btn-user-created-modules').onclick = function(event) {
                     event.preventDefault();
                     toggleTabCreatedModules();
                   };
-                  document.getElementById('btn-user-enrollments').onclick = function(event) {
+                  document.getElementById('layout-btn-user-enrollments').onclick = function(event) {
                     event.preventDefault();
                     toggleTabEnrollments();
                   };
@@ -125,13 +123,12 @@
             </script>
             <a href="/help" class="navbar-item">Help</a>
             <hr class="navbar-divider">
-            <a href="#" id="btn-log-out" class="navbar-item">Log out</a>
+            <a href="#" id="layout-btn-log-out" class="navbar-item">Log out</a>
             <script>
               (function() {
-                document.getElementById('btn-log-out').onclick = (event) => {
+                document.getElementById('layout-btn-log-out').onclick = (event) => {
                   event.preventDefault();
                   return fetch('/api/user/logout', {
-                    method: 'GET',
                     redirect: 'follow',
                     cache: 'no-cache',
                     mode: 'cors',
@@ -154,7 +151,7 @@
         <div class="navbar-end">
           <div class="navbar-item">
             <div class="control has-icons-left">
-              <input name="email" class="input is-success is-small" id="email" type="email" placeholder="email"
+              <input name="email" class="input is-success is-small" id="layout-input-email" type="email" placeholder="email"
                      autocomplete="on" maxlength="255" pattern=".{2,}@.{2,}\..{2,}" required>
               <span class="icon is-small is-left">
                     <i class="fa fa-envelope"></i>
@@ -163,31 +160,27 @@
           </div>
           <div class="navbar-item">
             <div class="control has-icons-left">
-              <input name="password" class="input is-success is-small" id="password" type="password"
-                     placeholder="password"
-                     pattern=".{6,}" required>
+              <input name="password" class="input is-success is-small" id="layout-input-password" type="password"
+                     placeholder="password" pattern=".{6,}" required>
               <span class="icon is-small is-left">
                     <i class="fa fa-lock"></i>
                   </span>
             </div>
           </div>
           <div class="navbar-item">
-            <input type="submit" id="btn-log-in" value="Log In" class="button is-primary is-small">
-            <a id="btn-register-redirect" href="/user/register" class="button has-background-grey-light is-small"
+            <input type="submit" id="layout-btn-log-in" value="Log In" class="button is-primary is-small">
+            <a id="layout-btn-register-redirect" href="/user/register" class="button has-background-grey-light is-small"
                style="margin-left: 10px;">Register</a>
             <script>
               (function() {
-                document.getElementById('btn-log-in').onclick = (event) => {
+                document.getElementById('layout-btn-log-in').onclick = (event) => {
 
                   // don't send the HTML form
                   event.preventDefault();
 
-                  const email = document.getElementById('email').value;
-                  const password = document.getElementById('password').value;
-                  const credentials = {
-                    email,
-                    password,
-                  };
+                  const email = document.getElementById('layout-input-email').value;
+                  const password = document.getElementById('layout-input-password').value;
+                  const credentials = {email, password};
                   return fetch(`/api/user/login`, {
                     method: 'POST',
                     redirect: 'follow',
@@ -214,7 +207,7 @@
                         : window.location.href;
                   }).catch(err => {
                     console.error(err);
-                    return err.then(e => alert(e.msg || e.message || e.toString()));
+                    return alert(err.msg || err.message || err.toString());
                   });
                 };
               })();
@@ -227,8 +220,6 @@
 {{/unless}}
 
 {{{body}}}
-
-</body>
 
 {{#unless error}}
   <footer class="footer">
@@ -250,4 +241,7 @@
     }
   })();
 </script>
+
+</body>
+
 </html>

@@ -1,33 +1,33 @@
 <script>
-  function toggleTabEnrollments(event) {
-    document.getElementById('user-created-modules').classList.add('is-hidden');
-    document.getElementById('user-enrollments').classList.remove('is-hidden');
-    document.getElementById('user-personal-details').classList.add('is-hidden');
-    document.getElementById('user-btn-personal-details').parentElement.classList.remove('is-active');
-    document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
-    document.getElementById('user-btn-enrollments-tab').parentElement.classList.add('is-active');
-    document.cookie = 'homeTab=enrollments';
-  }
+    function toggleTabEnrollments(event) {
+      document.getElementById('user-created-modules').classList.add('is-hidden');
+      document.getElementById('user-enrollments').classList.remove('is-hidden');
+      document.getElementById('user-personal-details').classList.add('is-hidden');
+      document.getElementById('user-btn-personal-details').parentElement.classList.remove('is-active');
+      document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
+      document.getElementById('user-btn-enrollments-tab').parentElement.classList.add('is-active');
+      document.cookie = 'homeTab=enrollments';
+    }
 
-  function toggleTabCreatedModules(event) {
-    document.getElementById('user-personal-details').classList.add('is-hidden');
-    document.getElementById('user-enrollments').classList.add('is-hidden');
-    document.getElementById('user-created-modules').classList.remove('is-hidden');
-    document.getElementById('user-btn-created-modules-tab').parentElement.classList.add('is-active');
-    document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
-    document.getElementById('user-btn-personal-details').parentElement.classList.remove('is-active');
-    document.cookie = 'homeTab=created-modules';
-  }
+    function toggleTabCreatedModules(event) {
+      document.getElementById('user-personal-details').classList.add('is-hidden');
+      document.getElementById('user-enrollments').classList.add('is-hidden');
+      document.getElementById('user-created-modules').classList.remove('is-hidden');
+      document.getElementById('user-btn-created-modules-tab').parentElement.classList.add('is-active');
+      document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
+      document.getElementById('user-btn-personal-details').parentElement.classList.remove('is-active');
+      document.cookie = 'homeTab=created-modules';
+    }
 
-  function toggleTabPersonalDetails(event) {
-    document.getElementById('user-personal-details').classList.remove('is-hidden');
-    document.getElementById('user-enrollments').classList.add('is-hidden');
-    document.getElementById('user-created-modules').classList.add('is-hidden');
-    document.getElementById('user-btn-personal-details').parentElement.classList.add('is-active');
-    document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
-    document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
-    document.cookie = 'homeTab=personal-details';
-  }
+    function toggleTabPersonalDetails(event) {
+      document.getElementById('user-personal-details').classList.remove('is-hidden');
+      document.getElementById('user-enrollments').classList.add('is-hidden');
+      document.getElementById('user-created-modules').classList.add('is-hidden');
+      document.getElementById('user-btn-personal-details').parentElement.classList.add('is-active');
+      document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
+      document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
+      document.cookie = 'homeTab=personal-details';
+    }
 </script>
 
 <section class="hero is-primary is-bold">
@@ -94,9 +94,9 @@
         </div>
       </div>
       <div class="field">
-        <label class="label">Current Email</label>
+        <label class="label">Email</label>
         <div class="control has-icons-left">
-          <input value="{{loggedIn.email}}" class="input" id="user-email" type="email" minlength="2" pattern=".{2,}@.{2,}\..{2,}">
+          <input value="{{loggedIn.email}}" class="input" id="user-input-email" type="email" minlength="2" pattern=".{2,}@.{2,}\..{2,}">
           <span class="icon is-left"><i class="fas fa-user"></i></span>
         </div>
       </div>
@@ -123,13 +123,13 @@
       </div>
       <div class="field is-grouped is-grouped-centered" style="padding: 20px;">
         <p class="control">
-          <a class="button is-primary" id="modify-details-btn">Change My Details</a>
+          <input type="submit" class="button is-primary" id="user-btn-modify-details" value="Change My Details">
         </p>
       </div>
     </form>
     <script>
       (function() {
-        document.getElementById('user-email').oninput = function () {
+        document.getElementById('user-input-email').oninput = function () {
           this.style.background = this.value.match(/.{2,}@.{2,}\.(.{2,})/) ? '#e7fdd1' : '#ffbaba';
         };
       })();
@@ -146,11 +146,11 @@
         };
       })();
       (function() {
-        document.getElementById('modify-details-btn').onclick = (event) => {
+        document.getElementById('user-btn-modify-details').onclick = (event) => {
           event.preventDefault();
           const details = {};
           const changedAttrs = [];
-          const emailEl = document.getElementById('user-email');
+          const emailEl = document.getElementById('user-input-email');
           details.email = emailEl.value;
           const infoEl = document.getElementById('user-info');
           details.info = infoEl.value === '' ? null : infoEl.value;
@@ -176,7 +176,7 @@
               : result.json())
               .then(() => {
                 const elOldPass = document.getElementById('user-password-old');
-                const elEmail = document.getElementById('user-email');
+                const elEmail = document.getElementById('user-input-email');
                 if (elEmail.value === '' || elEmail.value.indexOf('@') <= 0 || elEmail.value.length <= 4) {
                   return alert('bad email format, cannot change password');
                 }
@@ -233,7 +233,7 @@
     <script>
       (function() {
         const el = document.getElementById('member-since-date');
-        if (el.innerText) {
+        if (el.innerText.trim()) {
           const regex = /(.*\s+GMT\+\d).*/;
           const match = regex.exec(el.innerText);
           if (match) el.innerText = match[1];
@@ -328,7 +328,7 @@
               'Accept': 'application/json',
             },
           }).then(res => res.status >= 400
-              ? Promise.reject(res.json())
+            ? res.json().then(err => Promise.reject(err))
               : Promise.resolve(res.json()))
               .then(() => this.parentElement.remove())
               .catch(err => alert(err.msg || err.message || 'failed to unenroll'));
@@ -354,7 +354,7 @@
           if (!confirm('Delete module ?')) return;
           return fetch(`/api/module/${id}/delete`)
               .then(res => res.status >= 400
-                  ? res.json().then(err => Promise.reject(err))
+                  ? res.json().then(json => Promise.reject(json))
                   : res.json())
               .then(json => el.remove())
               .catch(err => alert(err.msg || err.message || err.toString()));
