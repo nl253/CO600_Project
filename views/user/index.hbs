@@ -380,42 +380,41 @@
 {{/if}}
 
 <script>
-  (function() {
     document.getElementById('user-btn-personal-details').onclick = toggleTabPersonalDetails;
     document.getElementById('user-btn-enrollments-tab').onclick = toggleTabEnrollments;
     document.getElementById('user-btn-created-modules-tab').onclick = toggleTabCreatedModules;
-  })();
-</script>
 
-{{#if tab.createdModules}}
-  <script>toggleTabCreatedModules();</script>
-{{else}}
-  {{#if tab.personalDetails}}
-    <script>toggleTabPersonalDetails();</script>
-  {{else}}
-    {{#if tab.enrollments}}
-      <script>toggleTabEnrollments();</script>
-    {{else}}
-      <script>
-        const cookies = document.cookie.split(';').map(cookie => cookie.trim().split('=').map(x => x.trim()));
-        for (const pair of cookies) {
-          const [key, val] = pair;
-          if (key === 'homeTab') {
-            switch (val) {
-              case 'personal-details':
-                toggleTabPersonalDetails();
-                break;
-              case 'enrollments':
-                toggleTabEnrollments();
-                break;
-              case 'created-modules':
-                toggleTabCreatedModules();
-                break;
-            }
-            break;
+    (function () {
+      const queries = document.location.search.slice(1).split('&').map(s => s.split('='));
+      for (const pair of queries) {
+        const [k, v] = pair;
+        if (k === 'tab') {
+          switch (v) {
+          case 'created-modules':
+            return toggleTabCreatedModules();
+          case 'enrollments':
+            return toggleTabEnrollments();
+          case 'personal-details':
+            return toggleTabPersonalDetails();
           }
         }
-      </script>
-    {{/if}}
-  {{/if}}
-{{/if}}
+      }
+      const cookies = document.cookie
+        .split(';')
+        .map(cookie => cookie.trim().split('=')
+        .map(x => x.trim()));
+      for (const pair of cookies) {
+        const [k, v] = pair;
+        if (k === 'homeTab') {
+          switch (v) {
+          case 'personal-details':
+            return toggleTabPersonalDetails();
+          case 'enrollments':
+            return toggleTabEnrollments();
+          case 'created-modules':
+            return toggleTabCreatedModules();
+          }
+        }
+      }
+    })();
+</script>
