@@ -1,0 +1,80 @@
+<section class="hero">
+  <div class="hero-head"></div>
+  {{!--{{#if lesson.isMine}}--}}
+  <div class="hero-body">
+    <div class="columns is-centered">
+      <div class="column is-4"></div>
+      <div class="column is-4">
+        <h1 class="title is-2" style="margin-bottom: 40px;">Lesson</h1>
+        <form method="post" action="/lesson/create" enctype="multipart/form-data">
+
+          <div style="margin-bottom: 45px;">
+            <h2 class="title" style="margin-bottom: 20px;">Name</h2>
+            <div id="lesson-name" contenteditable="true" style="max-width: 450px;">
+              {{lesson.name}}
+            </div>
+          </div>
+
+          <div style="margin-bottom: 45px;">
+            <h2 class="title" style="margin-bottom: 20px;">Content</h2>
+            <p style="margin-bottom: 10px;">Select an HTML file with the lesson content</p>
+            <br>
+            <p><strong>NOTE</strong></p>
+            <br>
+            <ul style="list-style-type: disc; margin-bottom: 30px;">
+              <li>
+                <p><em>Only</em> include the <em>content</em> of the <code>&lt;body&gt;</code> tag</p>
+              </li>
+              <li>
+                <p>We will only accept .html files</p>
+              </li>
+            </ul>
+            <input type="file" name="file">
+          </div>
+
+          <div style="margin-bottom: 45px;">
+            <h2 class="title" style="margin-bottom: 20px;">Attachement (optional)</h2>
+            <p><strong>Select a file:</strong></p>
+            <br>
+            <ul style="list-style-type: disc; margin-bottom: 30px;">
+              <li>Image (.jpg, .jpeg, .png, .gif)</li>
+              <li>Audio (.mp3)</li>
+              <li>Video (.mp4, .mpg)</li>
+            </ul>
+            <input type="file" name="file">
+          </div>
+
+          <div class="field is-grouped is-grouped-centered">
+            <p class="control">
+              <a class="button is-primary" style="min-width: 150px;">Submit changes</a>
+            </p>
+            <p class="control">
+              <a class="button is-light" style="min-width: 150px;">Cancel</a>
+            </p>
+          </div>
+
+          {{!--
+          {{else}}
+          <h1 style="margin-bottom: 10px;">{{lesson.name}}</h1>
+          <h2 style="margin-bottom: 10px;">{{lesson.content}}</h2>
+
+          <div class="field is-grouped is-grouped-centered">
+            <p>
+              <a class="button is-back is-dark">Back</a>
+            </p>
+            <p>
+              <a class="button is-info is-medium">Back to Homepage</a>
+            </p>
+            <p>
+              <a class="button is-danger is-medium">Next</a>
+            </p>
+          </div>
+          --}}
+
+          {{!--{{/if}}--}}
+        </form>
+      </div>
+      <div class="column is-4"></div>
+    </div>
+  </div>
+</section>
