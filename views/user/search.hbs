@@ -1,0 +1,111 @@
+<section class="hero is-info is-bold">
+  <div class="hero-body">
+    <form action="">
+      <div class="columns">
+        <div class="column is-one-fifth">
+          <h1 class="title is-3">User Search:</h1>
+        </div>
+        <div class="column is-half">
+          <div class="field">
+            <div class="control has-icons-left">
+              <input class="input is-large is-rounded" id="searchBar" type="text" placeholder="User Name">
+              <span class="icon is-left">
+                <i class="fas fa-search"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          <button class="button is-rounded is-large">Search</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="section">
+  <div class="columns">
+    <div class="column is-one-fifth">
+    </div>
+    <div class="column is-three-fifths">
+      <div id="searchResults">
+        
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+const searchBtn  = document.getElementById('searchBtn');
+if (searchBtn) {
+
+  searchBtn.onclick = (event) => {
+
+    // don't send the HTML form
+    event.preventDefault();
+
+    const searchTerm = document.getElementById('searchBar').value;
+
+    const queryParams = {name: searchTerm};
+
+    const cfg = {
+      redirect:'follow',
+      cache: "no-cache",
+      mode: "cors",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+    };
+
+    let uri = `/api/user/search`;
+
+    if ([...Object.keys(queryParams)].length > 0) {
+     uri += '?' + Object.entries(queryParams).map(pair => pair.join('=')).join('&');
+    }
+
+    // error codes 400..499 and 500..599 are client and server errors
+    return fetch(uri, cfg)
+      .then(response => response.status >= 400 
+        // if it goes wrong force it to jump to reject
+        ? response.json().then(errMsg => Promise.reject(errMsg))
+        // the JSON object is guaranteed to have a "msg" property
+        : response.json())
+      .then(json => {
+        //Display results
+        console.log(json.result);
+        for(module in json.result) {
+          const moduleName = json.result[module].name;
+          const moduleSummary = json.result[module].summary;
+
+          document.getElementById('searchResults').innerHTML += 
+          `<div class="box" onclick="location.href = "/module">
+            <div class="media-content">
+              <div class="content">
+                <p class="is-size-5">
+                  <a href="module/"><strong>${moduleName}</strong></a>
+                  <br>
+                  ${moduleSummary}
+                </p>
+              </div>
+            </div>
+            <br>
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+          </div>`;
+        }
+        
+        //forLoop through array        
+
+      })
+      .catch(err => {
+        console.error(err);
+        return alert(err.msg || err.message || err.toString());
+      });
+  }
+}
+
+function displayResult() {
+
+}
+</script>
