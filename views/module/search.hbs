@@ -168,7 +168,7 @@ if (searchBtn) {
         : response.json())
       .then(json => {
         //Display results
-        if(rating == null && time == null){
+        if(rating === null && time === null){
           for(module in json.result) {
             const moduleName = json.result[module].name;
             const moduleSummary = json.result[module].summary;

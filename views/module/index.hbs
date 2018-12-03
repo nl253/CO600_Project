@@ -1,3 +1,9 @@
+<style>
+.li.over {
+  border: 1px dashed rgb(5, 151, 248);
+}
+</style>
+
 <section class="hero">
   <div class="hero-body" style="margin-left: 13.5vw;">
     {{#if module.isMine}}
@@ -94,6 +100,7 @@
     {{#if module.lessons}}
       <ol id="list-lessons">
         {{#if module.isMine}}
+
           {{#each module.lessons}}
             <li style="margin-bottom: 2px;">
               <a href="/lesson/{{id}}" class="button is-small is-warning" style="padding: -4px;">Modify</a>
@@ -179,3 +186,65 @@
     {{/if}}
   </section>
 </div>
+
+<script>
+
+var boxSource = null;
+
+function handleDragStart(e) {
+  boxSource = this;
+
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+function handleDrop(e) {
+  // this / e.target is current target element.
+  if (e.stopPropagation) {
+    e.stopPropagation(); // stops the browser from redirecting.
+  }
+  if (boxSource != this) {
+    // Set the source column's HTML to the HTML of the column we dropped on.
+    boxSource.innerHTML = this.innerHTML;
+    this.innerHTML = e.dataTransfer.getData('text/html');
+  }
+  // See the section on the DataTransfer object.
+  return false;
+}
+
+function handleDragOver(e) {
+  if (e.preventDefault) {
+    e.preventDefault(); // Necessary. Allows us to drop.
+  }
+
+  e.dataTransfer.dropEffect = 'move';  // See the section on the DataTransfer object.
+
+  return false;
+}
+
+function handleDragEnter(e) {
+  // this / e.target is the current hover target.
+  this.classList.add('over');
+}
+
+function handleDragLeave(e) {
+  this.classList.remove('over');  // this / e.target is previous target element.
+}
+
+function handleDragEnd(e) {
+  // this/e.target is the source node.
+  [].forEach.call(boxes, function (box) {
+    box.classList.remove('over');
+  });
+}
+
+var boxes = document.querySelectorAll('#list-lessons .li');
+[].forEach.call(boxes, function(box) {
+  box.addEventListener('dragstart', handleDragStart, false);
+  box.addEventListener('dragenter', handleDragEnter, false);
+  box.addEventListener('dragover', handleDragOver, false);
+  box.addEventListener('dragleave', handleDragLeave, false);
+  box.addEventListener('drop', handleDrop, false);
+  box.addEventListener('dragend', handleDragEnd, false);
+});
+</script>

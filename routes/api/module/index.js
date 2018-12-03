@@ -51,6 +51,16 @@ router.get('/:id/unenroll',
     .then(() => res.json(msg('successfully un-enrolled')))
     .catch(err => next(err)));
 
+router.get(['/:id/delete', '/:id/remove', '/:id/destroy'],
+  needs('token', 'cookies'),
+  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
+  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
+  exists(Module, (req) => ({id: req.params.id})),
+  (req, res, next) => Module.findOne({where: {id: req.params.id}})
+    .then(module => module.destroy())
+    .then(() => res.json(msg(`successfully deleted module`)))
+    .catch(err => next(err)));
+
 router.get('/create',
   needs('token', 'cookies'),
   exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
