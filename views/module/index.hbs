@@ -159,7 +159,8 @@
   <section class="is-medium" style="margin-bottom: 30px;">
     <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
     {{#if module.isMine}}
-      <textarea id="module-summary" style="width: 80%; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">{{module.summary}}</textarea>
+      <textarea id="module-summary"
+                style="min-width: 100%; min-height: 50px; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">{{module.summary}}</textarea>
     {{else}}
       {{#if module.summary}}
         <p class="is-medium" style="width: 80vw; word-wrap: break-word;">{{module.summary}}</p>
