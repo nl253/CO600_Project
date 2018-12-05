@@ -278,18 +278,24 @@
   <!--NOTE this is a workaround because Handlebars doesn't allow to reference -->
   <!--user inside the "each" clause-->
   <script>
-    (function() {
+    document.addEventListener('DOMContentLoaded', (function() {
       for (const el of document.querySelectorAll('#user-enrollments ul li')) {
         const btn = document.createElement('button');
-        btn.classList.add('button');
-        btn.classList.add('is-small');
-        btn.classList.add('is-danger');
-        btn.style.float = 'right';
-        btn.style.margin = '-5px';
         btn.innerText = 'Unenroll';
+        const classes = ['button', 'is-small', 'is-danger'];
+        const styles = {
+          float: 'right',
+          margin: '-7px',
+        };
+        for (const c of classes) btn.classList.add(c);
+        for (const pair of Object.entries(styles)) {
+          const [k, v] = pair;
+          btn.style[k] = v;
+        }
         btn.onclick = function(event) {
           event.preventDefault();
-          const uri = `/api/module/${this.parentElement.querySelector('a').innerText.trim()}/unenroll`;
+          const id = /(\d+)$/.exec(this.parentElement.querySelector('a').href)[1];
+          const uri = `/api/module/${id}/unenroll`;
           console.log(uri);
           return fetch(uri, {
             redirect: 'follow',
@@ -301,23 +307,21 @@
               'Accept': 'application/json',
             },
           }).then(res => res.status >= 400
-            ? res.json().then(err => Promise.reject(err))
+              ? res.json().then(err => Promise.reject(err))
               : Promise.resolve(res.json()))
               .then(() => this.parentElement.remove())
               .catch(err => alert(err.msg || err.message || 'failed to unenroll'));
         };
         el.appendChild(btn);
       }
-    })();
-    (function() {
-      for (const el of document.querySelectorAll('#user-created-modules li')) {
 
+      for (const el of document.querySelectorAll('#user-created-modules li')) {
         const btnDelete = document.createElement('button');
         btnDelete.classList.add('button');
         btnDelete.classList.add('is-small');
         btnDelete.classList.add('is-danger');
         btnDelete.style.float = 'right';
-        btnDelete.style.margin = '-5px';
+        btnDelete.style.margin = '-7px';
         btnDelete.innerText = 'Delete';
         btnDelete.onclick = function(event) {
           event.preventDefault();
@@ -339,55 +343,65 @@
         btnModify.classList.add('is-small');
         btnModify.classList.add('is-warning');
         btnModify.style.float = 'right';
-        btnModify.style.marginTop = '-5px';
+        btnModify.style.marginTop = '-7px';
         btnModify.style.marginRight = '12px';
         btnModify.innerText = 'Modify';
         btnModify.onclick = function(event) {
           window.location.href = this.parentElement.querySelector('a').href;
         };
         el.appendChild(btnModify);
-
       }
-    })();
+      const btnCreateModule = document.createElement('button');
+      btnCreateModule.classList.add('is-link');
+      btnCreateModule.classList.add('button');
+      btnCreateModule.style.margin = '60px auto';
+      btnCreateModule.style.display = 'block';
+      btnCreateModule.innerHTML = `<i class="fas fa-plus"> </i> Create Module`;
+      btnCreateModule.onclick = () => document.getElementById('layout-btn-create-module')
+          .dispatchEvent(new Event('click'));
+      document.querySelector('#user-created-modules').appendChild(btnCreateModule);
+    }), {once: true});
   </script>
 {{/if}}
 
 <script>
-    document.getElementById('user-btn-personal-details').onclick = toggleTabPersonalDetails;
-    document.getElementById('user-btn-enrollments-tab').onclick = toggleTabEnrollments;
-    document.getElementById('user-btn-created-modules-tab').onclick = toggleTabCreatedModules;
-
-    (function () {
-      const queries = document.location.search.slice(1).split('&').map(s => s.split('='));
-      for (const pair of queries) {
-        const [k, v] = pair;
-        if (k === 'tab') {
-          switch (v) {
+  document.getElementById('user-btn-personal-details').onclick = toggleTabPersonalDetails;
+  document.getElementById('user-btn-enrollments-tab').onclick = toggleTabEnrollments;
+  document.getElementById('user-btn-created-modules-tab').onclick = toggleTabCreatedModules;
+  document.addEventListener('DOMContentLoaded', (function() {
+    const queries = document.location.search
+        .slice(1)
+        .split('&')
+        .map(s => s.split('='));
+    for (const pair of queries) {
+      const [k, v] = pair;
+      if (k === 'tab') {
+        switch (v) {
           case 'created-modules':
             return toggleTabCreatedModules();
           case 'enrollments':
             return toggleTabEnrollments();
           case 'personal-details':
             return toggleTabPersonalDetails();
-          }
         }
       }
-      const cookies = document.cookie
-        .split(';')
-        .map(cookie => cookie.trim().split('=')
-        .map(x => x.trim()));
-      for (const pair of cookies) {
-        const [k, v] = pair;
-        if (k === 'homeTab') {
-          switch (v) {
+    }
+    const cookies = document.cookie.split(';').map(cookie => {
+      return cookie.trim().split('=').map(pairEl => pairEl.trim());
+    });
+    for (const pair of cookies) {
+      const [k, v] = pair;
+      if (k === 'homeTab') {
+        switch (v) {
           case 'personal-details':
             return toggleTabPersonalDetails();
           case 'enrollments':
             return toggleTabEnrollments();
           case 'created-modules':
             return toggleTabCreatedModules();
-          }
         }
       }
-    })();
+    }
+    return toggleTabPersonalDetails();
+  }), {once: true});
 </script>
