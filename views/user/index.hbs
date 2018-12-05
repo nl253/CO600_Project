@@ -238,28 +238,35 @@
   {{/if}}
 </section>
 
-<section id="user-enrollments" style="margin: 70px 25vw;">
+<section id="user-enrollments" class="is-hidden" style="margin: 70px 25vw;">
   {{#if user.enrollments}}
-    <ul class="list" style="width: 100%;">
+    <ul class="list" style="margin: auto">
       {{#each user.enrollments}}
-        <li class="list-item">
-          <a href="/module/{{moduleId}}" class="has-text-link" style="display: inline;">
+        <li class="list-item" style="padding: 14px;">
+          <a href="/module/{{moduleId}}" data-id="{{id}}" class="has-text-link" style="display: inline;">
             {{module.name}}
           </a>
         </li>
       {{/each}}
       <script>
-        (function() {
-          for (let el of document.querySelectorAll('#user-enrollments li a')) {
-            if (el.innerText.trim() === '') el.innerText = 'unnamed'
+        document.addEventListener('DOMContentLoaded', (() => {
+          const nodes = [...document.querySelectorAll('#user-enrollments li a')].filter(
+              el => el.innerText.trim() === '');
+          for (const el of nodes) {
+            el.innerText = `unnamed #${el.getAttribute('data-id')}`;
           }
-        })();
+        }), {once: true});
       </script>
     </ul>
   {{else}}
     <p class="has-text-centered">
       {{#if user.isMe}}
         Enroll to modules and they will show up here!
+        <button class="button is-link" style="display: block; margin: 60px auto;"
+                onclick="window.location = '/module/search'">
+          <i class="fas fa-search"></i>
+          Search for Modules
+        </button>
       {{else}}
         The user has not enrolled in any modules!
       {{/if}}
