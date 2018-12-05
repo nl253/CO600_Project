@@ -212,13 +212,39 @@
     {{else}}
       <p class="has-text-centered">No lessons</p>
     {{/if}}
-
     {{#if module.isMine}}
       <br>
-      <button class="button is-link" style="display: block; margin: auto;" onclick="alert('not implemneted yet')">Add Lesson</button>
+      <button id="module-btn-lesson-create" class="button is-link" style="display: block; margin: auto;"
+              onclick="location = '/lesson/create'">
+        <i class="fas fa-plus"></i>
+        Add Lesson
+      </button>
+      <script>
+        (function() {
+          document.getElementById('module-btn-lesson-create').onclick = async function() {
+            try {
+              const moduleId = /(\d+)$/.exec(location.pathname)[1];
+              const result = await fetch(`/api/module/${moduleId}/lesson/create`, {
+                redirect: 'follow',
+                cache: 'no-cache',
+                mode: 'cors',
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                },
+              });
+              if (result.status >= 400) throw new (await result.json());
+              const json = await result.json();
+              location.pathname += `/${json.result.toString()}`;
+            } catch (e) {
+              return alert(e.msg || e.message || e.toString());
+            }
+          };
+        })();
+      </script>
     {{/if}}
   </section>
-
   {{#if module.isMine}}
     <button id="module-btn-save" class="button is-primary" style="margin: auto; display: block;">
       <i class="fas fa-check"></i>
