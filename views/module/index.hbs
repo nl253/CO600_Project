@@ -1,7 +1,88 @@
+<script>
+  function unEnroll(moduleId) {
+    return fetch(`/api/module/${moduleId}/unenroll`, {
+      redirect: 'follow',
+      cache: 'no-cache',
+      mode: 'cors',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+    }).then(res => res.status >= 400
+        ? res.json().then(json => Promise.reject(json))
+        : Promise.resolve(res.json()),
+    ).then(res => {
+      const me = document.getElementById('module-btn-enroll');
+      me.classList.remove('is-danger');
+      me.classList.add('is-light');
+      me.innerText = 'wait ...';
+      me.onclick = undefined;
+      setTimeout(function() {
+        me.classList.remove('is-light');
+        me.classList.add('is-primary');
+        me.innerText = 'Enroll';
+        me.onclick = () => enroll(moduleId);
+      }, 1000);
+    }).catch(err => alert(err.msg || err.message || 'failed to unenroll'));
+  }
+
+  function enroll(moduleId) {
+    return fetch(`/api/module/${moduleId}/enroll`, {
+      redirect: 'follow',
+      cache: 'no-cache',
+      mode: 'cors',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+    }).then(response => response.status >= 400
+        ? response.json().then(json => Promise.reject(json))
+        : Promise.resolve(response.json()),
+    ).then(res => {
+      const me = document.getElementById('module-btn-enroll');
+      me.classList.remove('is-primary');
+      me.classList.add('is-light');
+      me.innerText = 'wait ...';
+      me.onclick = undefined;
+      setTimeout(function() {
+        me.classList.remove('is-light');
+        me.classList.add('is-danger');
+        me.innerText = 'Unenroll';
+        me.onclick = () => unEnroll(moduleId);
+      }, 1000);
+    })
+        .catch(err => alert(err.msg || err.message || 'failed to enroll'));
+  }
+</script>
 <section class="hero">
   <div class="hero-body" style="margin-left: 13.5vw;">
     {{#if module.isMine}}
       <h1 class="title" style="margin-bottom: 10px;">Module Name</h1>
+      <div style="margin: 20px 0;">
+        <button id="module-btn-reset" class="button is-warning">Reset</button>
+        <button id="module-btn-delete" class="button is-danger">Delete</button>
+        <script>
+          document.getElementById('module-btn-delete').onclick = () => {
+            if (!confirm('Delete module?')) return;
+            const regex = /(\d+)$/;
+            const match = regex.exec(location.pathname);
+            const id = match[1];
+            return fetch(`/api/module/${id}/delete`)
+                .then(res => res.status >= 400
+                    ? res.json().then(json => Promise.reject(json))
+                    : res.json())
+                .then(json => window.location.href = '/')
+                .catch(err => alert(err.msg || err.message || err.toString()));
+          };
+          document.getElementById('module-btn-reset').onclick = () => {
+            if (confirm('Revert all changes?')) {
+              window.location.href = window.location.href;
+            }
+          };
+        </script>
+      </div>
       <div id="module-name" contenteditable="true" style="max-width: 300px;">
         {{module.name}}
       </div>
@@ -16,48 +97,10 @@
     {{/if}}
     {{#if loggedIn}}
       {{#unless module.isMine}}
-        {{#if module.enrolled}}
-          <button id="btn-enroll" class="button is-danger">Unenroll</button>
-          <script>
-            (function() {
-              return document.getElementById('btn-enroll').onclick = () => fetch(
-                  '/api/module/{{module.id}}/unenroll', {
-                    redirect: 'follow',
-                    cache: 'no-cache',
-                    mode: 'cors',
-                    credentials: 'include',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Accept': 'application/json',
-                    },
-                  }).then(res => res.status >= 400
-                  ? Promise.reject(res.json())
-                  : Promise.resolve(res.json()))
-                  .then(() => window.location = window.location.href)
-                  .catch(err => alert(err.msg || err.message || 'failed to unenroll'));
-            })();
-          </script>
+        {{#if module.isEnrolled}}
+          <button id="module-btn-enroll" class="button is-danger" onclick="unEnroll({{module.id}})">Unenroll</button>
         {{else}}
-          <button id="btn-enroll" class="button is-primary">Enroll</button>
-          <script>
-            (function() {
-              document.getElementById('btn-enroll').onclick = () => fetch(
-                  '/api/module/{{module.id}}/enroll', {
-                    redirect: 'follow',
-                    cache: 'no-cache',
-                    mode: 'cors',
-                    credentials: 'include',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Accept': 'application/json',
-                    },
-                  }).then(response => response.status >= 400
-                  ? Promise.reject(response.json())
-                  : Promise.resolve(response.json()),
-              ).then(jsonRes => window.location = window.location.href)
-                  .catch(err => alert(err.msg || err.message || 'failed to enroll'));
-            })();
-          </script>
+          <button id="module-btn-enroll" class="button is-primary" onclick="enroll({{module.id}})">Enroll</button>
         {{/if}}
       {{/unless}}
     {{else}}
