@@ -96,88 +96,83 @@
       </div>
     </form>
     <script>
-      (function() {
-        document.getElementById('user-input-email').oninput = function () {
-          this.style.background = this.value.match(/.{2,}@.{2,}\.(.{2,})/) ? '#e7fdd1' : '#ffbaba';
+      document.getElementById('user-input-email').oninput = function() {
+        this.style.background = this.value.match(/.{2,}@.{2,}\.(.{2,})/) ? '#e7fdd1' : '#ffbaba';
+      };
+      document.getElementById('user-password-new').oninput = function() {
+        this.style.background = this.value.match(/.{6,}/) ? '#e7fdd1' : '#ffbaba';
+      };
+      document.getElementById('user-password-new-2').oninput = function() {
+        const elPassword = document.getElementById('user-password-new');
+        this.style.background = elPassword.value !== this.value ? '#ffbaba' : '#e7fdd1';
+        elPassword.style.background = elPassword.value !== this.value ? '#ffbaba' : '#e7fdd1';
+      };
+      document.getElementById('user-btn-modify-details').onclick = event => {
+        event.preventDefault();
+        const details = {};
+        const changedAttrs = [];
+        const emailEl = document.getElementById('user-input-email');
+        details.email = emailEl.value;
+        const infoEl = document.getElementById('user-info');
+        details.info = infoEl.value === '' ? null : infoEl.value;
+        const firstNameEl = document.getElementById('user-first-name');
+        details.firstName = firstNameEl.value === '' ? null : firstNameEl.value;
+        const lastNameEl = document.getElementById('user-last-name');
+        details.lastName = lastNameEl.value === '' ? null : lastNameEl.value;
+        const cfg = {
+          method: 'POST',
+          withCredentials: true,
+          cache: 'no-cache',
+          body: JSON.stringify(details),
+          redirect: 'follow',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
         };
-      })();
-      (function() {
-        document.getElementById('user-password-new').oninput = function () {
-          this.style.background = this.value.match(/.{6,}/) ? '#e7fdd1' : '#ffbaba';
-        };
-      })();
-      (function() {
-        document.getElementById('user-password-new-2').oninput = function () {
-          const elPassword = document.getElementById('user-password-new');
-          this.style.background = elPassword.value !== this.value ? '#ffbaba' : '#e7fdd1';
-          elPassword.style.background = elPassword.value !== this.value ? '#ffbaba' : '#e7fdd1';
-        };
-      })();
-      (function() {
-        document.getElementById('user-btn-modify-details').onclick = (event) => {
-          event.preventDefault();
-          const details = {};
-          const changedAttrs = [];
-          const emailEl = document.getElementById('user-input-email');
-          details.email = emailEl.value;
-          const infoEl = document.getElementById('user-info');
-          details.info = infoEl.value === '' ? null : infoEl.value;
-          const firstNameEl = document.getElementById('user-first-name');
-          details.firstName = firstNameEl.value === '' ? null : firstNameEl.value;
-          const lastNameEl = document.getElementById('user-last-name');
-          details.lastName = lastNameEl.value === '' ? null : lastNameEl.value;
-          const cfg = {
-            method: 'POST',
-            withCredentials: true,
-            cache: 'no-cache',
-            body: JSON.stringify(details),
-            redirect: 'follow',
-            mode: 'cors',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-          };
-          for (const k of Object.keys(details)) changedAttrs.push(k);
-          return fetch('/api/user', cfg).then((result) => result.status >= 400
-              ? result.json().then(json => Promise.reject(json))
-              : result.json())
-              .then(() => {
-                const elOldPass = document.getElementById('user-password-old');
-                const elEmail = document.getElementById('user-input-email');
-                if (elEmail.value === '' || elEmail.value.indexOf('@') <= 0 || elEmail.value.length <= 4) {
-                  return alert('bad email format, cannot change password');
-                }
-                const elNewPass = document.getElementById('user-password-new');
-                const elNewPass2 = document.getElementById('user-password-new-2');
-                // if all password fields empty
-                if ([elOldPass, elNewPass, elNewPass2].reduce((prev, cur) => cur['value'] === '' && prev, true)) {
-                  return alert(`successfully modified ${changedAttrs.join(', ')}`);
-                }
-                changedAttrs.push('password');
-                // if any passwords are empty
-                if ([elOldPass, elNewPass, elNewPass2].reduce((prev, cur) => prev || cur['value'] === '', false)) {
-                  return alert('empty password');
-                }
-                if (elNewPass.value !== elNewPass2.value) {
-                  return alert('new passwords don\'t match');
-                }
-                if (elNewPass.value === elOldPass.value) {
-                  return alert('old and new password are exactly the same');
-                }
-                return fetch('/api/user/password', Object.assign(cfg, {
-                  body: JSON.stringify({
-                    value: elNewPass.value,
-                    password: elOldPass.value,
-                    email: elEmail.value,
+        for (const k of Object.keys(details)) changedAttrs.push(k);
+        return fetch('/api/user', cfg)
+            .then(result => result.status >= 400
+                ? result.json().then(json => Promise.reject(json))
+                : result.json())
+            .then(json => {
+              const elOldPass = document.getElementById('user-password-old');
+              const elEmail = document.getElementById('user-input-email');
+              if (elEmail.value === '' || elEmail.value.indexOf('@') <= 0 || elEmail.value.length <= 4) {
+                return alert('bad email format, cannot change password');
+              }
+              const elNewPass = document.getElementById('user-password-new');
+              const elNewPass2 = document.getElementById('user-password-new-2');
+              // if all password fields empty
+              if ([elOldPass, elNewPass, elNewPass2].reduce((prev, cur) => cur['value'] === '' && prev, true)) {
+                return alert(`successfully modified ${changedAttrs.join(', ')}`);
+              }
+              changedAttrs.push('password');
+              // if any passwords are empty
+              if ([elOldPass, elNewPass, elNewPass2].reduce((prev, cur) => prev || cur['value'] === '', false)) {
+                return alert('empty password');
+              }
+              if (elNewPass.value !== elNewPass2.value) {
+                return alert('new passwords don\'t match');
+              }
+              if (elNewPass.value === elOldPass.value) {
+                return alert('old and new password are exactly the same');
+              }
+              return fetch('/api/user/password', Object.assign(cfg, {
+                    body: JSON.stringify({
+                      value: elNewPass.value,
+                      password: elOldPass.value,
+                      email: elEmail.value,
+                    }),
                   }),
-                })).then(result => result.status >= 400
-                    ? result.json().then(json => Promise.reject(json))
-                    : result.json())
-                    .then(json => alert(`successfully modified ${changedAttrs.join(', ')}`));
-              }).catch(json => alert(json.msg || json.message || `failed to change ${changedAttrs.join(', ')}`));
-        };
-      })();
+              )
+                  .then(result => (result.status >= 400 ?
+                      result.json().then(json => Promise.reject(json)) :
+                      result.json()))
+                  .then(json => alert(`successfully modified ${changedAttrs.join(', ')}`));
+            }).catch(json => alert(json.msg || json.message || `failed to change ${changedAttrs.join(', ')}`));
+      };
     </script>
   {{else}}
     <div style="margin: 3vw 30vw">
@@ -199,14 +194,14 @@
       <p id="member-since-date">{{user.createdAt}}</p><br/>
     </div>
     <script>
-      (function() {
+      document.addEventListener('DOMContentLoaded', function() {
         const el = document.getElementById('member-since-date');
         if (el.innerText.trim()) {
           const regex = /(.*\s+GMT\+\d).*/;
           const match = regex.exec(el.innerText);
           if (match) el.innerText = match[1];
         }
-      })();
+      }, {once: true});
     </script>
   {{/if}}
 </section>
