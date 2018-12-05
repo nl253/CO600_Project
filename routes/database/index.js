@@ -27,7 +27,7 @@ if (process.env.NODE_ENV !== 'development') {
 // 3rd Party
 const Sequelize = require('sequelize');
 
-const {STRING, TEXT, INTEGER, TINYINT, BOOLEAN, REAL} = Sequelize;
+const {STRING, TEXT, INTEGER, TINYINT, BOOLEAN, REAL, BLOB} = Sequelize;
 
 const sequelize = new Sequelize({
 
@@ -187,6 +187,38 @@ const Lesson = sequelize.define('Lesson', {
   summary: TEXT,
   content: TEXT,
 });
+
+const File = {
+  id: {
+    type: INTEGER,
+    allowNull: false,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  lessonId: {
+    type: INTEGER,
+    references: {
+      model: Lesson,
+      key: 'id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  },
+  name: {
+    type: STRING,
+    validate: {
+      is: {
+        args: [/.+\.((pn|jp)g|gif|mp[34g])$/],
+        mgs: 'not a valid file name',
+      },
+    },
+    allowNull: false,
+  },
+  data: {
+    allowNull: false,
+    type: BLOB,
+  },
+};
 
 const [minRating, maxRating] = [0, 5];
 const badRatingMsg = `rating must be between ${minRating} and ${maxRating}`;
