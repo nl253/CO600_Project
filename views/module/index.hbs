@@ -142,17 +142,19 @@
     {{/if}}
   </div>
 </section>
-<div style="margin: 0 15vw 50px;">
+<div style="margin: 0 20vw 50px;">
   <section class="content" style="margin-top: 40px;">
     <strong>Author</strong> <a href="/user/{{module.author.id}}">{{module.author.email}}</a>
     <br>
-    <strong>Rating</strong> <span id="rating-module"> {{module.rating}}/5</span>
-    <script>
-      (function() {
-        const el = document.getElementById('rating-module');
-        el.innerText = `${((eval(el.innerText) * 100).toPrecision(3)).toString()}%`;
-      })();
-    </script>
+    <strong>Rating</strong> <span id="module-rating">{{module.rating}}/5</span>
+    <!--<script>-->
+    <!--document.addEventListener('DOMContentLoaded', (function() {-->
+    <!--const el = document.getElementById('module-rating');-->
+    <!--el.innerText = (({{module.rating}}) === '' || ({{module.rating}}) === '0' || ({{module.rating}}) === null-->
+    <!--? '0'-->
+    <!--: ({{module.rating}}) * 20) + '%';-->
+    <!--}), {once: true});-->
+    <!--</script>-->
   </section>
   <section class="is-medium" style="margin-bottom: 30px;">
     <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
