@@ -182,6 +182,7 @@ const Lesson = sequelize.define('Lesson', {
       key: 'id',
     },
     onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
     allowNull: false,
   },
   summary: TEXT,
