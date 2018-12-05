@@ -49,7 +49,7 @@
           <a href="/user" class="navbar-link">Create</a>
           <div class="navbar-dropdown">
             <a id="layout-btn-create-module" class="navbar-item">Module</a>
-            <a id="layout-btn-create-lesson" class="navbar-item">Lesson</a>
+            <!--<a id="layout-btn-create-lesson" class="navbar-item" onclick="location.href = '/lesson/create'">Lesson</a>-->
             {{#if loggedIn}}
               <script>
                 document.getElementById('layout-btn-create-module').onclick = function(event) {
@@ -210,7 +210,9 @@
   </nav>
 {{/unless}}
 
-{{{body}}}
+<div style="min-height: 68vh;">
+    {{{body}}}
+</div>
 
 {{#unless error}}
   <footer class="footer">
