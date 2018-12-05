@@ -209,20 +209,22 @@
 
 <section id="user-created-modules" class="is-hidden" style="margin: 70px 25vw;">
   {{#if user.createdModules}}
-    <ul class="list" style="width: 100%;">
+    <ul class="list" style="margin: auto">
       {{#each user.createdModules}}
-        <li class="list-item">
-          <a href="/module/{{id}}" class="has-text-link" style="display: inline;">
+        <li class="list-item" style="padding: 14px;">
+          <a href="/module/{{id}}" data-id="{{id}}" class="has-text-link" style="display: inline;">
             {{name}}
           </a>
         </li>
       {{/each}}
       <script>
-        (function() {
-          for (const el of document.querySelectorAll('#user-created-modules li a')) {
-            if (el.innerText.trim() === '') el.innerText = 'unnamed';
+        document.addEventListener('DOMContentLoaded', (function() {
+          const nodes = [...document.querySelectorAll('#user-created-modules li a')].filter(
+              el => el.innerText.trim() === '');
+          for (const el of nodes) {
+            el.innerText = `unnamed #${el.getAttribute('data-id')}`;
           }
-        })();
+        }), {once: true});
       </script>
     </ul>
   {{else}}
