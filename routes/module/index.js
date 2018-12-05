@@ -1,15 +1,45 @@
+const {IncomingForm} = require('formidable');
 const express = require('express');
+const {validColumns, notRestrictedColumns} = require('../lib');
 const router = express.Router();
 const {join} = require('path');
+const {readFile, readFileSync} = require('fs');
 
-const NoSuchRecord = require('../errors').NoSuchRecord;
+const {NoSuchRecord, InvalidRequestErr, NotLoggedIn, MissingDataErr} = require('../errors');
 const {Enrollment, Module, Lesson, Rating, sequelize, User} = require('../database');
 
-/**
- * Search page for all modules.
- */
-router.get('/search', (req, res) => res.render(join('module', 'search')));
+const NUM_REGEX = /\d+/;
+const MEDIA_REGEX = /.+\.((pn|jp)g|gif|mp[34g])$/;
 
+router.get('/:moduleId/:lessonId/:fileName',
+  (req, res, next) => res.locals.loggedIn ? next() : res.redirect('/'),
+  async (req, res, next) => {
+    if (!MEDIA_REGEX.test(req.params.fileName)) {
+      return next(new InvalidRequestErr('File', req.params.fileName));
+    }
+    if (!NUM_REGEX.test(req.params.moduleId)) {
+      return next(new InvalidRequestErr('Module', req.params.moduleId));
+    }
+    if (!NUM_REGEX.text(req.params.lessonId)) {
+      return next(new InvalidRequestErr('Lesson', req.params.lessonId));
+    }
+    const {lessonId, fileName} = req.params;
+    try {
+      const file = await File.findOne({where: {name: fileName, lessonId}});
+      if (file === null) {
+        return next(new NoSuchRecord('lesson file', {name: req.params.fileName}));
+      } else if (file.name.match('\.png$')) {
+        res.set('Content-Type', 'image/png');
+      } else if (file.name.match('\.jpe?g$')) {
+        res.set('Content-Type', 'image/jpeg');
+      } else if (file.name.match('\.gif$')) {
+        res.set('Content-Type', 'image/gif');
+      }
+      return res.send(file.data);
+    } catch (e) {
+      return next(e);
+    }
+  });
 
 /**
  * Public info about a module.
