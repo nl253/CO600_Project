@@ -41,57 +41,89 @@ router.get('/:moduleId/:lessonId/:fileName',
     }
   });
 
-/**
- * Public info about a module.
- */
-router.get('/:id',
+router.get('/:moduleId/:lessonId',
+  async (req, res, next) => {
+    if (!res.locals.loggedIn) return next(new NotLoggedIn());
+    try {
+      let lesson = Lesson.findOne({where: {id: req.params.lessonId}}).then(l => l.dataValues);
+      const module = await Module.findOne({where: {id: req.params.moduleId}}).then(m => m.dataValues);
+      if (module === null) {
+        return next(new NoSuchRecord('Module', {id: req.params.moduleId}));
+      }
+      if (res.locals.loggedIn.id !== module.authorId && await Enrollment.findOne({
+        where: {
+          moduleId: req.params.moduleId,
+          studentId: res.locals.loggedIn.id,
+        }}) === null) {
+        throw new NoSuchRecord('Enrollment', {email: res.locals.loggedIn.email})
+      }
+      const author = await User.findOne({where: {id: module.authorId}}).then(u => u.dataValues);
+      lesson = await lesson;
+      if (lesson === null) {
+        return next(new NoSuchRecord('Lesson', {id: req.params.lessonId}));
+      }
+      module.isMine = author.id === res.locals.loggedIn.id;
+      lesson.isMine = author.id === res.locals.loggedIn.id;
+      lesson.module = module;
+      lesson.author = author;
+      module.author = author;
+      return res.render(join('lesson', 'index'), {lesson, module, author});
+    } catch (e) {
+      return next(e);
+    }
+  });
+
+router.post([
+    '/:moduleId/:lessonId',
+    '/:moduleId/:lessonId/update',
+    '/:moduleId/:lessonId/modify',
+  ],
   (req, res, next) => {
-    const {id} = req.params;
-    return Module.findOne({where: {id}})
-      .then((m) => m === null
-        ? Promise.reject(new NoSuchRecord('Module', {id}))
-        : m.dataValues)
-      .then((moduleInfo) => {
-          if (res.locals.loggedIn && res.locals.loggedIn.id === moduleInfo.authorId) {
-            moduleInfo.isMine = true;
+    if (!res.locals.loggedIn) return next(new NotLoggedIn());
+    return new IncomingForm().parse(req,
+      async (err, fields, files) => {
+
+        for (const f in fields) {
+          if (Object.keys(Lesson.attributes).indexOf(f) < 0) {
+            return next(new InvalidRequestErr('Lesson', f));
+          } else if (f === 'updatedAt' || f === 'createdAt') {
+            return next(new InvalidRequestErr('Lesson', f));
           }
-          return Lesson.findAll({where: {moduleId: id}})
-            .then((lessons) => {
-              moduleInfo.lessons = lessons.map(l => l.dataValues);
-              return sequelize.query(`SELECT avg(stars) AS average
-                                      from Rating AS r
-                                             INNER JOIN Module AS m
-                                      WHERE r.moduleId = m.id`)
-                .spread((avg, metadata) => {
-                  moduleInfo.rating = avg[0].average;
-                  return Rating.findAll({
-                    order: sequelize.literal('createdAt DESC'),
-                    limit: 5,
-                    where: {moduleId: moduleInfo.id},
-                  }).then(async (ratings) => {
-                    moduleInfo.ratings = ratings.map(r => r.dataValues);
-                    for (let i = 0 ; i < moduleInfo.ratings.length; i++) {
-                      moduleInfo.ratings[i].rater = (await User.findOne({where: {id: moduleInfo.ratings[i].raterId}})).dataValues;
-                    }
-                    return res.locals.loggedIn === undefined
-                      ? res.render(join('module', 'index'), {module: moduleInfo})
-                      : Enrollment.findOne({
-                        where: {
-                          moduleId: moduleInfo.id,
-                          studentId: res.locals.loggedIn.id,
-                        },
-                      }).then(enrollment => {
-                        moduleInfo.enrolled = enrollment !== null;
-                        return User.findOne({where: {id: moduleInfo.authorId}}).then(author => {
-                          moduleInfo.author = author;
-                          return res.render(join('module', 'index'), {module: moduleInfo});
-                        })
-                      });
-                  });
-                });
-            });
-        },
-      ).catch((err) => next(err));
+        }
+
+        try {
+          const lesson = await Lesson.findOne({
+            where: {
+              moduleId: req.params.moduleId,
+              id: req.params.lessonId,
+            }
+          });
+          if (lesson === null) {
+            return next(new NoSuchRecord('Lesson', {id: req.params.lessonId}));
+          }
+          const vars = {};
+          if (files.lesson.name) {
+            vars.content = readFileSync(files.lesson.path);
+          }
+          for (const pair of Object.entries(fields)) {
+            const [field, val] = pair;
+            vars[field] = val !== null && val.trim() !== '' ? val : null;
+          }
+          await lesson.update(vars);
+          await Promise.all(
+            Object.keys(files)
+              .filter(fileName => fileName !== 'lesson')
+              .filter(fileName => files[fileName].name !== '' && files[fileName].size > 0)
+              .map(fileName => File.create({
+                lessonId: lesson.id,
+                name: files[fileName].name,
+                data: readFileSync(files[fileName].path),
+              })));
+          return res.redirect(req.originalUrl);
+        } catch (e) {
+          return next(e);
+        }
+      });
   });
 
 router.get('/', (req, res) => res.redirect('/module/search'));
