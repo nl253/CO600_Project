@@ -57,7 +57,7 @@
   }
 </script>
 <section class="hero">
-  <div class="hero-body" style="margin-left: 13.5vw;">
+  <div class="hero-body" style="margin: 0 18.5vw; padding-bottom: 15px;">
     {{#if module.isMine}}
       <h1 class="title" style="margin-bottom: 10px;">Module Name</h1>
       <div style="margin: 20px 0;">
@@ -135,12 +135,14 @@
   <section class="is-medium" style="margin-bottom: 30px;">
     <h2 class="title is-medium">Lessons</h2>
     {{#if module.lessons}}
-      <ol id="list-lessons">
+      <ol id="module-lessons" class="list" style="min-width: 100%;">
         {{#if module.isMine}}
           {{#each module.lessons}}
-            <li style="margin-bottom: 2px;">
-              <a href="/lesson/{{id}}" class="button is-small is-warning" style="padding: -4px;">Modify</a>
-              <a href="/lesson/{{id}}">{{summary}}</a>
+            <li class="list-item" style="margin-bottom: 2px;">
+              <button class="button is-small is-warning" style="padding: -4px;">Modify</button>
+              <a href="#" data-id="{{id}}" style="position: relative; top: 8px; left: 5px;">
+                {{name}}
+              </a>
             </li>
           {{/each}}
         {{else}}
@@ -166,43 +168,41 @@
   </section>
 
   {{#if module.isMine}}
-    <button id="btn-module-apply-changes" class="button is-primary" style="margin: auto; display: block;">
-      Apply Changes
+    <button id="module-btn-save" class="button is-primary" style="margin: auto; display: block;">
+      <i class="fas fa-check"></i>
+      Save
     </button>
     <script>
-      (function() {
-        const btn = document.getElementById('btn-module-apply-changes');
-        btn.onclick = function() {
-          const regex = /(\d+)$/;
-          const match = regex.exec(window.location.pathname);
-          if (match !== null) {
-            const id = match[1];
-            const postBody = {};
-            let summary = document.getElementById('module-summary');
-            let topic = document.getElementById('module-topic');
-            let name = document.getElementById('module-name');
-            postBody.name = name.innerText !== '' ? name.innerText : null;
-            postBody.topic = topic.innerText !== '' ? topic.innerText : null;
-            postBody.summary = summary.value !== '' ? summary.value : null;
-            return fetch(`/api/module/${id}`, {
-              method: 'post',
-              redirect: 'follow',
-              cache: 'no-cache',
-              mode: 'cors',
-              credentials: 'include',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-              },
-              body: JSON.stringify(postBody),
-            }).then(res => res.status >= 400
-                ? res.json(json => Promise.reject(json))
-                : res.json())
-            .then(json => alert(json.msg))
-            .catch(err => alert(err.msg || err.message || 'failed to modify the module'));
-          }
-        };
-      })();
+      document.getElementById('module-btn-save').onclick = function() {
+        const regex = /(\d+)$/;
+        const match = regex.exec(window.location.pathname);
+        if (match !== null) {
+          const id = match[1];
+          const postBody = {};
+          let summary = document.getElementById('module-summary');
+          let topic = document.getElementById('module-topic');
+          let name = document.getElementById('module-name');
+          postBody.name = name.innerText !== '' ? name.innerText : null;
+          postBody.topic = topic.innerText !== '' ? topic.innerText : null;
+          postBody.summary = summary.value !== '' ? summary.value : null;
+          return fetch(`/api/module/${id}`, {
+            method: 'post',
+            redirect: 'follow',
+            cache: 'no-cache',
+            mode: 'cors',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify(postBody),
+          }).then(res => res.status >= 400
+              ? res.json(json => Promise.reject(json))
+              : res.json())
+              .then(json => alert(json.msg))
+              .catch(err => alert(err.msg || err.message || 'failed to modify the module'));
+        }
+      };
     </script>
   {{/if}}
 
@@ -210,7 +210,7 @@
     <h2 class="title is-medium">Comments</h2>
     {{#if module.ratings}}
       {{#each module.ratings}}
-        <div class="box container" style="max-width: 70vw;">
+        <div class="box" style="margin: 20px auto 0;">
           <div style="margin-bottom: 10px;">
             <strong>{{stars}}/5</strong> by <em><a href="/user/{{rater.email}}">{{rater.email}}</a></em>
           </div>
