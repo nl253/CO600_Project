@@ -43,3 +43,33 @@ function setCookie(name, value, opts = {}) {
   console.log(cookieStr);
   document.cookie = cookieStr;
 }
+
+function toggleTabEnrollments(event) {
+  document.getElementById('user-created-modules').classList.add('is-hidden');
+  document.getElementById('user-enrollments').classList.remove('is-hidden');
+  document.getElementById('user-personal-details').classList.add('is-hidden');
+  document.getElementById('user-btn-personal-details').parentElement.classList.remove('is-active');
+  document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
+  document.getElementById('user-btn-enrollments-tab').parentElement.classList.add('is-active');
+  document.cookie = 'homeTab=enrollments';
+}
+
+function toggleTabCreatedModules(event) {
+  document.getElementById('user-personal-details').classList.add('is-hidden');
+  document.getElementById('user-enrollments').classList.add('is-hidden');
+  document.getElementById('user-created-modules').classList.remove('is-hidden');
+  document.getElementById('user-btn-created-modules-tab').parentElement.classList.add('is-active');
+  document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
+  document.getElementById('user-btn-personal-details').parentElement.classList.remove('is-active');
+  document.cookie = 'homeTab=created-modules';
+}
+
+function toggleTabPersonalDetails(event) {
+  document.getElementById('user-personal-details').classList.remove('is-hidden');
+  document.getElementById('user-enrollments').classList.add('is-hidden');
+  document.getElementById('user-created-modules').classList.add('is-hidden');
+  document.getElementById('user-btn-personal-details').parentElement.classList.add('is-active');
+  document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
+  document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
+  document.cookie = 'homeTab=personal-details';
+}

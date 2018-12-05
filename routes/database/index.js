@@ -27,7 +27,7 @@ if (process.env.NODE_ENV !== 'development') {
 // 3rd Party
 const Sequelize = require('sequelize');
 
-const {STRING, TEXT, INTEGER, TINYINT, BOOLEAN, REAL} = Sequelize;
+const {STRING, TEXT, INTEGER, TINYINT, BOOLEAN, REAL, BLOB} = Sequelize;
 
 const sequelize = new Sequelize({
 
@@ -182,11 +182,45 @@ const Lesson = sequelize.define('Lesson', {
       key: 'id',
     },
     onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
     allowNull: false,
   },
+  name: STRING,
   summary: TEXT,
-  content: TEXT,
+  content: BLOB,
 });
+
+const File = {
+  id: {
+    type: INTEGER,
+    allowNull: false,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  lessonId: {
+    type: INTEGER,
+    references: {
+      model: Lesson,
+      key: 'id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  },
+  name: {
+    type: STRING,
+    validate: {
+      is: {
+        args: [/.+\.((pn|jp)g|gif|mp[34g])$/],
+        mgs: 'not a valid file name',
+      },
+    },
+    allowNull: false,
+  },
+  data: {
+    allowNull: false,
+    type: BLOB,
+  },
+};
 
 const [minRating, maxRating] = [0, 5];
 const badRatingMsg = `rating must be between ${minRating} and ${maxRating}`;
@@ -286,58 +320,51 @@ const Question = sequelize.define('Question', {
 // ONLY RUN ONCE AT THE BEGINNING
 if (process.env.DB_SYNC === '1' || (process.env.DB_PATH !== undefined && !existsSync(process.env.DB_PATH))) {
   log.warn(`syncing database to ${process.env.DB_PATH}`);
-  sequelize.sync().then(() => {
-    if (process.env.NODE_ENV !== 'production') {
-      // write info about mock data to a separate file
-      const log = createLogger({label: 'MOCKS', logFileName: 'mocks'});
-      const faker = require('faker');
-      const {sha256} = require('../lib');
-      const email = faker.internet.email();
+  sequelize.sync().then(async () => {
+    if (process.env.NODE_ENV === 'production') {
+      return console.error(`NODE_ENV set to producting so DB_SYNC failed`);
+    } else console.warn(`generating mock data ...`);
+    // write info about mock data to a separate file
+    const log = createLogger({label: 'MOCKS', logFileName: 'mocks'});
+    const faker = require('faker');
+    const {sha256} = require('../lib');
+    function save(obj) {
+      return log.warn(`${obj._modelOptions.name.singular} ${Object.entries(obj.dataValues).filter(pair => pair[1]).map(pair => pair[0] + ' = ' + pair[1].toString().slice(0, 30)).join(', ')}`);
+    }
+    const users = [];
+    for (let i = 0; i < 5; i++) {
       const password = faker.internet.password();
-      let user;
-      let module;
-      User.create({
+      const user = await User.create({
         firstName: faker.name.firstName(),
         lastName: faker.name.lastName(),
         info: faker.random.words(10),
-        email,
+        email: faker.internet.email(),
         password: sha256(password),
-      }).then(u => {
-        user = u;
-        return Module.create({
-          name: faker.random.words(3),
-          topic: faker.random.word(),
-          authorId: user.id,
-          summary: faker.random.words(20),
-        });
-      }).then(m => module = m)
-        .then(() => Promise.all([...Array(10).keys()].map(_ => Rating.create({
-            raterId: user.id,
-            moduleId: module.id,
-            comment: faker.random.words(6),
-            stars: faker.random.number(5),
-          }),
-        ))).then(
-        () => Promise.all([...Array(10).keys()].map(_ => Lesson.create({
-          moduleId: module.id,
-          summary: faker.random.words(10),
-          content: faker.random.words(500),
-        }))))
-        .then(() => User.findAll())
-        .then(users => {
-          for (const u of users) {
-            u.dataValues.password = password;
-            log.info(
-              `User ${u.dataValues.id} ${u.dataValues.email} ${u.dataValues.password}`);
-          }
-        })
-        .then(() => Module.findAll())
-        .then((modules) => {
-          for (const m of modules) {
-            log.info(
-              `Module ${m.dataValues.id} ${m.dataValues.name} by ${m.dataValues.authorId} ${m.dataValues.email}`);
-          }
-        });
+      });
+      users.push(user.dataValues);
+      const module = await Module.create({
+        name: faker.random.words(3),
+        topic: faker.random.word(),
+        authorId: user.id,
+        summary: faker.random.words(20),
+      });
+      const _ = Promise.all([...Array(10)].map(_ => Rating.create({
+        raterId: users[faker.random.number(users.length - 1)].id,
+        moduleId: module.id,
+        comment: faker.random.words(6),
+        stars: faker.random.number(1, 5),
+      })));
+      let lessons = Promise.all([...Array(5)].map(_ => Lesson.create({
+        moduleId: module.id,
+        summary: faker.random.words(10),
+        name: faker.random.words(3),
+        content: Buffer.from(faker.random.words(500)),
+      })));
+      delete user.dataValues.password;
+      user.dataValues.password = password;
+      save(user);
+      save(module);
+      for (const l of await lessons) save(l);
     }
   });
 }
@@ -351,5 +378,6 @@ module.exports = {
   sequelize,
   Session,
   Sequelize,
+  File,
   User,
 };

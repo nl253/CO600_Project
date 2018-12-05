@@ -1,4 +1,4 @@
-class RestAPIErr extends Error {
+class APIErr extends Error {
   /**
    * @param {String} msg
    * @param {Number} [code]
@@ -9,7 +9,7 @@ class RestAPIErr extends Error {
     super(msg, ...params);
     this._code = code || 400;
     // Maintains proper stack trace for where our error was thrown (only available on V8)
-    if (Error.captureStackTrace) Error.captureStackTrace(this, RestAPIErr);
+    if (Error.captureStackTrace) Error.captureStackTrace(this, APIErr);
   }
 
   /**
@@ -27,7 +27,7 @@ class RestAPIErr extends Error {
   }
 }
 
-class BadMethodErr extends RestAPIErr {
+class BadMethodErr extends APIErr {
   /**
    * @param {String} action
    * @param {String} suggestedMethod
@@ -37,13 +37,7 @@ class BadMethodErr extends RestAPIErr {
   }
 }
 
-class SessionExpiredErr extends RestAPIErr {
-  constructor() {
-    super('your session has expired', 401);
-  }
-}
-
-class RecordExistsErr extends RestAPIErr {
+class RecordExistsErr extends APIErr {
   /**
    *
    * @param {String} tableName
@@ -63,7 +57,7 @@ class RecordExistsErr extends RestAPIErr {
   }
 }
 
-class NoSuchRecord extends RestAPIErr {
+class NoSuchRecord extends APIErr {
   /**
    *
    * @param {String} tableName
@@ -83,13 +77,13 @@ class NoSuchRecord extends RestAPIErr {
   }
 }
 
-class TypoErr extends RestAPIErr {
+class TypoErr extends APIErr {
   constructor(suggestion) {
     super(`did you mean '${suggestion}'?`, 400);
   }
 }
 
-class InvalidRequestErr extends RestAPIErr {
+class InvalidRequestErr extends APIErr {
   /**
    * @param {String} table
    * @param {String} attr
@@ -99,7 +93,7 @@ class InvalidRequestErr extends RestAPIErr {
   }
 }
 
-class MissingDataErr extends RestAPIErr {
+class MissingDataErr extends APIErr {
   /**
    * @param {String} missing
    * @param {String} where
@@ -110,7 +104,7 @@ class MissingDataErr extends RestAPIErr {
   }
 }
 
-class NotImplYetErr extends RestAPIErr {
+class NotImplYetErr extends APIErr {
   /**
    * @param {String} feature
    */
@@ -119,14 +113,20 @@ class NotImplYetErr extends RestAPIErr {
   }
 }
 
+class NotLoggedIn extends APIErr {
+  constructor() {
+    super('not logged in', 403);
+  }
+}
+
 module.exports = {
   BadMethodErr,
   InvalidRequestErr,
   MissingDataErr,
+  NotLoggedIn,
   NoSuchRecord,
-  RestAPIErr,
+  APIErr,
   NotImplYetErr,
   RecordExistsErr,
-  SessionExpiredErr,
   TypoErr,
 };

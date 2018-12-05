@@ -1,89 +1,169 @@
+<script>
+  function unEnroll(moduleId) {
+    return fetch(`/api/module/${moduleId}/unenroll`, {
+      redirect: 'follow',
+      cache: 'no-cache',
+      mode: 'cors',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+    }).then(res => res.status >= 400
+        ? res.json().then(json => Promise.reject(json))
+        : Promise.resolve(res.json()),
+    ).then(res => {
+      const me = document.getElementById('module-btn-enroll');
+      me.classList.remove('is-danger');
+      me.classList.add('is-light');
+      me.innerText = 'wait ...';
+      me.onclick = undefined;
+      setTimeout(function() {
+        me.classList.remove('is-light');
+        me.classList.add('is-primary');
+        me.innerText = 'Enroll';
+        me.onclick = () => enroll(moduleId);
+      }, 1000);
+    }).catch(err => alert(err.msg || err.message || 'failed to unenroll'));
+  }
+
+  function enroll(moduleId) {
+    return fetch(`/api/module/${moduleId}/enroll`, {
+      redirect: 'follow',
+      cache: 'no-cache',
+      mode: 'cors',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+    }).then(response => response.status >= 400
+        ? response.json().then(json => Promise.reject(json))
+        : Promise.resolve(response.json()),
+    ).then(res => {
+      const me = document.getElementById('module-btn-enroll');
+      me.classList.remove('is-primary');
+      me.classList.add('is-light');
+      me.innerText = 'wait ...';
+      me.onclick = undefined;
+      setTimeout(function() {
+        me.classList.remove('is-light');
+        me.classList.add('is-danger');
+        me.innerText = 'Unenroll';
+        me.onclick = () => unEnroll(moduleId);
+      }, 1000);
+    })
+        .catch(err => alert(err.msg || err.message || 'failed to enroll'));
+  }
+</script>
 <section class="hero">
-  <div class="hero-body" style="margin-left: 13.5vw;">
+  <div class="hero-body" style="margin: 0 18.5vw; padding-bottom: 15px;">
     {{#if module.isMine}}
       <h1 class="title" style="margin-bottom: 10px;">Module Name</h1>
+      <div style="margin: 20px 0;">
+        <button id="module-btn-reset" class="button is-warning">Reset</button>
+        <button id="module-btn-delete" class="button is-danger">Delete</button>
+        <script>
+          document.getElementById('module-btn-delete').onclick = () => {
+            if (!confirm('Delete module?')) return;
+            const regex = /(\d+)$/;
+            const match = regex.exec(location.pathname);
+            const id = match[1];
+            return fetch(`/api/module/${id}/delete`)
+                .then(res => res.status >= 400
+                    ? res.json().then(json => Promise.reject(json))
+                    : res.json())
+                .then(json => window.location.href = '/')
+                .catch(err => alert(err.msg || err.message || err.toString()));
+          };
+          document.getElementById('module-btn-reset').onclick = () => {
+            if (confirm('Revert all changes?')) {
+              window.location.href = window.location.href;
+            }
+          };
+        </script>
+      </div>
       <div id="module-name" contenteditable="true" style="max-width: 300px;">
         {{module.name}}
       </div>
-      <br>
-      <h3 class="subtitle">Topic</h3>
-      <div id="module-topic" contenteditable="true" style="max-width: 300px;">
-        {{module.topic}}
+      <h3 class="subtitle" style="margin: 25px 0;">Topic</h3>
+
+      <div class="dropdown" onmouseover="this.classList.add('is-active')"
+           onmouseout="this.classList.remove('is-active')">
+        <div class="dropdown-trigger">
+          <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+            <span id="module-topic" style="min-width: 150px;">{{module.topic}}</span>
+            <span class="icon is-small">
+              <i class="fas fa-angle-down" aria-hidden="true"></i>
+            </span>
+          </button>
+        </div>
+        <div class="dropdown-menu" id="dropdown-menu" role="menu">
+          <div class="dropdown-content">
+            {{#each module.topics}}
+              <a href="#" class="dropdown-item"
+                 onclick="document.getElementById('module-topic').innerText = this.innerText.trim()">
+                {{this}}
+              </a>
+            {{/each}}
+            <hr class="dropdown-divider">
+            <span class="dropdown-item" style="font-weight: bold;">
+              Other
+            </span>
+            <a href="#" class="dropdown-item" id="module-topic-other" contenteditable="true"
+               style="margin: 5px 10px; max-width: 90%;">
+              {{module.topic}}
+            </a>
+            <script>
+              document.querySelector('#module-topic-other').onblur = function() {
+                if (this.innerText.trim() !== '') {
+                  document.querySelector('#module-topic').innerText = this.innerText.trim();
+                }
+              };
+            </script>
+          </div>
+        </div>
       </div>
+
     {{else}}
       <h1 class="title">{{module.name}}</h1>
       <h3 class="subtitle">{{module.topic}}</h3>
     {{/if}}
     {{#if loggedIn}}
       {{#unless module.isMine}}
-        {{#if module.enrolled}}
-          <button id="btn-enroll" class="button is-danger">Unenroll</button>
-          <script>
-            (function() {
-              return document.getElementById('btn-enroll').onclick = () => fetch(
-                  '/api/module/{{module.id}}/unenroll', {
-                    redirect: 'follow',
-                    cache: 'no-cache',
-                    mode: 'cors',
-                    credentials: 'include',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Accept': 'application/json',
-                    },
-                  }).then(res => res.status >= 400
-                  ? Promise.reject(res.json())
-                  : Promise.resolve(res.json()))
-                  .then(() => window.location = window.location.href)
-                  .catch(err => alert(err.msg || err.message || 'failed to unenroll'));
-            })();
-          </script>
+        {{#if module.isEnrolled}}
+          <button id="module-btn-enroll" class="button is-danger" onclick="unEnroll({{module.id}})">Unenroll</button>
         {{else}}
-          <button id="btn-enroll" class="button is-primary">Enroll</button>
-          <script>
-            (function() {
-              document.getElementById('btn-enroll').onclick = () => fetch(
-                  '/api/module/{{module.id}}/enroll', {
-                    redirect: 'follow',
-                    cache: 'no-cache',
-                    mode: 'cors',
-                    credentials: 'include',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Accept': 'application/json',
-                    },
-                  }).then(response => response.status >= 400
-                  ? Promise.reject(response.json())
-                  : Promise.resolve(response.json()),
-              ).then(jsonRes => window.location = window.location.href)
-                  .catch(err => alert(err.msg || err.message || 'failed to enroll'));
-            })();
-          </script>
+          <button id="module-btn-enroll" class="button is-primary" onclick="enroll({{module.id}})">Enroll</button>
         {{/if}}
       {{/unless}}
     {{else}}
-      <button style="margin-top: 10px;" class="button is-link">log in to enroll</button>
+      <button style="margin-top: 10px;" class="button is-link" onclick="location.href = '/'">log in to enroll</button>
     {{/if}}
   </div>
 </section>
-<div style="margin: 0 15vw 50px;">
+<div style="margin: 0 20vw 50px;">
   <section class="content" style="margin-top: 40px;">
     <strong>Author</strong> <a href="/user/{{module.author.id}}">{{module.author.email}}</a>
     <br>
-    <strong>Rating</strong> <span id="rating-module"> {{module.rating}}/5</span>
-    <script>
-      (function() {
-        const el = document.getElementById('rating-module');
-        el.innerText = `${((eval(el.innerText) * 100).toPrecision(3)).toString()}%`;
-      })();
-    </script>
+    <strong>Rating</strong> <span id="module-rating">{{module.rating}}/5</span>
+    <!--<script>-->
+    <!--document.addEventListener('DOMContentLoaded', (function() {-->
+    <!--const el = document.getElementById('module-rating');-->
+    <!--el.innerText = (({{module.rating}}) === '' || ({{module.rating}}) === '0' || ({{module.rating}}) === null-->
+    <!--? '0'-->
+    <!--: ({{module.rating}}) * 20) + '%';-->
+    <!--}), {once: true});-->
+    <!--</script>-->
   </section>
   <section class="is-medium" style="margin-bottom: 30px;">
     <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
     {{#if module.isMine}}
-      <textarea id="module-summary" style="width: 80%; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">{{module.summary}}</textarea>
+      <textarea id="module-summary"
+                style="min-width: 100%; min-height: 50px; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">{{module.summary}}</textarea>
     {{else}}
       {{#if module.summary}}
-        <p class="is-medium" style="width: 80vw; word-wrap: break-word;">{{module.summary}}</p>
+        <p class="is-medium" style="width: 80%; word-wrap: break-word;">{{module.summary}}</p>
       {{else}}
         <p class="is-medium has-text-centered">No summary</p>
       {{/if}}
@@ -92,74 +172,115 @@
   <section class="is-medium" style="margin-bottom: 30px;">
     <h2 class="title is-medium">Lessons</h2>
     {{#if module.lessons}}
-      <ol id="list-lessons">
+      <ol id="module-lessons" class="list" style="min-width: 100%;">
         {{#if module.isMine}}
           {{#each module.lessons}}
-            <li style="margin-bottom: 2px;">
-              <a href="/lesson/{{id}}" class="button is-small is-warning" style="padding: -4px;">Modify</a>
-              <a href="/lesson/{{id}}">{{summary}}</a>
+            <li class="list-item" style="margin-bottom: 2px;">
+              <button class="button is-small is-warning" style="padding: -4px;">Modify</button>
+              <a href="#" data-id="{{id}}" style="position: relative; top: 8px; left: 5px;">
+                {{name}}
+              </a>
             </li>
           {{/each}}
         {{else}}
-          {{#each module.lessons}}
-            <li>
-              {{#if loggedIn}}
-                <a href="/lesson/{{id}}">{{summary}}</a>
-              {{else}}
-                <a href="#!" onclick="alert('not logged in')">{{summary}}</a>
-              {{/if}}
-            </li>
-          {{/each}}
+          {{#if loggedIn}}
+            {{#each module.lessons}}
+              <li class="list-item">
+                <a href="#" data-id="{{id}}">{{name}}</a>
+              </li>
+            {{/each}}
+          {{else}}
+            {{#each module.lessons}}
+              <li class="list-item">
+                <a href="#" data-id="{{id}}">{{name}}</a>
+              </li>
+            {{/each}}
+          {{/if}}
         {{/if}}
       </ol>
+      <script>
+        for (const el of document.querySelectorAll('#module-lessons li a[href]')) {
+          el.onclick = function(event) {
+            event.preventDefault();
+            location.pathname += `/${el.getAttribute('data-id')}`;
+          };
+          if (el.innerText.trim() === '') {
+            el.innerText = `unnamed #${el.getAttribute('data-id')}`;
+          }
+        }
+      </script>
     {{else}}
       <p class="has-text-centered">No lessons</p>
     {{/if}}
-
     {{#if module.isMine}}
       <br>
-      <button class="button is-link" style="display: block; margin: auto;" onclick="alert('not implemneted yet')">Add Lesson</button>
+      <button id="module-btn-lesson-create" class="button is-link" style="display: block; margin: auto;"
+              onclick="location = '/lesson/create'">
+        <i class="fas fa-plus"></i>
+        Add Lesson
+      </button>
+      <script>
+        (function() {
+          document.getElementById('module-btn-lesson-create').onclick = async function() {
+            try {
+              const moduleId = /(\d+)$/.exec(location.pathname)[1];
+              const result = await fetch(`/api/module/${moduleId}/lesson/create`, {
+                redirect: 'follow',
+                cache: 'no-cache',
+                mode: 'cors',
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                },
+              });
+              if (result.status >= 400) throw new (await result.json());
+              const json = await result.json();
+              location.pathname += `/${json.result.toString()}`;
+            } catch (e) {
+              return alert(e.msg || e.message || e.toString());
+            }
+          };
+        })();
+      </script>
     {{/if}}
   </section>
-
   {{#if module.isMine}}
-    <button id="btn-module-apply-changes" class="button is-primary" style="margin: auto; display: block;">
-      Apply Changes
+    <button id="module-btn-save" class="button is-primary" style="margin: auto; display: block;">
+      <i class="fas fa-check"></i>
+      Save
     </button>
     <script>
-      (function() {
-        const btn = document.getElementById('btn-module-apply-changes');
-        btn.onclick = function() {
-          const regex = /(\d+)$/;
-          const match = regex.exec(window.location.pathname);
-          if (match !== null) {
-            const id = match[1];
-            const postBody = {};
-            let summary = document.getElementById('module-summary');
-            let topic = document.getElementById('module-topic');
-            let name = document.getElementById('module-name');
-            postBody.name = name.innerText !== '' ? name.innerText : null;
-            postBody.topic = topic.innerText !== '' ? topic.innerText : null;
-            postBody.summary = summary.value !== '' ? summary.value : null;
-            return fetch(`/api/module/${id}`, {
-              method: 'post',
-              redirect: 'follow',
-              cache: 'no-cache',
-              mode: 'cors',
-              credentials: 'include',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-              },
-              body: JSON.stringify(postBody),
-            }).then(res => res.status >= 400
-                ? res.json(json => Promise.reject(json))
-                : res.json())
-            .then(json => alert(json.msg))
-            .catch(err => alert(err.msg || err.message || 'failed to modify the module'));
-          }
-        };
-      })();
+      document.getElementById('module-btn-save').onclick = function() {
+        const regex = /(\d+)$/;
+        const match = regex.exec(window.location.pathname);
+        if (match !== null) {
+          const id = match[1];
+          const postBody = {};
+          let summary = document.getElementById('module-summary');
+          let topic = document.getElementById('module-topic');
+          let name = document.getElementById('module-name');
+          postBody.name = name.innerText !== '' ? name.innerText : null;
+          postBody.topic = topic.innerText !== '' ? topic.innerText : null;
+          postBody.summary = summary.value !== '' ? summary.value : null;
+          return fetch(`/api/module/${id}`, {
+            method: 'post',
+            redirect: 'follow',
+            cache: 'no-cache',
+            mode: 'cors',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify(postBody),
+          }).then(res => res.status >= 400
+              ? res.json(json => Promise.reject(json))
+              : res.json())
+              .then(json => alert(json.msg))
+              .catch(err => alert(err.msg || err.message || 'failed to modify the module'));
+        }
+      };
     </script>
   {{/if}}
 
@@ -167,7 +288,7 @@
     <h2 class="title is-medium">Comments</h2>
     {{#if module.ratings}}
       {{#each module.ratings}}
-        <div class="box container" style="max-width: 70vw;">
+        <div class="box" style="margin: 20px auto 0;">
           <div style="margin-bottom: 10px;">
             <strong>{{stars}}/5</strong> by <em><a href="/user/{{rater.email}}">{{rater.email}}</a></em>
           </div>

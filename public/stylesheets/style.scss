@@ -20,4 +20,16 @@ a {
   color: black !important;
 }
 
+input[type=text], input[type=password], input[type=email], textarea, div[contentEditable], span[contenteditable], p[contenteditable] {
+  background: #d3d3d329;
+}
+
+input[type=file] {
+  max-width: 200px;
+}
+
+input, textarea {
+  display: block;
+}
+
 /*# sourceMappingURL=style.css.map */

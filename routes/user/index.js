@@ -20,6 +20,7 @@ router.get('/register', (req, res) => res.locals.loggedIn
 
 router.get([
   '/profile',
+  '/home',
   '/dashboard',
   '/account'], (req, res) => res.redirect('/user/'));
 
@@ -27,20 +28,6 @@ router.get([
  * Public info about a user.
  */
 router.get('/:page',
-  (req, res, next) => {
-    // tell hbs what tab to open
-    if (res.locals.query && res.locals.query.tab) {
-      res.locals.tab = {};
-      if (res.locals.query.tab.match('personal')) {
-        res.locals.tab.personalDetails = true;
-      } else if (res.locals.query.tab.match('module')) {
-        res.locals.tab.createdModules = true;
-      } else if (res.locals.query.tab.match('enrollment')) {
-        res.locals.tab.enrollments = true;
-      }
-    }
-    return next();
-  },
   (req, res, next) => {
     // use email to locate user
     if (req.params.page.indexOf('@') < 0) return next();

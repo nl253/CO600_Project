@@ -1,35 +1,3 @@
-<script>
-  function toggleTabEnrollments(event) {
-    document.getElementById('user-created-modules').classList.add('is-hidden');
-    document.getElementById('user-enrollments').classList.remove('is-hidden');
-    document.getElementById('user-personal-details').classList.add('is-hidden');
-    document.getElementById('user-btn-personal-details').parentElement.classList.remove('is-active');
-    document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
-    document.getElementById('user-btn-enrollments-tab').parentElement.classList.add('is-active');
-    document.cookie = 'homeTab=enrollments';
-  }
-
-  function toggleTabCreatedModules(event) {
-    document.getElementById('user-personal-details').classList.add('is-hidden');
-    document.getElementById('user-enrollments').classList.add('is-hidden');
-    document.getElementById('user-created-modules').classList.remove('is-hidden');
-    document.getElementById('user-btn-created-modules-tab').parentElement.classList.add('is-active');
-    document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
-    document.getElementById('user-btn-personal-details').parentElement.classList.remove('is-active');
-    document.cookie = 'homeTab=created-modules';
-  }
-
-  function toggleTabPersonalDetails(event) {
-    document.getElementById('user-personal-details').classList.remove('is-hidden');
-    document.getElementById('user-enrollments').classList.add('is-hidden');
-    document.getElementById('user-created-modules').classList.add('is-hidden');
-    document.getElementById('user-btn-personal-details').parentElement.classList.add('is-active');
-    document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
-    document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
-    document.cookie = 'homeTab=personal-details';
-  }
-</script>
-
 <section class="hero is-primary is-bold">
   <div class="hero-head">
     <br>
@@ -90,13 +58,14 @@
         <label class="label">Info</label>
         <div class="control">
             <textarea class="textarea" maxlength="255" id="user-info"
+                      style="background: #d3d3d329;"
                       placeholder="Summary of who you are and what you are interested in">{{loggedIn.info}}</textarea>
         </div>
       </div>
       <div class="field">
-        <label class="label">Current Email</label>
+        <label class="label">Email</label>
         <div class="control has-icons-left">
-          <input value="{{loggedIn.email}}" class="input" id="user-email" type="email" minlength="2" pattern=".{2,}@.{2,}\..{2,}">
+          <input value="{{loggedIn.email}}" class="input" id="user-input-email" type="email" minlength="2" pattern=".{2,}@.{2,}\..{2,}">
           <span class="icon is-left"><i class="fas fa-user"></i></span>
         </div>
       </div>
@@ -123,93 +92,88 @@
       </div>
       <div class="field is-grouped is-grouped-centered" style="padding: 20px;">
         <p class="control">
-          <a class="button is-primary" id="modify-details-btn">Change My Details</a>
+          <input type="submit" class="button is-primary" id="user-btn-modify-details" value="Save">
         </p>
       </div>
     </form>
     <script>
-      (function() {
-        document.getElementById('user-email').oninput = function () {
-          this.style.background = this.value.match(/.{2,}@.{2,}\.(.{2,})/) ? '#e7fdd1' : '#ffbaba';
+      document.getElementById('user-input-email').oninput = function() {
+        this.style.background = this.value.match(/.{2,}@.{2,}\.(.{2,})/) ? '#e7fdd1' : '#ffbaba';
+      };
+      document.getElementById('user-password-new').oninput = function() {
+        this.style.background = this.value.match(/.{6,}/) ? '#e7fdd1' : '#ffbaba';
+      };
+      document.getElementById('user-password-new-2').oninput = function() {
+        const elPassword = document.getElementById('user-password-new');
+        this.style.background = elPassword.value !== this.value ? '#ffbaba' : '#e7fdd1';
+        elPassword.style.background = elPassword.value !== this.value ? '#ffbaba' : '#e7fdd1';
+      };
+      document.getElementById('user-btn-modify-details').onclick = event => {
+        event.preventDefault();
+        const details = {};
+        const changedAttrs = [];
+        const emailEl = document.getElementById('user-input-email');
+        details.email = emailEl.value;
+        const infoEl = document.getElementById('user-info');
+        details.info = infoEl.value === '' ? null : infoEl.value;
+        const firstNameEl = document.getElementById('user-first-name');
+        details.firstName = firstNameEl.value === '' ? null : firstNameEl.value;
+        const lastNameEl = document.getElementById('user-last-name');
+        details.lastName = lastNameEl.value === '' ? null : lastNameEl.value;
+        const cfg = {
+          method: 'POST',
+          withCredentials: true,
+          cache: 'no-cache',
+          body: JSON.stringify(details),
+          redirect: 'follow',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
         };
-      })();
-      (function() {
-        document.getElementById('user-password-new').oninput = function () {
-          this.style.background = this.value.match(/.{6,}/) ? '#e7fdd1' : '#ffbaba';
-        };
-      })();
-      (function() {
-        document.getElementById('user-password-new-2').oninput = function () {
-          const elPassword = document.getElementById('user-password-new');
-          this.style.background = elPassword.value !== this.value ? '#ffbaba' : '#e7fdd1';
-          elPassword.style.background = elPassword.value !== this.value ? '#ffbaba' : '#e7fdd1';
-        };
-      })();
-      (function() {
-        document.getElementById('modify-details-btn').onclick = (event) => {
-          event.preventDefault();
-          const details = {};
-          const changedAttrs = [];
-          const emailEl = document.getElementById('user-email');
-          details.email = emailEl.value;
-          const infoEl = document.getElementById('user-info');
-          details.info = infoEl.value === '' ? null : infoEl.value;
-          const firstNameEl = document.getElementById('user-first-name');
-          details.firstName = firstNameEl.value === '' ? null : firstNameEl.value;
-          const lastNameEl = document.getElementById('user-last-name');
-          details.lastName = lastNameEl.value === '' ? null : lastNameEl.value;
-          const cfg = {
-            method: 'POST',
-            withCredentials: true,
-            cache: 'no-cache',
-            body: JSON.stringify(details),
-            redirect: 'follow',
-            mode: 'cors',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-          };
-          for (const k of Object.keys(details)) changedAttrs.push(k);
-          return fetch('/api/user', cfg).then((result) => result.status >= 400
-              ? result.json().then(json => Promise.reject(json))
-              : result.json())
-              .then(() => {
-                const elOldPass = document.getElementById('user-password-old');
-                const elEmail = document.getElementById('user-email');
-                if (elEmail.value === '' || elEmail.value.indexOf('@') <= 0 || elEmail.value.length <= 4) {
-                  return alert('bad email format, cannot change password');
-                }
-                const elNewPass = document.getElementById('user-password-new');
-                const elNewPass2 = document.getElementById('user-password-new-2');
-                // if all password fields empty
-                if ([elOldPass, elNewPass, elNewPass2].reduce((prev, cur) => cur['value'] === '' && prev, true)) {
-                  return alert(`successfully modified ${changedAttrs.join(', ')}`);
-                }
-                changedAttrs.push('password');
-                // if any passwords are empty
-                if ([elOldPass, elNewPass, elNewPass2].reduce((prev, cur) => prev || cur['value'] === '', false)) {
-                  return alert('empty password');
-                }
-                if (elNewPass.value !== elNewPass2.value) {
-                  return alert('new passwords don\'t match');
-                }
-                if (elNewPass.value === elOldPass.value) {
-                  return alert('old and new password are exactly the same');
-                }
-                return fetch('/api/user/password', Object.assign(cfg, {
-                  body: JSON.stringify({
-                    value: elNewPass.value,
-                    password: elOldPass.value,
-                    email: elEmail.value,
+        for (const k of Object.keys(details)) changedAttrs.push(k);
+        return fetch('/api/user', cfg)
+            .then(result => result.status >= 400
+                ? result.json().then(json => Promise.reject(json))
+                : result.json())
+            .then(json => {
+              const elOldPass = document.getElementById('user-password-old');
+              const elEmail = document.getElementById('user-input-email');
+              if (elEmail.value === '' || elEmail.value.indexOf('@') <= 0 || elEmail.value.length <= 4) {
+                return alert('bad email format, cannot change password');
+              }
+              const elNewPass = document.getElementById('user-password-new');
+              const elNewPass2 = document.getElementById('user-password-new-2');
+              // if all password fields empty
+              if ([elOldPass, elNewPass, elNewPass2].reduce((prev, cur) => cur['value'] === '' && prev, true)) {
+                return alert(`successfully modified ${changedAttrs.join(', ')}`);
+              }
+              changedAttrs.push('password');
+              // if any passwords are empty
+              if ([elOldPass, elNewPass, elNewPass2].reduce((prev, cur) => prev || cur['value'] === '', false)) {
+                return alert('empty password');
+              }
+              if (elNewPass.value !== elNewPass2.value) {
+                return alert('new passwords don\'t match');
+              }
+              if (elNewPass.value === elOldPass.value) {
+                return alert('old and new password are exactly the same');
+              }
+              return fetch('/api/user/password', Object.assign(cfg, {
+                    body: JSON.stringify({
+                      value: elNewPass.value,
+                      password: elOldPass.value,
+                      email: elEmail.value,
+                    }),
                   }),
-                })).then(result => result.status >= 400
-                    ? result.json().then(json => Promise.reject(json))
-                    : result.json())
-                    .then(json => alert(`successfully modified ${changedAttrs.join(', ')}`));
-              }).catch(json => alert(json.msg || json.message || `failed to change ${changedAttrs.join(', ')}`));
-        };
-      })();
+              )
+                  .then(result => (result.status >= 400 ?
+                      result.json().then(json => Promise.reject(json)) :
+                      result.json()))
+                  .then(json => alert(`successfully modified ${changedAttrs.join(', ')}`));
+            }).catch(json => alert(json.msg || json.message || `failed to change ${changedAttrs.join(', ')}`));
+      };
     </script>
   {{else}}
     <div style="margin: 3vw 30vw">
@@ -231,34 +195,36 @@
       <p id="member-since-date">{{user.createdAt}}</p><br/>
     </div>
     <script>
-      (function() {
+      document.addEventListener('DOMContentLoaded', function() {
         const el = document.getElementById('member-since-date');
-        if (el.innerText) {
+        if (el.innerText.trim()) {
           const regex = /(.*\s+GMT\+\d).*/;
           const match = regex.exec(el.innerText);
           if (match) el.innerText = match[1];
         }
-      })();
+      }, {once: true});
     </script>
   {{/if}}
 </section>
 
 <section id="user-created-modules" class="is-hidden" style="margin: 70px 25vw;">
   {{#if user.createdModules}}
-    <ul class="list" style="width: 100%;">
+    <ul class="list" style="margin: auto">
       {{#each user.createdModules}}
-        <li class="list-item">
-          <a href="/module/{{id}}" class="has-text-link" style="display: inline;">
+        <li class="list-item" style="padding: 14px;">
+          <a href="/module/{{id}}" data-id="{{id}}" class="has-text-link" style="display: inline;">
             {{name}}
           </a>
         </li>
       {{/each}}
       <script>
-        (function() {
-          for (const el of document.querySelectorAll('#user-created-modules li a')) {
-            if (el.innerText.trim() === '') el.innerText = 'unnamed';
+        document.addEventListener('DOMContentLoaded', (function() {
+          const nodes = [...document.querySelectorAll('#user-created-modules li a')].filter(
+              el => el.innerText.trim() === '');
+          for (const el of nodes) {
+            el.innerText = `unnamed #${el.getAttribute('data-id')}`;
           }
-        })();
+        }), {once: true});
       </script>
     </ul>
   {{else}}
@@ -272,28 +238,35 @@
   {{/if}}
 </section>
 
-<section id="user-enrollments" style="margin: 70px 25vw;">
+<section id="user-enrollments" class="is-hidden" style="margin: 70px 25vw;">
   {{#if user.enrollments}}
-    <ul class="list" style="width: 100%;">
+    <ul class="list" style="margin: auto">
       {{#each user.enrollments}}
-        <li class="list-item">
-          <a href="/module/{{moduleId}}" class="has-text-link" style="display: inline;">
+        <li class="list-item" style="padding: 14px;">
+          <a href="/module/{{moduleId}}" data-id="{{id}}" class="has-text-link" style="display: inline;">
             {{module.name}}
           </a>
         </li>
       {{/each}}
       <script>
-        (function() {
-          for (let el of document.querySelectorAll('#user-enrollments li a')) {
-            if (el.innerText.trim() === '') el.innerText = 'unnamed'
+        document.addEventListener('DOMContentLoaded', (() => {
+          const nodes = [...document.querySelectorAll('#user-enrollments li a')].filter(
+              el => el.innerText.trim() === '');
+          for (const el of nodes) {
+            el.innerText = `unnamed #${el.getAttribute('data-id')}`;
           }
-        })();
+        }), {once: true});
       </script>
     </ul>
   {{else}}
     <p class="has-text-centered">
       {{#if user.isMe}}
         Enroll to modules and they will show up here!
+        <button class="button is-link" style="display: block; margin: 60px auto;"
+                onclick="window.location = '/module/search'">
+          <i class="fas fa-search"></i>
+          Search for Modules
+        </button>
       {{else}}
         The user has not enrolled in any modules!
       {{/if}}
@@ -305,18 +278,24 @@
   <!--NOTE this is a workaround because Handlebars doesn't allow to reference -->
   <!--user inside the "each" clause-->
   <script>
-    (function() {
+    document.addEventListener('DOMContentLoaded', (function() {
       for (const el of document.querySelectorAll('#user-enrollments ul li')) {
         const btn = document.createElement('button');
-        btn.classList.add('button');
-        btn.classList.add('is-small');
-        btn.classList.add('is-danger');
-        btn.style.float = 'right';
-        btn.style.margin = '-5px';
         btn.innerText = 'Unenroll';
+        const classes = ['button', 'is-small', 'is-danger'];
+        const styles = {
+          float: 'right',
+          margin: '-7px',
+        };
+        for (const c of classes) btn.classList.add(c);
+        for (const pair of Object.entries(styles)) {
+          const [k, v] = pair;
+          btn.style[k] = v;
+        }
         btn.onclick = function(event) {
           event.preventDefault();
-          const uri = `/api/module/${this.parentElement.querySelector('a').innerText.trim()}/unenroll`;
+          const id = /(\d+)$/.exec(this.parentElement.querySelector('a').href)[1];
+          const uri = `/api/module/${id}/unenroll`;
           console.log(uri);
           return fetch(uri, {
             redirect: 'follow',
@@ -328,23 +307,21 @@
               'Accept': 'application/json',
             },
           }).then(res => res.status >= 400
-              ? Promise.reject(res.json())
+              ? res.json().then(err => Promise.reject(err))
               : Promise.resolve(res.json()))
               .then(() => this.parentElement.remove())
               .catch(err => alert(err.msg || err.message || 'failed to unenroll'));
         };
         el.appendChild(btn);
       }
-    })();
-    (function() {
-      for (const el of document.querySelectorAll('#user-created-modules li')) {
 
+      for (const el of document.querySelectorAll('#user-created-modules li')) {
         const btnDelete = document.createElement('button');
         btnDelete.classList.add('button');
         btnDelete.classList.add('is-small');
         btnDelete.classList.add('is-danger');
         btnDelete.style.float = 'right';
-        btnDelete.style.margin = '-5px';
+        btnDelete.style.margin = '-7px';
         btnDelete.innerText = 'Delete';
         btnDelete.onclick = function(event) {
           event.preventDefault();
@@ -354,7 +331,7 @@
           if (!confirm('Delete module ?')) return;
           return fetch(`/api/module/${id}/delete`)
               .then(res => res.status >= 400
-                  ? res.json().then(err => Promise.reject(err))
+                  ? res.json().then(json => Promise.reject(json))
                   : res.json())
               .then(json => el.remove())
               .catch(err => alert(err.msg || err.message || err.toString()));
@@ -366,56 +343,65 @@
         btnModify.classList.add('is-small');
         btnModify.classList.add('is-warning');
         btnModify.style.float = 'right';
-        btnModify.style.marginTop = '-5px';
+        btnModify.style.marginTop = '-7px';
         btnModify.style.marginRight = '12px';
         btnModify.innerText = 'Modify';
         btnModify.onclick = function(event) {
           window.location.href = this.parentElement.querySelector('a').href;
         };
         el.appendChild(btnModify);
-
       }
-    })();
+      const btnCreateModule = document.createElement('button');
+      btnCreateModule.classList.add('is-link');
+      btnCreateModule.classList.add('button');
+      btnCreateModule.style.margin = '60px auto';
+      btnCreateModule.style.display = 'block';
+      btnCreateModule.innerHTML = `<i class="fas fa-plus"> </i> Create Module`;
+      btnCreateModule.onclick = () => document.getElementById('layout-btn-create-module')
+          .dispatchEvent(new Event('click'));
+      document.querySelector('#user-created-modules').appendChild(btnCreateModule);
+    }), {once: true});
   </script>
 {{/if}}
 
 <script>
-  (function() {
-    document.getElementById('user-btn-personal-details').onclick = toggleTabPersonalDetails;
-    document.getElementById('user-btn-enrollments-tab').onclick = toggleTabEnrollments;
-    document.getElementById('user-btn-created-modules-tab').onclick = toggleTabCreatedModules;
-  })();
-</script>
-
-{{#if tab.createdModules}}
-  <script>toggleTabCreatedModules();</script>
-{{else}}
-  {{#if tab.personalDetails}}
-    <script>toggleTabPersonalDetails();</script>
-  {{else}}
-    {{#if tab.enrollments}}
-      <script>toggleTabEnrollments();</script>
-    {{else}}
-      <script>
-        const cookies = document.cookie.split(';').map(cookie => cookie.trim().split('=').map(x => x.trim()));
-        for (const pair of cookies) {
-          const [key, val] = pair;
-          if (key === 'homeTab') {
-            switch (val) {
-              case 'personal-details':
-                toggleTabPersonalDetails();
-                break;
-              case 'enrollments':
-                toggleTabEnrollments();
-                break;
-              case 'created-modules':
-                toggleTabCreatedModules();
-                break;
-            }
-            break;
-          }
+  document.getElementById('user-btn-personal-details').onclick = toggleTabPersonalDetails;
+  document.getElementById('user-btn-enrollments-tab').onclick = toggleTabEnrollments;
+  document.getElementById('user-btn-created-modules-tab').onclick = toggleTabCreatedModules;
+  document.addEventListener('DOMContentLoaded', (function() {
+    const queries = document.location.search
+        .slice(1)
+        .split('&')
+        .map(s => s.split('='));
+    for (const pair of queries) {
+      const [k, v] = pair;
+      if (k === 'tab') {
+        switch (v) {
+          case 'created-modules':
+            return toggleTabCreatedModules();
+          case 'enrollments':
+            return toggleTabEnrollments();
+          case 'personal-details':
+            return toggleTabPersonalDetails();
         }
-      </script>
-    {{/if}}
-  {{/if}}
-{{/if}}
+      }
+    }
+    const cookies = document.cookie.split(';').map(cookie => {
+      return cookie.trim().split('=').map(pairEl => pairEl.trim());
+    });
+    for (const pair of cookies) {
+      const [k, v] = pair;
+      if (k === 'homeTab') {
+        switch (v) {
+          case 'personal-details':
+            return toggleTabPersonalDetails();
+          case 'enrollments':
+            return toggleTabEnrollments();
+          case 'created-modules':
+            return toggleTabCreatedModules();
+        }
+      }
+    }
+    return toggleTabPersonalDetails();
+  }), {once: true});
+</script>

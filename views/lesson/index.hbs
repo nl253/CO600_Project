@@ -1,0 +1,117 @@
+<section class="hero">
+  <div class="hero-head"></div>
+  {{#if lesson.isMine}}
+    <div class="columns is-centered" style="margin: 50px 0;">
+      <div class="column is-4-desktop is-hidden-tablet is-hidden-mobile"></div>
+      <div class="column is-4-desktop is-12-tablet is-12-mobile">
+        <h1 class="title is-1 has-text-centered" style="margin-bottom: 40px;">Modify Lesson</h1>
+
+        <form method="post" enctype="multipart/form-data">
+          <div style="margin-bottom: 45px;">
+            <h2 class="title is-3 has-text-centered" style="margin-bottom: 20px;">Name</h2>
+            <input id="lesson-name" name="name" value="{{lesson.name}}" style="min-width: 300px; background: #d3d3d329; max-width: 450px; padding: 5px; margin: 0 auto; border: 1px #c9c3c3 dashed;" placeholder="e.g. Introduction to AI">
+          </div>
+
+          <div style="margin-bottom: 45px;">
+            <h2 class="title is-3 has-text-centered" style="margin-bottom: 20px;">Summary</h2>
+
+            <textarea id="lesson-summary" name="summary" style="min-width: 400px; max-width: 400px; margin: 0 auto; padding: 5px; min-height: 100px; max-height: 300px; border: 1px #c9c3c3 dashed;">{{lesson.summary}}</textarea>
+          </div>
+
+          <div style="margin-bottom: 45px;">
+            <h2 class="title is-3 has-text-centered" style="margin-bottom: 20px;">Content</h2>
+            <p class="has-text-centered" style="margin-bottom: 10px;">Select an HTML file with the lesson content</p>
+            <br>
+            <p class="has-text-centered"><strong>NOTE</strong></p>
+            <br>
+            <ul class="has-text-centered">
+              <li style="margin: auto">
+                <p><em>Only</em> include the <em>content</em> of the <code>&lt;body&gt;</code> tag</p>
+              </li>
+              <li style="margin: auto">
+                <p>We will only accept .html files</p>
+              </li>
+            </ul>
+            <br>
+            <input type="file" name="lesson" style="margin: 20px auto;  display: block; max-width: 200px;">
+            {{#if lesson.content}}
+              <p class="has-text-centered">You have already uploaded lesson content!</p>
+              <p class="has-text-centered">Feel free to modify it by re-uploading a different file.</p>
+            {{/if}}
+          </div>
+
+          <div style="margin-bottom: 45px;">
+            <h2 class="title is-3 has-text-centered" style="margin-bottom: 20px;">Attachment (optional)</h2>
+            <p class="has-text-centered"><strong>Select a file:</strong></p>
+            <br>
+            <ul class="has-text-centered">
+              <li>Image (.jpg, .jpeg, .png, .gif)</li>
+              <li>Audio (.mp3)</li>
+              <li>Video (.mp4, .mpg)</li>
+            </ul>
+            <div id="lesson-attachments">
+              <input type="file" name="attachment-1" style="margin: 30px auto 0;">
+            </div>
+            <button id="lesson-btn-more" class="button is-link" style="display: block; margin: 40px auto">
+              <i class="fas fa-plus"></i>
+              More
+            </button>
+            <script>
+              document.getElementById('lesson-btn-more').onclick = function(event) {
+                event.preventDefault();
+                const number = eval(/(\d+)$/.exec(document.querySelector('#lesson-attachments input[type=file]:last-of-type').name)[1]);
+                const newEl = document.createElement('input');
+                newEl.type = 'file';
+                newEl.name =  `attachment-${number + 1}`;
+                newEl.style.margin = '30px auto 0';
+                return document.querySelector('#lesson-attachments').appendChild(newEl);
+              };
+            </script>
+          </div>
+
+          <div class="field is-grouped is-grouped-centered">
+            <p class="control">
+              <input class="button is-primary" style="min-width: 100px;" type="submit" value="Save">
+            </p>
+            <p class="control">
+              <a class="button is-light" style="min-width: 100px;" onclick="if (confirm('Lose all changes?')) location.href += '/..'">
+                Cancel
+              </a>
+            </p>
+          </div>
+        </form>
+        <script>
+          document.querySelector('form[method=post]').action = location.pathname;
+        </script>
+      </div>
+      <div class="column is-4-desktop is-hidden-tablet is-hidden-mobile"></div>
+    </div>
+  {{else}}
+    <h1 class="title" style="margin: 100px auto;">{{lesson.name}}</h1>
+    <main style="min-height: 40vh;">
+      {{{lesson.content}}}
+    </main>
+
+    <div class="field is-grouped is-grouped-centered" style="width: 30vw; margin: 20px auto">
+      <p style="float: left">
+        <button class="button is-light" onclick="alert('not implemented yet')">
+          <i class="fas fa-chevron-left"></i>
+          <span style="margin-left: 10px;">Previous Lesson</span>
+        </button>
+      </p>
+      <p style="margin: auto;">
+        <a href="." class="button is-info">
+          <i class="fas fa-home"></i>
+          <span style="margin-left: 10px;">Module</span>
+        </a>
+      </p>
+      <p style="float: right">
+        <button class="button is-primary" onclick="alert('not implemented yet')">
+          <span style="margin-right: 10px;">Next Lesson</span>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </p>
+    </div>
+  {{/if}}
+  <div class="column is-4"></div>
+</section>

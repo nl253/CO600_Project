@@ -65,7 +65,8 @@ for (const mod of MODELS.map(key => key.toLowerCase())) {
 
 suggestRoutes(router, /.*/, {
   user: 'user-related operations e.g.: register, lookup, delete',
-  module: 'module-related operations e.g.: register, lookup, delete',
+  lesson: 'lesson-related operations e.g.: create, lookup, delete',
+  module: 'module-related operations e.g.: create, lookup, delete',
 });
 
 router.use((err, req, res, next) => {

@@ -34,7 +34,7 @@ function msg(msg, result) {
 /**
  * Produce a more informative error msg when using the REST API.
  *
- * @param {ValidationError|RestAPIErr|Error|String} [err]
+ * @param {ValidationError|APIErr|Error|String} [err]
  * @return {{status: String, msg: String}}
  */
 function errMsg(err) {
@@ -43,7 +43,7 @@ function errMsg(err) {
     return {status, msg: 'failure'};
   }
 
-  if (err.constructor !== undefined && err.constructor.name === 'RestAPIErr') {
+  if (err.constructor !== undefined && err.constructor.name === 'APIErr') {
     return err.msgJSON;
   }
 

@@ -20,13 +20,22 @@
  */
 
 const {MissingDataErr} = require('../../errors');
-const {Session, Module, Enrollment} = require('../../database');
+const {Session, Module, Enrollment, Lesson} = require('../../database');
 const router = require('express').Router();
 
 const {suggestRoutes, msg} = require('../lib');
 
 // Project
 const {needs, hasFreshSess, exists, decrypt, validColumns} = require('../../lib');
+
+router.get('/:id/lesson/create',
+  needs('token', 'cookies'),
+  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
+  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
+  exists(Module, (req) => ({id: req.params.id})),
+  (req, res, next) => Lesson.create({moduleId: req.params.id,})
+    .then(lesson => res.json(msg(`successfully created lesson`, lesson.id)))
+    .catch(err => next(err)));
 
 router.get('/:id/enroll',
   exists(Module, (req) => ({id: req.params.id})),
@@ -61,6 +70,7 @@ router.get(['/:id/delete', '/:id/remove', '/:id/destroy'],
     .then(() => res.json(msg(`successfully deleted module`)))
     .catch(err => next(err)));
 
+
 router.get('/create',
   needs('token', 'cookies'),
   exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
@@ -69,6 +79,7 @@ router.get('/create',
     authorId: res.locals.loggedIn.id,
   }).then(module => res.json(msg(`successfully created module`, module.id)))
     .catch(err => next(err)));
+
 
 router.get(['/', '/search'],
   validColumns(Module, (req) => Object.keys(req.query)),
@@ -105,8 +116,6 @@ router.post(['/:id', '/:id/update'],
     : Promise.reject(new MissingDataErr('data to modify', 'request body')))
     .then(() => res.json(msg('successfully updated the module')))
     .catch(err => next(err)));
-
-// router.get('/:module', () => undefined);
 
 /**
  * If none of the above match, shows help.
