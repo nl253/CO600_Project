@@ -185,8 +185,9 @@ const Lesson = sequelize.define('Lesson', {
     onDelete: 'CASCADE',
     allowNull: false,
   },
+  name: STRING,
   summary: TEXT,
-  content: TEXT,
+  content: BLOB,
 });
 
 const File = {
