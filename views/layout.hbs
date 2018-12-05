@@ -30,14 +30,12 @@
         <a href="/" id="layout-btn-user-home" class="navbar-item">Home</a>
         {{#if user.isMe}}
           <script>
-            (function() {
-              if (window.location.pathname.match(/\/user\/\d+$/)) {
-                document.getElementById('layout-btn-user-home').onclick = function(event) {
-                  event.preventDefault();
-                  return alert('already at home');
-                };
-              }
-            })();
+            if (window.location.pathname.match(/\/user\/\d+$/)) {
+              document.getElementById('layout-btn-user-home').onclick = function(event) {
+                event.preventDefault();
+                return alert('already at home');
+              };
+            }
           </script>
         {{/if}}
         <div class="navbar-item has-dropdown is-hoverable">
@@ -54,19 +52,18 @@
             <a id="layout-btn-create-lesson" class="navbar-item">Lesson</a>
             {{#if loggedIn}}
               <script>
-                (function() {
-                  document.getElementById('layout-btn-create-module').onclick = function(event) {
-                    event.preventDefault();
-                    return fetch(`/api/module/create`, {
-                      redirect: 'follow',
-                      cache: 'no-cache',
-                      mode: 'cors',
-                      credentials: 'include',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                      },
-                    }).then(res => res.status >= 400
+                document.getElementById('layout-btn-create-module').onclick = function(event) {
+                  event.preventDefault();
+                  return fetch('/api/module/create', {
+                    redirect: 'follow',
+                    cache: 'no-cache',
+                    mode: 'cors',
+                    credentials: 'include',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Accept': 'application/json',
+                    },
+                  }).then(res => res.status >= 400
                         ? res.json().then(json => Promise.reject(json))
                         : res.json())
                         .then(res => window.location.href = `/module/${res.result.toString()}`)
@@ -79,10 +76,7 @@
               </script>
             {{else}}
               <script>
-                (function() {
-                  document.getElementById('layout-btn-create-module').onclick = () => alert('log in to create modules');
-                  document.getElementById('layout-btn-create-lesson').onclick = () => alert('log in to create lessons');
-                })();
+                document.getElementById('layout-btn-create-module').onclick = () => alert('log in to create modules');
               </script>
             {{/if}}
           </div>
@@ -105,7 +99,7 @@
             <a href="/user?tab=created-modules" id="layout-btn-user-created-modules" class="navbar-item">Created Modules</a>
             <a href="/user?tab=personal-details" id="layout-btn-user-settings" class="navbar-item">Settings</a>
             <script>
-              (function() {
+              document.addEventListener('DOMContentLoaded', (function() {
                 if (window.location.pathname.match(/\/user\/\d+$/)) {
                   document.getElementById('layout-btn-user-settings').onclick = function(event) {
                     event.preventDefault();
@@ -120,29 +114,27 @@
                     toggleTabEnrollments();
                   };
                 }
-              })();
+              }), {once: true});
             </script>
             <a href="/help" class="navbar-item">Help</a>
             <hr class="navbar-divider">
             <a href="#" id="layout-btn-log-out" class="navbar-item">Log out</a>
             <script>
-              (function() {
-                document.getElementById('layout-btn-log-out').onclick = (event) => {
-                  event.preventDefault();
-                  return fetch('/api/user/logout', {
-                    redirect: 'follow',
-                    cache: 'no-cache',
-                    mode: 'cors',
-                    credentials: 'include',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Accept': 'application/json',
-                    },
-                  }).then(response => response.json())
-                      .then(response => window.location.href = '/')
-                      .catch(err => alert(err.msg || err.message || 'failed to log out'));
-                };
-              })();
+              document.getElementById('layout-btn-log-out').onclick = (event) => {
+                event.preventDefault();
+                return fetch('/api/user/logout', {
+                  redirect: 'follow',
+                  cache: 'no-cache',
+                  mode: 'cors',
+                  credentials: 'include',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                  },
+                }).then(res => res.json())
+                  .then(res => window.location.href = '/')
+                  .catch(err => alert(err.msg || err.message || 'failed to log out'));
+              };
             </script>
           </div>
         </div>
@@ -173,45 +165,43 @@
             <a id="layout-btn-register-redirect" href="/user/register" class="button has-background-grey-light is-small"
                style="margin-left: 10px;">Register</a>
             <script>
-              (function() {
-                document.getElementById('layout-btn-log-in').onclick = (event) => {
+              document.getElementById('layout-btn-log-in').onclick = (event) => {
 
-                  // don't send the HTML form
-                  event.preventDefault();
+                // don't send the HTML form
+                event.preventDefault();
 
-                  const email = document.getElementById('layout-input-email').value;
-                  const password = document.getElementById('layout-input-password').value;
-                  const credentials = {email, password};
-                  return fetch(`/api/user/login`, {
-                    method: 'POST',
-                    redirect: 'follow',
-                    cache: 'no-cache',
-                    mode: 'cors',
-                    credentials: 'include',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Accept': 'application/json',
-                    },
-                    body: JSON.stringify(credentials),
-                  }).then(response => response.status >= 400
-                      // error codes 400..499 and 500..599 are client and server errors
-                      // if it goes wrong force it to jump to reject
-                      ? response.json().then(err => Promise.reject(err))
-                      // the JSON object is guaranteed to have a "msg" property
-                      : response.json()).then(json => {
-                    // result should store the token if things go well
-                    const token = json.result;
-                    setCookie('token', token);
-                    // redirect
-                    window.location.href = window.location.href.endsWith('register')
-                        ? '/user/profile'
-                        : window.location.href;
-                  }).catch(err => {
-                    console.error(err);
-                    return alert(err.msg || err.message || err.toString());
-                  });
-                };
-              })();
+                const email = document.getElementById('layout-input-email').value;
+                const password = document.getElementById('layout-input-password').value;
+                const credentials = {email, password};
+                return fetch(`/api/user/login`, {
+                  method: 'POST',
+                  redirect: 'follow',
+                  cache: 'no-cache',
+                  mode: 'cors',
+                  credentials: 'include',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                  },
+                  body: JSON.stringify(credentials),
+                }).then(response => response.status >= 400
+                    // error codes 400..499 and 500..599 are client and server errors
+                    // if it goes wrong force it to jump to reject
+                    ? response.json().then(err => Promise.reject(err))
+                    // the JSON object is guaranteed to have a "msg" property
+                    : response.json()).then(json => {
+                  // result should store the token if things go well
+                  const token = json.result;
+                  setCookie('token', token);
+                  // redirect
+                  window.location.href = window.location.href.endsWith('register')
+                      ? '/user/profile'
+                      : window.location.href;
+                }).catch(err => {
+                  console.error(err);
+                  return alert(err.msg || err.message || err.toString());
+                });
+              };
             </script>
           </div>
         </div>
