@@ -5,7 +5,11 @@
         <div class="column is-two-thirds">
           <h1 class="title is-1">Oops !</h1>
           <h2 class="title is-4" style="max-width: 700px;">Our robot can't find the page you're looking for, please try something else</h2>
-          <p>{{error.status}} {{error.code}} {{error.message}}</p>
+          <br>
+          <div class="subtitle is-4">Error {{error.status}} {{error.code}}</div>
+          <p style="font-size: 20px; margin: 20px 0;">
+             {{error.message}}
+          </p>
           <br>
           <div class="field is-grouped">
             <p class="control">
