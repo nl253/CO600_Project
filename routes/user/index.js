@@ -20,6 +20,7 @@ router.get('/register', (req, res) => res.locals.loggedIn
 
 router.get([
   '/profile',
+  '/home',
   '/dashboard',
   '/account'], (req, res) => res.redirect('/user/'));
 
