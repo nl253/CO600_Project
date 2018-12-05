@@ -86,11 +86,45 @@
       <div id="module-name" contenteditable="true" style="max-width: 300px;">
         {{module.name}}
       </div>
-      <br>
-      <h3 class="subtitle">Topic</h3>
-      <div id="module-topic" contenteditable="true" style="max-width: 300px;">
-        {{module.topic}}
+      <h3 class="subtitle" style="margin: 25px 0;">Topic</h3>
+
+      <div class="dropdown" onmouseover="this.classList.add('is-active')"
+           onmouseout="this.classList.remove('is-active')">
+        <div class="dropdown-trigger">
+          <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+            <span id="module-topic" style="min-width: 150px;">{{module.topic}}</span>
+            <span class="icon is-small">
+              <i class="fas fa-angle-down" aria-hidden="true"></i>
+            </span>
+          </button>
+        </div>
+        <div class="dropdown-menu" id="dropdown-menu" role="menu">
+          <div class="dropdown-content">
+            {{#each module.topics}}
+              <a href="#" class="dropdown-item"
+                 onclick="document.getElementById('module-topic').innerText = this.innerText.trim()">
+                {{this}}
+              </a>
+            {{/each}}
+            <hr class="dropdown-divider">
+            <span class="dropdown-item" style="font-weight: bold;">
+              Other
+            </span>
+            <a href="#" class="dropdown-item" id="module-topic-other" contenteditable="true"
+               style="margin: 5px 10px; max-width: 90%;">
+              {{module.topic}}
+            </a>
+            <script>
+              document.querySelector('#module-topic-other').onblur = function() {
+                if (this.innerText.trim() !== '') {
+                  document.querySelector('#module-topic').innerText = this.innerText.trim();
+                }
+              };
+            </script>
+          </div>
+        </div>
       </div>
+
     {{else}}
       <h1 class="title">{{module.name}}</h1>
       <h3 class="subtitle">{{module.topic}}</h3>
