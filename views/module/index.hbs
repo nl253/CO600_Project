@@ -104,7 +104,7 @@
             <span class="dropdown-item" style="font-weight: bold;">
               Other
             </span>
-            <a href class="dropdown-item" id="module-topic-other" contenteditable="true"
+            <a class="dropdown-item" id="module-topic-other" contenteditable="true"
                style="margin: 5px 10px; max-width: 90%;">
               {{module.topic}}
             </a>
@@ -119,15 +119,15 @@
         </div>
       </div>
     {{else}}
-      <h1 id="module-name-h" class="title">{{module.name}}</h1>
-      <h3 id="module-topic-h" class="subtitle">{{module.topic}}</h3>
+      <h1 id="module-h-name" class="title">{{module.name}}</h1>
+      <h3 id="module-h-topic" class="subtitle">{{module.topic}}</h3>
       <script>
         (function() {
-          const nameEl = document.getElementById('module-name-h');
+          const nameEl = document.getElementById('module-h-name');
           if (nameEl.innerText.trim() === '') {
             nameEl.innerText = 'Unnamed';
           }
-          const topicEl = document.getElementById('module-topic-h');
+          const topicEl = document.getElementById('module-h-topic');
           if (topicEl.innerText.trim() === '') {
             topicEl.innerText = 'No Topic';
           }
