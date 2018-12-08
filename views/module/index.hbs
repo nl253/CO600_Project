@@ -315,40 +315,36 @@
   </section>
   {{#if module.isMine}}
     <nav style="margin: 20px auto; max-width: 350px;">
-        <button id="module-btn-reset" class="button is-warning" style="float: right;">
-          <i class="fas fa-undo" style="margin-right: 7px;"></i>
-          Reset
-        </button>
-        <button id="module-btn-delete" class="button is-danger" style="float: left;">
-          <i class="fas fa-times" style="margin-right: 7px;"></i>
-          Delete
-        </button>
-        <script>
-          document.getElementById('module-btn-delete').onclick = () => {
-            if (!confirm('Delete module?')) return;
-            const regex = /(\d+)$/;
-            const match = regex.exec(location.pathname);
-            const id = match[1];
-            return fetch(`/api/module/${id}/delete`)
-                .then(res => res.status >= 400
-                    ? res.json().then(json => Promise.reject(json))
-                    : res.json())
-                .then(json => window.location.href = '/')
-                .catch(err => alert(err.msg || err.message || err.toString()));
-          };
-          document.getElementById('module-btn-reset').onclick = () => {
-            if (confirm('Revert all changes?')) {
-              window.location.href = window.location.href;
-            }
-          };
-        </script>
+      <button id="module-btn-reset" class="button is-warning" onclick="if (confirm('Revert all changes?')) window.location.href = window.location.href" style="float: right;">
+        <i class="fas fa-undo" style="margin-right: 7px;"></i>
+        Reset
+      </button>
+      <button id="module-btn-delete" class="button is-danger" style="float: left;">
+        <i class="fas fa-times" style="margin-right: 7px;"></i>
+        Delete
+      </button>
+      <script>
+        document.getElementById('module-btn-delete').onclick = () => {
+          if (!confirm('Delete module?')) return;
+          const regex = /(\d+)\/?$/;
+          const match = regex.exec(location.pathname);
+          const id = match[1];
+          return fetch(`/api/module/${id}/delete`)
+              .then(res => res.status >= 400
+                  ? res.json().then(json => Promise.reject(json))
+                  : res.json())
+              .then(json => window.location.href = '/')
+              .catch(err => alert(err.msg || err.message || err.toString()));
+        };
+      </script>
       <button id="module-btn-save" class="button is-primary" style="margin: 0 auto; display: block; min-width: 125px;">
         <i class="fas fa-check"></i>
         Save
       </button>
       <script>
-        document.getElementById('module-btn-save').onclick = function() {
-          const regex = /(\d+)$/;
+        document.getElementById('module-btn-save').onclick = function(event) {
+          event.preventDefault();
+          const regex = /(\d+)\/?$/;
           const match = regex.exec(window.location.pathname);
           if (match !== null) {
             const id = match[1];
