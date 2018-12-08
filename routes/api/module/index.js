@@ -19,14 +19,48 @@
  * @author Norbert
  */
 
-const {MissingDataErr} = require('../../errors');
-const {Session, Module, Enrollment, Lesson} = require('../../database');
+const {MissingDataErr, NotLoggedIn, InvalidRequestErr} = require('../../errors');
+const {Session, Module, Enrollment, Lesson, File} = require('../../database');
 const router = require('express').Router();
 
 const {suggestRoutes, msg} = require('../lib');
 
 // Project
 const {needs, hasFreshSess, exists, decrypt, validColumns} = require('../../lib');
+
+router.get([
+  '/:moduleId/:lessonId/:fileName/delete',
+  '/:moduleId/:lessonId/:fileName/remove'], async (req, res) => {
+  if (!res.locals.loggedIn) return next(new NotLoggedIn());
+  try {
+    (await File.findOne({
+      where: {
+        lessonId: req.params.lessonId,
+        name: req.params.fileName,
+      }
+    })).destroy();
+    return res.json(msg(`deleted ${req.params.fileName} from lesson`));
+  } catch (e) {
+    return next(e);
+  }
+});
+
+router.get([
+  '/:moduleId/:lessonId/delete',
+  '/:moduleId/:lessonId/remove'], async (req, res) => {
+  if (!res.locals.loggedIn) return next(new NotLoggedIn());
+  try {
+    (await Lesson.findOne({
+      where: {
+        id: req.params.lessonId,
+        moduleId: req.params.moduleId,
+      }
+    })).destroy();
+    return res.json(msg(`deleted lesson from module`));
+  } catch (e) {
+    return next(e);
+  }
+});
 
 router.get('/:id/lesson/create',
   needs('token', 'cookies'),
