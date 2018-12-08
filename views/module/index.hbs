@@ -123,7 +123,15 @@
         {{/if}}
       {{/unless}}
     {{else}}
-      <button style="margin-top: 10px;" class="button is-link" onclick="location.href = '/'">log in to enroll</button>
+      <div class="message is-warning" style="margin: 50px 20px 0 20px;">
+        <div class="message-header">
+          <p>Warning</p>
+          <button class="delete" aria-label="delete"></button>
+        </div>
+        <div class="message-body">
+          Log in to enroll
+        </div>
+      </div>
     {{/if}}
   </div>
 </section>
