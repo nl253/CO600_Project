@@ -125,9 +125,15 @@
                 }
               }), {once: true});
             </script>
-            <a href="/help" class="navbar-item">Help</a>
+            <a href="/help" class="navbar-item">
+              <i class="fas fa-question" style="margin-right: 7px;"></i>
+              Help
+            </a>
             <hr class="navbar-divider">
-            <a href="#" id="layout-btn-log-out" class="navbar-item">Log out</a>
+            <a href id="layout-btn-log-out" class="navbar-item">
+              <i class="fas fa-sign-out-alt" style="margin-right: 7px;"></i>
+              Log out
+            </a>
             <script>
               document.getElementById('layout-btn-log-out').onclick = (event) => {
                 event.preventDefault();
