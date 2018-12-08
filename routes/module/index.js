@@ -103,16 +103,21 @@ router.post([
     if (!res.locals.loggedIn) return next(new NotLoggedIn());
     return new IncomingForm().parse(req,
       async (err, fields, files) => {
-
-        for (const f in fields) {
-          if (Object.keys(Lesson.attributes).indexOf(f) < 0) {
-            return next(new InvalidRequestErr('Lesson', f));
-          } else if (f === 'updatedAt' || f === 'createdAt') {
-            return next(new InvalidRequestErr('Lesson', f));
-          }
-        }
-
         try {
+
+          for (const f in fields) {
+            if (Object.keys(Lesson.attributes).indexOf(f) < 0) {
+              return next(new InvalidRequestErr('Lesson', f));
+            } else if (f === 'updatedAt' || f === 'createdAt') {
+              return next(new InvalidRequestErr('Lesson', f));
+            }
+          }
+
+          console.warn('about to check lesson size');
+          if (files.lesson.name && !files.lesson.name.match(/\.html?$/)) {
+            return next(new APIErr(`was expecting an HTML file and not ${files.lesson.name}`, 400));
+          }
+
           const lesson = await Lesson.findOne({
             where: {
               moduleId: req.params.moduleId,
@@ -135,11 +140,13 @@ router.post([
             Object.keys(files)
               .filter(fileName => fileName !== 'lesson')
               .filter(fileName => files[fileName].name !== '' && files[fileName].size > 0)
-              .map(fileName => File.create({
-                lessonId: lesson.id,
-                name: files[fileName].name,
-                data: readFileSync(files[fileName].path),
-              })));
+              .map(fileName => MEDIA_REGEX.test(files[fileName].name)
+                ? File.create({
+                  lessonId: lesson.id,
+                  name: files[fileName].name,
+                  data: readFileSync(files[fileName].path),
+                })
+                : Promise.reject(new APIErr(`invalid file type ${fileName}`))));
           return res.redirect(req.originalUrl);
         } catch (e) {
           return next(e);
