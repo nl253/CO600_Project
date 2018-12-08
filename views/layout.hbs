@@ -95,9 +95,18 @@
             {{/if}}
           </a>
           <div class="navbar-dropdown">
-            <a href="/user?tab=enrollments" id="layout-btn-user-enrollments" class="navbar-item">Enrollments</a>
-            <a href="/user?tab=created-modules" id="layout-btn-user-created-modules" class="navbar-item">Created Modules</a>
-            <a href="/user?tab=personal-details" id="layout-btn-user-settings" class="navbar-item">Settings</a>
+            <a href="/user?tab=enrollments" id="layout-btn-user-enrollments" class="navbar-item">
+              <i class="fas fa-user-graduate" style="margin-right: 7px;"></i>
+              Enrollments
+            </a>
+            <a href="/user?tab=created-modules" id="layout-btn-user-created-modules" class="navbar-item">
+              <i class="fas fa-university" style="margin-right: 7px;"></i>
+              Created Modules
+            </a>
+            <a href="/user?tab=personal-details" id="layout-btn-user-settings" class="navbar-item">
+              <i class="fas fa-user" style="margin-right: 7px;"></i>
+              Settings
+            </a>
             <script>
               document.addEventListener('DOMContentLoaded', (function() {
                 if (window.location.pathname.match(/\/user\/\d+$/)) {
