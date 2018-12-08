@@ -87,6 +87,7 @@
       <div class="navbar-end has-background-grey-lighter" style="padding-right: 100px;">
         <div class="navbar-item has-dropdown is-hoverable">
           <a href="/user" class="navbar-link">
+            <i class="fas fa-user" style="margin-right: 10px;"></i>
             {{#if loggedin.firstname}}
               Hi {{loggedIn.firstName}}!
             {{else}}
@@ -94,12 +95,21 @@
             {{/if}}
           </a>
           <div class="navbar-dropdown">
-            <a href="/user?tab=enrollments" id="layout-btn-user-enrollments" class="navbar-item">Enrollments</a>
-            <a href="/user?tab=created-modules" id="layout-btn-user-created-modules" class="navbar-item">Created Modules</a>
-            <a href="/user?tab=personal-details" id="layout-btn-user-settings" class="navbar-item">Settings</a>
+            <a href="/user?tab=enrollments" id="layout-btn-user-enrollments" class="navbar-item">
+              <i class="fas fa-user-graduate" style="margin-right: 7px;"></i>
+              Enrollments
+            </a>
+            <a href="/user?tab=created-modules" id="layout-btn-user-created-modules" class="navbar-item">
+              <i class="fas fa-university" style="margin-right: 7px;"></i>
+              Created Modules
+            </a>
+            <a href="/user?tab=personal-details" id="layout-btn-user-settings" class="navbar-item">
+              <i class="fas fa-user" style="margin-right: 7px;"></i>
+              Settings
+            </a>
             <script>
               document.addEventListener('DOMContentLoaded', (function() {
-                if (window.location.pathname.match(/\/user\/\d+$/)) {
+                if (window.location.pathname.match(/\/user\/\d+\/?$/)) {
                   document.getElementById('layout-btn-user-settings').onclick = function(event) {
                     event.preventDefault();
                     toggleTabPersonalDetails();
@@ -115,9 +125,15 @@
                 }
               }), {once: true});
             </script>
-            <a href="/help" class="navbar-item">Help</a>
+            <a href="/help" class="navbar-item">
+              <i class="fas fa-question" style="margin-right: 7px;"></i>
+              Help
+            </a>
             <hr class="navbar-divider">
-            <a href="#" id="layout-btn-log-out" class="navbar-item">Log out</a>
+            <a href id="layout-btn-log-out" class="navbar-item">
+              <i class="fas fa-sign-out-alt" style="margin-right: 7px;"></i>
+              Log out
+            </a>
             <script>
               document.getElementById('layout-btn-log-out').onclick = (event) => {
                 event.preventDefault();
@@ -131,7 +147,9 @@
                     'Accept': 'application/json',
                   },
                 }).then(res => res.json())
-                  .then(res => window.location.href = '/')
+                  .then(res => console.log(res))
+                  .then(() => sessionStorage.clear())
+                  .then(() => window.location.href = '/')
                   .catch(err => alert(err.msg || err.message || 'failed to log out'));
               };
             </script>
@@ -164,6 +182,9 @@
             <a id="layout-btn-register-redirect" href="/user/register" class="button has-background-grey-light is-small"
                style="margin-left: 10px;">Register</a>
             <script>
+              if (location.pathname.match(/user\/register\/?$/)) {
+                document.getElementById('layout-btn-register-redirect').remove();
+              }
               document.getElementById('layout-btn-log-in').onclick = (event) => {
 
                 // don't send the HTML form
