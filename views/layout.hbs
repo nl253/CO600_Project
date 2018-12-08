@@ -132,7 +132,9 @@
                     'Accept': 'application/json',
                   },
                 }).then(res => res.json())
-                  .then(res => window.location.href = '/')
+                  .then(res => console.log(res))
+                  .then(() => sessionStorage.clear())
+                  .then(() => window.location.href = '/')
                   .catch(err => alert(err.msg || err.message || 'failed to log out'));
               };
             </script>
