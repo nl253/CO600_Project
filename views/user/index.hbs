@@ -258,20 +258,18 @@
         }), {once: true});
       </script>
     </ul>
-  {{else}}
-    <p class="has-text-centered">
-      {{#if user.isMe}}
-        Enroll to modules and they will show up here!
-        <button class="button is-link" style="display: block; margin: 60px auto;"
-                onclick="window.location = '/module/search'">
-          <i class="fas fa-search"></i>
-          Search for Modules
-        </button>
-      {{else}}
-        The user has not enrolled in any modules!
-      {{/if}}
-    </p>
   {{/if}}
+  <p class="has-text-centered">
+    {{#if user.isMe}}
+      <button class="button is-link" style="display: block; margin: 60px auto;"
+              onclick="window.location = '/module/search'">
+        <i class="fas fa-search"></i>
+        Search for Modules
+      </button>
+    {{else}}
+      The user has not enrolled in any modules!
+    {{/if}}
+  </p>
 </section>
 
 {{#if user.isMe}}
