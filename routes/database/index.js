@@ -190,7 +190,7 @@ const Lesson = sequelize.define('Lesson', {
   content: BLOB,
 });
 
-const File = {
+const File = sequelize.define('File', {
   id: {
     type: INTEGER,
     allowNull: false,
@@ -220,7 +220,7 @@ const File = {
     allowNull: false,
     type: BLOB,
   },
-};
+});
 
 const [minRating, maxRating] = [0, 5];
 const badRatingMsg = `rating must be between ${minRating} and ${maxRating}`;
