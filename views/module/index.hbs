@@ -60,29 +60,6 @@
   <div class="hero-body" style="margin: 0 18.5vw; padding-bottom: 15px;">
     {{#if module.isMine}}
       <h1 class="title" style="margin-bottom: 10px;">Module Name</h1>
-      <div style="margin: 20px 0;">
-        <button id="module-btn-reset" class="button is-warning">Reset</button>
-        <button id="module-btn-delete" class="button is-danger">Delete</button>
-        <script>
-          document.getElementById('module-btn-delete').onclick = () => {
-            if (!confirm('Delete module?')) return;
-            const regex = /(\d+)$/;
-            const match = regex.exec(location.pathname);
-            const id = match[1];
-            return fetch(`/api/module/${id}/delete`)
-                .then(res => res.status >= 400
-                    ? res.json().then(json => Promise.reject(json))
-                    : res.json())
-                .then(json => window.location.href = '/')
-                .catch(err => alert(err.msg || err.message || err.toString()));
-          };
-          document.getElementById('module-btn-reset').onclick = () => {
-            if (confirm('Revert all changes?')) {
-              window.location.href = window.location.href;
-            }
-          };
-        </script>
-      </div>
       <div id="module-name" contenteditable="true" style="max-width: 300px;">
         {{module.name}}
       </div>
@@ -124,10 +101,21 @@
           </div>
         </div>
       </div>
-
     {{else}}
-      <h1 class="title">{{module.name}}</h1>
-      <h3 class="subtitle">{{module.topic}}</h3>
+      <h1 id="module-name-h" class="title">{{module.name}}</h1>
+      <h3 id="module-topic-h" class="subtitle">{{module.topic}}</h3>
+      <script>
+        (function() {
+          const nameEl = document.getElementById('module-name-h');
+          if (nameEl.innerText.trim() === '') {
+            nameEl.innerText = 'Unnamed';
+          }
+          const topicEl = document.getElementById('module-topic-h');
+          if (topicEl.innerText.trim() === '') {
+            topicEl.innerText = 'No Topic';
+          }
+        })();
+      </script>
     {{/if}}
     {{#if loggedIn}}
       {{#unless module.isMine}}
@@ -246,42 +234,71 @@
     {{/if}}
   </section>
   {{#if module.isMine}}
-    <button id="module-btn-save" class="button is-primary" style="margin: auto; display: block;">
-      <i class="fas fa-check"></i>
-      Save
-    </button>
-    <script>
-      document.getElementById('module-btn-save').onclick = function() {
-        const regex = /(\d+)$/;
-        const match = regex.exec(window.location.pathname);
-        if (match !== null) {
-          const id = match[1];
-          const postBody = {};
-          let summary = document.getElementById('module-summary');
-          let topic = document.getElementById('module-topic');
-          let name = document.getElementById('module-name');
-          postBody.name = name.innerText !== '' ? name.innerText : null;
-          postBody.topic = topic.innerText !== '' ? topic.innerText : null;
-          postBody.summary = summary.value !== '' ? summary.value : null;
-          return fetch(`/api/module/${id}`, {
-            method: 'post',
-            redirect: 'follow',
-            cache: 'no-cache',
-            mode: 'cors',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: JSON.stringify(postBody),
-          }).then(res => res.status >= 400
-              ? res.json(json => Promise.reject(json))
-              : res.json())
-              .then(json => alert(json.msg))
-              .catch(err => alert(err.msg || err.message || 'failed to modify the module'));
-        }
-      };
-    </script>
+    <nav style="margin: 20px auto; max-width: 350px;">
+        <button id="module-btn-reset" class="button is-warning" style="float: right;">
+          <i class="fas fa-undo" style="margin-right: 7px;"></i>
+          Reset
+        </button>
+        <button id="module-btn-delete" class="button is-danger" style="float: left;">
+          <i class="fas fa-times" style="margin-right: 7px;"></i>
+          Delete
+        </button>
+        <script>
+          document.getElementById('module-btn-delete').onclick = () => {
+            if (!confirm('Delete module?')) return;
+            const regex = /(\d+)$/;
+            const match = regex.exec(location.pathname);
+            const id = match[1];
+            return fetch(`/api/module/${id}/delete`)
+                .then(res => res.status >= 400
+                    ? res.json().then(json => Promise.reject(json))
+                    : res.json())
+                .then(json => window.location.href = '/')
+                .catch(err => alert(err.msg || err.message || err.toString()));
+          };
+          document.getElementById('module-btn-reset').onclick = () => {
+            if (confirm('Revert all changes?')) {
+              window.location.href = window.location.href;
+            }
+          };
+        </script>
+      <button id="module-btn-save" class="button is-primary" style="margin: 0 auto; display: block; min-width: 125px;">
+        <i class="fas fa-check"></i>
+        Save
+      </button>
+      <script>
+        document.getElementById('module-btn-save').onclick = function() {
+          const regex = /(\d+)$/;
+          const match = regex.exec(window.location.pathname);
+          if (match !== null) {
+            const id = match[1];
+            const postBody = {};
+            let summary = document.getElementById('module-summary');
+            let topic = document.getElementById('module-topic');
+            let name = document.getElementById('module-name');
+            postBody.name = name.innerText !== '' ? name.innerText : null;
+            postBody.topic = topic.innerText !== '' ? topic.innerText : null;
+            postBody.summary = summary.value !== '' ? summary.value : null;
+            return fetch(`/api/module/${id}`, {
+              method: 'post',
+              redirect: 'follow',
+              cache: 'no-cache',
+              mode: 'cors',
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              body: JSON.stringify(postBody),
+            }).then(res => res.status >= 400
+                ? res.json(json => Promise.reject(json))
+                : res.json())
+                .then(json => alert(json.msg))
+                .catch(err => alert(err.msg || err.message || 'failed to modify the module'));
+          }
+        };
+      </script>
+    </nav>
   {{/if}}
 
   <section class="is-small">
