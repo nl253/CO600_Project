@@ -151,6 +151,27 @@ router.post(['/:id', '/:id/update'],
     .then(() => res.json(msg('successfully updated the module')))
     .catch(err => next(err)));
 
+router.post(['/:moduleId/:lessonId', '/:moduleId/:lessonId/update'],
+  needs('token', 'cookies'),
+  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
+  validColumns(Lesson, (req) => (req.body)),
+  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
+  exists(Lesson, (req) => ({id: req.params.lessonId})),
+  async (req, res, next) => {
+    try {
+      const lesson = await Lesson.findOne({
+        where: {
+          moduleId: req.params.moduleId,
+          id: req.params.lessonId,
+        },
+      });
+      await lesson.update(req.body);
+      return res.json(msg('updated lesson'));
+    } catch (e) {
+      return next(e);
+    }
+  });
+
 /**
  * If none of the above match, shows help.
  */
