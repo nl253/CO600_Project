@@ -279,7 +279,10 @@
     document.addEventListener('DOMContentLoaded', (function() {
       for (const el of document.querySelectorAll('#user-enrollments ul li')) {
         const btn = document.createElement('button');
-        btn.innerText = 'Unenroll';
+        btn.innerHTML = `
+            <i class="fas fa-times" style="margin-right: 7px;"></i>
+            Unenroll
+        `;
         const classes = ['button', 'is-small', 'is-danger'];
         const styles = {
           float: 'right',
@@ -320,10 +323,13 @@
         btnDelete.classList.add('is-danger');
         btnDelete.style.float = 'right';
         btnDelete.style.margin = '-7px';
-        btnDelete.innerText = 'Delete';
+        btnDelete.innerHTML = `
+            <i class="fas fa-times" style="margin-right: 7px;"></i>
+            Delete
+        `;
         btnDelete.onclick = function(event) {
           event.preventDefault();
-          const regex = /(\d+)$/;
+          const regex = /(\d+)\/?$/;
           const match = regex.exec(el.querySelector('a').href);
           const id = match[1];
           if (!confirm('Delete module ?')) return;
@@ -343,8 +349,12 @@
         btnModify.style.float = 'right';
         btnModify.style.marginTop = '-7px';
         btnModify.style.marginRight = '12px';
-        btnModify.innerText = 'Modify';
+        btnModify.innerHTML = `
+            <i class="fas fa-edit" style="margin-right: 7px;"></i>
+            Modify
+        `;
         btnModify.onclick = function(event) {
+          event.preventDefault();
           window.location.href = this.parentElement.querySelector('a').href;
         };
         el.appendChild(btnModify);
