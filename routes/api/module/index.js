@@ -19,14 +19,48 @@
  * @author Norbert
  */
 
-const {MissingDataErr} = require('../../errors');
-const {Session, Module, Enrollment, Lesson} = require('../../database');
+const {MissingDataErr, NotLoggedIn, InvalidRequestErr} = require('../../errors');
+const {Session, Module, Enrollment, Lesson, File} = require('../../database');
 const router = require('express').Router();
 
 const {suggestRoutes, msg} = require('../lib');
 
 // Project
 const {needs, hasFreshSess, exists, decrypt, validColumns} = require('../../lib');
+
+router.get([
+  '/:moduleId/:lessonId/:fileName/delete',
+  '/:moduleId/:lessonId/:fileName/remove'], async (req, res) => {
+  if (!res.locals.loggedIn) return next(new NotLoggedIn());
+  try {
+    (await File.findOne({
+      where: {
+        lessonId: req.params.lessonId,
+        name: req.params.fileName,
+      }
+    })).destroy();
+    return res.json(msg(`deleted ${req.params.fileName} from lesson`));
+  } catch (e) {
+    return next(e);
+  }
+});
+
+router.get([
+  '/:moduleId/:lessonId/delete',
+  '/:moduleId/:lessonId/remove'], async (req, res) => {
+  if (!res.locals.loggedIn) return next(new NotLoggedIn());
+  try {
+    (await Lesson.findOne({
+      where: {
+        id: req.params.lessonId,
+        moduleId: req.params.moduleId,
+      }
+    })).destroy();
+    return res.json(msg(`deleted lesson from module`));
+  } catch (e) {
+    return next(e);
+  }
+});
 
 router.get('/:id/lesson/create',
   needs('token', 'cookies'),
@@ -116,6 +150,27 @@ router.post(['/:id', '/:id/update'],
     : Promise.reject(new MissingDataErr('data to modify', 'request body')))
     .then(() => res.json(msg('successfully updated the module')))
     .catch(err => next(err)));
+
+router.post(['/:moduleId/:lessonId', '/:moduleId/:lessonId/update'],
+  needs('token', 'cookies'),
+  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
+  validColumns(Lesson, (req) => (req.body)),
+  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
+  exists(Lesson, (req) => ({id: req.params.lessonId})),
+  async (req, res, next) => {
+    try {
+      const lesson = await Lesson.findOne({
+        where: {
+          moduleId: req.params.moduleId,
+          id: req.params.lessonId,
+        },
+      });
+      await lesson.update(req.body);
+      return res.json(msg('updated lesson'));
+    } catch (e) {
+      return next(e);
+    }
+  });
 
 /**
  * If none of the above match, shows help.
