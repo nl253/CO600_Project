@@ -67,8 +67,8 @@
     }).catch(err => alert(err.msg || err.message || 'failed to enroll'));
   }
 </script>
-<section class="hero">
-  <div class="hero-body" style="margin: 0 18.5vw; padding-bottom: 15px;">
+<section class="hero" style="margin-top: 20px;">
+  <div style="margin: 0 12vw; padding-bottom: 15px;">
     {{#if module.isMine}}
       <h1 class="title" style="margin-bottom: 10px;">Module Name</h1>
       <div id="module-name" contenteditable="true" style="max-width: 300px;">
@@ -88,7 +88,8 @@
         <div class="dropdown-menu" id="dropdown-menu" role="menu">
           <div class="dropdown-content">
             {{#each module.topics}}
-              <a href class="dropdown-item" onclick="document.getElementById('module-topic').innerText = this.innerText.trim()">
+              <a class="dropdown-item"
+                 onclick="document.getElementById('module-topic').innerText = this.innerText.trim()">
                 {{this}}
               </a>
             {{/each}}
@@ -161,7 +162,7 @@
     {{/if}}
   </div>
 </section>
-<div style="margin: 0 20vw 50px;">
+<div style="margin: 0 12vw 50px;">
   <section class="content" style="margin-top: 40px;">
     <strong>Author</strong> <a href="/user/{{module.author.id}}">{{module.author.email}}</a>
     <br>
@@ -178,7 +179,8 @@
   <section class="is-medium" style="margin-bottom: 30px;">
     <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
     {{#if module.isMine}}
-      <textarea id="module-summary" style="min-width: 100%; min-height: 50px; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">{{module.summary}}</textarea>
+      <textarea id="module-summary"
+                style="min-width: 100%; min-height: 50px; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">{{module.summary}}</textarea>
     {{else}}
       {{#if module.summary}}
         <p class="is-medium" style="width: 80%; word-wrap: break-word;">{{module.summary}}</p>
@@ -215,6 +217,10 @@
           {{/each}}
           <script>
             for (const el of document.querySelectorAll('#module-lessons li')) {
+              const a = el.querySelector('a[data-id]');
+              if (a.innerText.trim() === '') {
+                a.innerText = `unnamed #${a.getAttribute('data-id')}`;
+              }
               el.querySelector('.button.is-danger').onclick = async function(event) {
                 event.preventDefault();
                 const moduleId = /(\d+)\/?$/.exec(location.pathname)[1];
