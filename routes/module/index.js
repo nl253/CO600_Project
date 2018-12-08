@@ -5,11 +5,26 @@ const router = express.Router();
 const {join} = require('path');
 const {readFile, readFileSync} = require('fs');
 
-const {NoSuchRecord, InvalidRequestErr, NotLoggedIn, MissingDataErr} = require('../errors');
-const {Enrollment, Module, Lesson, Rating, sequelize, User} = require('../database');
+const {APIErr, NoSuchRecord, InvalidRequestErr, NotLoggedIn, MissingDataErr} = require('../errors');
+const {Enrollment, Module, Lesson, Rating, sequelize, User, File} = require('../database');
 
 const NUM_REGEX = /\d+/;
-const MEDIA_REGEX = /.+\.((pn|jp)g|gif|mp[34g])$/;
+const MEDIA_REGEX = /.+\.((pn|jpe?)g|gif|mp[34g])$/;
+
+router.get([
+  '/:moduleId/:lessonId/download',
+  '/:moduleId/:lessonId/content'], async (req, res) => {
+  if (!res.locals.loggedIn) return next(new NotLoggedIn());
+  try {
+    const lesson = await Lesson.findOne({where: {id: req.params.lessonId}}).then(l => l.dataValues);
+    res.set('Content-Type', 'text/html');
+    res.send(lesson.content);
+    return res.end();
+  } catch (e) {
+    return next(e);
+  }
+});
+
 
 router.get('/:moduleId/:lessonId/:fileName',
   (req, res, next) => res.locals.loggedIn ? next() : res.redirect('/'),
