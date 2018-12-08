@@ -70,7 +70,7 @@ router.get('/:moduleId/:lessonId',
           moduleId: req.params.moduleId,
           studentId: res.locals.loggedIn.id,
         }}) === null) {
-        throw new NoSuchRecord('Enrollment', {email: res.locals.loggedIn.email})
+        return next(new NoSuchRecord('Enrollment', {email: res.locals.loggedIn.email}));
       }
       const author = await User.findOne({where: {id: module.authorId}}).then(u => u.dataValues);
       lesson = await lesson;
@@ -82,6 +82,12 @@ router.get('/:moduleId/:lessonId',
       lesson.module = module;
       lesson.author = author;
       module.author = author;
+      lesson.files = await File
+        .findAll({where: {lessonId: req.params.lessonId}})
+        .then(fs => fs.map(f => {
+          delete f.dataValues.data;
+          return f.dataValues;
+      }));
       return res.render(join('lesson', 'index'), {lesson, module, author});
     } catch (e) {
       return next(e);
