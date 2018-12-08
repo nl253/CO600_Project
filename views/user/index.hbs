@@ -293,12 +293,12 @@
           const [k, v] = pair;
           btn.style[k] = v;
         }
-        btn.onclick = function(event) {
+        btn.onclick = async function(event) {
           event.preventDefault();
-          const id = /(\d+)$/.exec(this.parentElement.querySelector('a').href)[1];
+          const id = /(\d+)\/?$/.exec(this.parentElement.querySelector('a').href)[1];
           const uri = `/api/module/${id}/unenroll`;
           console.log(uri);
-          return fetch(uri, {
+          const response = await fetch(uri, {
             redirect: 'follow',
             cache: 'no-cache',
             mode: 'cors',
