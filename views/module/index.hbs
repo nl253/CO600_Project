@@ -16,12 +16,18 @@
       const me = document.getElementById('module-btn-enroll');
       me.classList.remove('is-danger');
       me.classList.add('is-light');
-      me.innerText = 'wait ...';
+      me.innerHTML = `
+          <i class="fas fa-hourglass-half" style="margin-right: 7px;"></i>
+          Wait
+      `;
       me.onclick = undefined;
       setTimeout(function() {
         me.classList.remove('is-light');
         me.classList.add('is-primary');
-        me.innerText = 'Enroll';
+        me.innerHTML = `
+            <i class="fas fa-check" style="margin-right: 7px;"></i>
+            Enroll
+        `;
         me.onclick = () => enroll(moduleId);
       }, 1000);
     }).catch(err => alert(err.msg || err.message || 'failed to unenroll'));
@@ -44,12 +50,18 @@
       const me = document.getElementById('module-btn-enroll');
       me.classList.remove('is-primary');
       me.classList.add('is-light');
-      me.innerText = 'wait ...';
+      me.innerHTML = `
+          <i class="fas fa-hourglass-half" style="margin-right: 7px;"></i>
+          wait
+      `;
       me.onclick = undefined;
       setTimeout(function() {
         me.classList.remove('is-light');
         me.classList.add('is-danger');
-        me.innerText = 'Unenroll';
+        me.innerHTML = `
+          <i class="fas fa-times" style="margin-right: 7px;"></i>
+          Unenroll
+        `;
         me.onclick = () => unEnroll(moduleId);
       }, 1000);
     }).catch(err => alert(err.msg || err.message || 'failed to enroll'));
@@ -117,9 +129,15 @@
     {{#if loggedIn}}
       {{#unless module.isMine}}
         {{#if module.isEnrolled}}
-          <button id="module-btn-enroll" class="button is-danger" onclick="unEnroll({{module.id}})">Unenroll</button>
+          <button id="module-btn-enroll" class="button is-danger" onclick="unEnroll({{module.id}})">
+            <i class="fas fa-times" style="margin-right: 7px;"></i>
+            Unenroll
+          </button>
         {{else}}
-          <button id="module-btn-enroll" class="button is-primary" onclick="enroll({{module.id}})">Enroll</button>
+          <button id="module-btn-enroll" class="button is-primary" onclick="enroll({{module.id}})">
+            <i class="fas fa-check" style="margin-right: 7px;"></i>
+            Enroll
+          </button>
         {{/if}}
       {{/unless}}
     {{else}}
