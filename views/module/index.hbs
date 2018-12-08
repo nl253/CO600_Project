@@ -92,6 +92,14 @@
                 {{this}}
               </a>
             {{/each}}
+            <script>
+              // remove topics that are empty strings or just whitespaces
+              for (const el of [
+                ...document.querySelectorAll('.dropdown-menu .dropdown-content a.dropdown-item')].filter(
+                  el => el.innerText.trim() === '')) {
+                el.remove();
+              }
+            </script>
             <hr class="dropdown-divider">
             <span class="dropdown-item" style="font-weight: bold;">
               Other
