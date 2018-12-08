@@ -276,17 +276,6 @@
           </script>
         {{/if}}
       </ol>
-      <script>
-        for (const el of document.querySelectorAll('#module-lessons li a[href]')) {
-          el.onclick = function(event) {
-            event.preventDefault();
-            location.pathname += `/${el.getAttribute('data-id')}`;
-          };
-          if (el.innerText.trim() === '') {
-            el.innerText = `unnamed #${el.getAttribute('data-id')}`;
-          }
-        }
-      </script>
     {{else}}
       <p class="has-text-centered">No lessons</p>
     {{/if}}
