@@ -52,8 +52,7 @@
         me.innerText = 'Unenroll';
         me.onclick = () => unEnroll(moduleId);
       }, 1000);
-    })
-        .catch(err => alert(err.msg || err.message || 'failed to enroll'));
+    }).catch(err => alert(err.msg || err.message || 'failed to enroll'));
   }
 </script>
 <section class="hero">
@@ -63,8 +62,7 @@
       <div id="module-name" contenteditable="true" style="max-width: 300px;">
         {{module.name}}
       </div>
-      <h3 class="subtitle" style="margin: 25px 0;">Topic</h3>
-
+      <h3 class="subtitle" style="margin: 25px 0 0 0;">Topic</h3>
       <div class="dropdown" onmouseover="this.classList.add('is-active')"
            onmouseout="this.classList.remove('is-active')">
         <div class="dropdown-trigger">
@@ -78,8 +76,7 @@
         <div class="dropdown-menu" id="dropdown-menu" role="menu">
           <div class="dropdown-content">
             {{#each module.topics}}
-              <a href="#" class="dropdown-item"
-                 onclick="document.getElementById('module-topic').innerText = this.innerText.trim()">
+              <a href class="dropdown-item" onclick="document.getElementById('module-topic').innerText = this.innerText.trim()">
                 {{this}}
               </a>
             {{/each}}
@@ -87,7 +84,7 @@
             <span class="dropdown-item" style="font-weight: bold;">
               Other
             </span>
-            <a href="#" class="dropdown-item" id="module-topic-other" contenteditable="true"
+            <a href class="dropdown-item" id="module-topic-other" contenteditable="true"
                style="margin: 5px 10px; max-width: 90%;">
               {{module.topic}}
             </a>
@@ -147,8 +144,7 @@
   <section class="is-medium" style="margin-bottom: 30px;">
     <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
     {{#if module.isMine}}
-      <textarea id="module-summary"
-                style="min-width: 100%; min-height: 50px; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">{{module.summary}}</textarea>
+      <textarea id="module-summary" style="min-width: 100%; min-height: 50px; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">{{module.summary}}</textarea>
     {{else}}
       {{#if module.summary}}
         <p class="is-medium" style="width: 80%; word-wrap: break-word;">{{module.summary}}</p>
@@ -165,7 +161,7 @@
           {{#each module.lessons}}
             <li class="list-item" style="margin-bottom: 2px;">
               <button class="button is-small is-warning" style="padding: -4px;">Modify</button>
-              <a href="#" data-id="{{id}}" style="position: relative; top: 8px; left: 5px;">
+              <a href data-id="{{id}}" style="position: relative; top: 8px; left: 5px;">
                 {{name}}
               </a>
             </li>
@@ -174,13 +170,13 @@
           {{#if loggedIn}}
             {{#each module.lessons}}
               <li class="list-item">
-                <a href="#" data-id="{{id}}">{{name}}</a>
+                <a href data-id="{{id}}">{{name}}</a>
               </li>
             {{/each}}
           {{else}}
             {{#each module.lessons}}
               <li class="list-item">
-                <a href="#" data-id="{{id}}">{{name}}</a>
+                <a href data-id="{{id}}">{{name}}</a>
               </li>
             {{/each}}
           {{/if}}
