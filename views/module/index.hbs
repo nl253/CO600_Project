@@ -251,6 +251,29 @@
               </li>
             {{/each}}
           {{/if}}
+          <script>
+            for (const el of document.querySelectorAll('#module-lessons li a')) {
+              if (el.innerText.trim() === '') {
+                el.innerText = `unnamed #${el.getAttribute('data-id')}`;
+              }
+              el.onclick = async function(event) {
+                event.preventDefault();
+                const response = await fetch(location.pathname + `/${el.getAttribute('data-id')}`, {
+                  redirect: 'follow',
+                  cache: 'no-cache',
+                  mode: 'cors',
+                  credentials: 'include',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                  },
+                });
+                return response.status >= 400
+                    ? alert('you need to enroll')
+                    : (location.pathname += `/${el.getAttribute('data-id')}`);
+              };
+            }
+          </script>
         {{/if}}
       </ol>
       <script>
