@@ -290,7 +290,8 @@
         (function() {
           document.getElementById('module-btn-lesson-create').onclick = async function() {
             try {
-              const moduleId = /(\d+)$/.exec(location.pathname)[1];
+              document.getElementById('module-btn-save').dispatchEvent(new Event('click'));
+              const moduleId = /(\d+)\/?$/.exec(location.pathname)[1];
               const result = await fetch(`/api/module/${moduleId}/lesson/create`, {
                 redirect: 'follow',
                 cache: 'no-cache',
