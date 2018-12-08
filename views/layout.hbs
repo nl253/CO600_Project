@@ -109,7 +109,7 @@
             </a>
             <script>
               document.addEventListener('DOMContentLoaded', (function() {
-                if (window.location.pathname.match(/\/user\/\d+$/)) {
+                if (window.location.pathname.match(/\/user\/\d+\/?$/)) {
                   document.getElementById('layout-btn-user-settings').onclick = function(event) {
                     event.preventDefault();
                     toggleTabPersonalDetails();
