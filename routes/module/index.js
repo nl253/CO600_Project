@@ -35,7 +35,7 @@ router.get('/:moduleId/:lessonId/:fileName',
     if (!NUM_REGEX.test(req.params.moduleId)) {
       return next(new InvalidRequestErr('Module', req.params.moduleId));
     }
-    if (!NUM_REGEX.text(req.params.lessonId)) {
+    if (!NUM_REGEX.test(req.params.lessonId)) {
       return next(new InvalidRequestErr('Lesson', req.params.lessonId));
     }
     const {lessonId, fileName} = req.params;
@@ -55,6 +55,7 @@ router.get('/:moduleId/:lessonId/:fileName',
       return next(e);
     }
   });
+
 
 router.get('/:moduleId/:lessonId',
   async (req, res, next) => {
@@ -88,6 +89,11 @@ router.get('/:moduleId/:lessonId',
           delete f.dataValues.data;
           return f.dataValues;
       }));
+      lesson.module.lessons = await Lesson.findAll({
+        attributes: Object.keys(Lesson.attributes).filter(a => a !== 'content'),
+        where: {
+          moduleId: req.params.moduleId,
+        }}).then(ls => ls.map(l => l.dataValues));
       return res.render(join('lesson', 'index'), {lesson, module, author});
     } catch (e) {
       return next(e);
