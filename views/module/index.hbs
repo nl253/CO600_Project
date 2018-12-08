@@ -193,13 +193,50 @@
       <ol id="module-lessons" class="list" style="min-width: 100%;">
         {{#if module.isMine}}
           {{#each module.lessons}}
-            <li class="list-item" style="margin-bottom: 2px;">
-              <button class="button is-small is-warning" style="padding: -4px;">Modify</button>
-              <a href data-id="{{id}}" style="position: relative; top: 8px; left: 5px;">
+            <li class="list-item" data-id="{{id}}" data-name="{{name}}" data-created-on="{{createdOn}}"
+                data-updated-at="{{updatedAt}}"
+                style="margin-bottom: 2px; display: flex; flex-direction: row; justify-content: space-between;">
+              <a onclick="location.pathname += `/{{id}}`" data-id="{{id}}"
+                 style="position: relative; top: 8px; left: 5px;">
                 {{name}}
               </a>
+              <div style="display: flex; flex-direction: row; justify-content: space-between; width: 180px;">
+                <button onclick="location.pathname += `/{{id}}`" class="button is-small is-warning"
+                        style="padding: -4px;">
+                  <i class="fas fa-edit" style="margin-right: 7px;"></i>
+                  Modify
+                </button>
+                <button class="button is-small is-danger" style="padding: -4px;">
+                  <i class="fas fa-times" style="margin-right: 7px;"></i>
+                  Delete
+                </button>
+              </div>
             </li>
           {{/each}}
+          <script>
+            for (const el of document.querySelectorAll('#module-lessons li')) {
+              el.querySelector('.button.is-danger').onclick = async function(event) {
+                event.preventDefault();
+                const moduleId = /(\d+)\/?$/.exec(location.pathname)[1];
+                const lessonId = el.getAttribute('data-id');
+                const response = await fetch(`/api/module/${moduleId}/${lessonId}/delete`, {
+                  redirect: 'follow',
+                  cache: 'no-cache',
+                  mode: 'cors',
+                  credentials: 'include',
+                  headers: {
+                    'Accept': 'application/json',
+                  },
+                });
+                if (response.status >= 400) {
+                  const json = await response.json();
+                  const msg = json.msg || json.message || json.toString();
+                  console.error(msg);
+                  return alert(msg);
+                } else return el.remove();
+              };
+            }
+          </script>
         {{else}}
           {{#if loggedIn}}
             {{#each module.lessons}}
