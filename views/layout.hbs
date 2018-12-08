@@ -182,6 +182,9 @@
             <a id="layout-btn-register-redirect" href="/user/register" class="button has-background-grey-light is-small"
                style="margin-left: 10px;">Register</a>
             <script>
+              if (location.pathname.match(/user\/register\/?$/)) {
+                document.getElementById('layout-btn-register-redirect').remove();
+              }
               document.getElementById('layout-btn-log-in').onclick = (event) => {
 
                 // don't send the HTML form
