@@ -40,21 +40,25 @@ for (const pair of Object.entries(APP_ENV)) {
 /**
  * Produce a path relative to this file (i.e. path relative to the root of the project).
  *
- * @param {String} fileName
+ * @param {...String} components
  * @return {String} path relative to project root
  */
-function rootPath(fileName) {
-  return resolve(join(__dirname, fileName));
+function rootPath(...components) {
+  return resolve(join(__dirname, ...components));
 }
 
 if (!existsSync(rootPath('logs'))) mkdirSync(rootPath('logs'));
 
 const express = require('express');
 const app = express();
+const hbs = require('hbs');
+
+hbs.registerPartials(rootPath('views', 'partials'));
 
 // view engine setup
 app.set('views', rootPath('views'));
 app.set('view engine', 'hbs');
+app.engine('hbs', hbs.__express);
 app.set('x-powered-by', false);
 
 app.locals.title = 'FreeLearn';

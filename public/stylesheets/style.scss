@@ -16,10 +16,6 @@ a {
   border: 1px #c9c3c3 dashed;
 }
 
-.tabs li.is-active, .tabs li.is-active span {
-  color: black !important;
-}
-
 input[type=text], input[type=password], input[type=email], textarea, div[contentEditable], span[contenteditable], p[contenteditable] {
   background: #d3d3d329;
 }
@@ -32,8 +28,20 @@ input, textarea {
   display: block;
 }
 
+.tabs li.is-active, .tabs li.is-active span {
+  color: black !important;
+}
+
 section#user-personal-details form .field {
   margin-bottom: 40px;
+}
+
+section#user-personal-details .title + p {
+  margin-bottom: 20px;
+}
+
+section#user-personal-details .title {
+  margin-bottom: 5px;
 }
 
 /*# sourceMappingURL=style.css.map */

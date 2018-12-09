@@ -62,6 +62,16 @@ router.get([
   }
 });
 
+router.get(['/:id/delete', '/:id/remove', '/:id/destroy'],
+  needs('token', 'cookies'),
+  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
+  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
+  exists(Module, (req) => ({id: req.params.id})),
+  (req, res, next) => Module.findOne({where: {id: req.params.id}})
+    .then(module => module.destroy())
+    .then(() => res.json(msg(`successfully deleted module`)))
+    .catch(err => next(err)));
+
 router.get('/:id/lesson/create',
   needs('token', 'cookies'),
   exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
@@ -92,16 +102,6 @@ router.get('/:id/unenroll',
     studentId: res.locals.loggedIn.email,
   }).then(enrollment => enrollment.destroy())
     .then(() => res.json(msg('successfully un-enrolled')))
-    .catch(err => next(err)));
-
-router.get(['/:id/delete', '/:id/remove', '/:id/destroy'],
-  needs('token', 'cookies'),
-  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
-  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
-  exists(Module, (req) => ({id: req.params.id})),
-  (req, res, next) => Module.findOne({where: {id: req.params.id}})
-    .then(module => module.destroy())
-    .then(() => res.json(msg(`successfully deleted module`)))
     .catch(err => next(err)));
 
 
