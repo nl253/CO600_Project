@@ -51,9 +51,12 @@ function toggleTabEnrollments(event) {
   document.getElementById('user-btn-personal-details').parentElement.classList.remove('is-active');
   document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
   document.getElementById('user-btn-enrollments-tab').parentElement.classList.add('is-active');
-  document.cookie = 'homeTab=enrollments';
+  sessionStorage.setItem('homeTab', 'enrollments');
 }
 
+/**
+ * @param event
+ */
 function toggleTabCreatedModules(event) {
   document.getElementById('user-personal-details').classList.add('is-hidden');
   document.getElementById('user-enrollments').classList.add('is-hidden');
@@ -61,9 +64,12 @@ function toggleTabCreatedModules(event) {
   document.getElementById('user-btn-created-modules-tab').parentElement.classList.add('is-active');
   document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
   document.getElementById('user-btn-personal-details').parentElement.classList.remove('is-active');
-  document.cookie = 'homeTab=created-modules';
+  sessionStorage.setItem('homeTab', 'created-modules');
 }
 
+/**
+ * @param event
+ */
 function toggleTabPersonalDetails(event) {
   document.getElementById('user-personal-details').classList.remove('is-hidden');
   document.getElementById('user-enrollments').classList.add('is-hidden');
@@ -71,5 +77,5 @@ function toggleTabPersonalDetails(event) {
   document.getElementById('user-btn-personal-details').parentElement.classList.add('is-active');
   document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
   document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
-  document.cookie = 'homeTab=personal-details';
+  sessionStorage.setItem('homeTab', 'personal-details');
 }
