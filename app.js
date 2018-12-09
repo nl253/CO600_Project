@@ -40,11 +40,11 @@ for (const pair of Object.entries(APP_ENV)) {
 /**
  * Produce a path relative to this file (i.e. path relative to the root of the project).
  *
- * @param {String} fileName
+ * @param {...String} components
  * @return {String} path relative to project root
  */
-function rootPath(fileName) {
-  return resolve(join(__dirname, fileName));
+function rootPath(...components) {
+  return resolve(join(__dirname, ...components));
 }
 
 if (!existsSync(rootPath('logs'))) mkdirSync(rootPath('logs'));
