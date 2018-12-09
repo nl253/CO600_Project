@@ -1,0 +1,149 @@
+<section class="hero" style="margin-top: 20px;">
+  <div style="margin: 30px 12vw 0; padding-bottom: 15px;">
+    <h1 class="title has-text-centered is-1" style="margin-bottom: 10px;">
+      Modify Module
+      <a href="/module/{{module.id}}" class="button is-light is-small" style="position: relative; top: 11px;">
+        <i class="far fa-eye" style="margin-right: 7px;"></i>
+        View
+      </a>
+    </h1>
+    <a href="/user/edit?tab=created-modules" class="button is-small" style="margin-bottom: 10px;">
+      <i class="fas fa-arrow-left" style="margin-right: 7px;"></i>
+      Created Modules
+    </a>
+    <h2 class="title" style="margin-bottom: 10px;">
+      Name
+    </h2>
+    <div id="module-edit-name" contenteditable="true" style="max-width: 300px;">
+      {{module.name}}
+    </div>
+    <h3 class="subtitle" style="margin: 25px 0 0 0;">Topic</h3>
+    <div class="dropdown" style="border: 1px #bdbdbd dashed;" onmouseover="this.classList.add('is-active')"
+         onmouseout="this.classList.remove('is-active')">
+      <div class="dropdown-trigger">
+        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu" style="background: #d3d3d329;">
+          <span id="module-edit-topic" style="min-width: 150px;">{{module.topic}}</span>
+          <span class="icon is-small">
+              <i class="fas fa-angle-down" aria-hidden="true"></i>
+            </span>
+        </button>
+      </div>
+      <div class="dropdown-menu" id="dropdown-menu" role="menu">
+        <div class="dropdown-content">
+          {{#each module.topics}}
+            <a class="dropdown-item"
+               onclick="document.getElementById('module-edit-topic').innerText = this.innerText.trim()">
+              {{this}}
+            </a>
+          {{/each}}
+          <hr class="dropdown-divider">
+          <span class="dropdown-item" style="font-weight: bold;">
+              Other
+            </span>
+          <a class="dropdown-item" id="module-edit-topic-other" contenteditable="true"
+             style="margin: 5px 10px; max-width: 90%;">
+            {{module.topic}}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div style="margin: 0 12vw 50px;">
+  <section class="content" style="margin-top: 40px;">
+    <strong>Author</strong> <a href="/user/{{module.author.id}}">{{module.author.email}}</a>
+    <br>
+    <strong>Rating</strong> <span id="module-edit-rating">{{module.rating}}/5</span>
+  </section>
+  <section class="is-medium" style="margin-bottom: 30px;">
+    <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
+    <textarea id="module-edit-summary"
+              style="min-width: 100%; min-height: 90px; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">{{module.summary}}</textarea>
+  </section>
+  <section class="is-medium" style="margin-bottom: 30px;">
+    <h2 class="title is-medium">Lessons</h2>
+    {{#if module.lessons}}
+      <ol id="module-edit-lessons" class="list" style="min-width: 100%;">
+        {{#each module.lessons}}
+          <li class="list-item"
+              data-id="{{this.id}}"
+              data-name="{{this.name}}"
+              data-created-at="{{this.createdAt}}"
+              data-summary="{{summary}}"
+              data-updated-at="{{this.updatedAt}}"
+              style="margin-bottom: 2px; display: flex; flex-direction: row; justify-content: space-between;">
+            <a href="/module/{{../module.id}}/{{this.id}}/edit"
+               style="position: relative; top: 8px; left: 5px;">
+              {{this.name}}
+            </a>
+            <div style="display: flex; flex-direction: row; justify-content: space-between; width: 250px;">
+              <a href="/module/{{../module.id}}/{{this.id}}" class="button is-small is-link" style="padding: -4px;">
+                <i class="far fa-eye" style="margin-right: 7px;"></i>
+                View
+              </a>
+              <a href="/module/{{../module.id}}/{{this.id}}/edit" class="button is-small is-warning"
+                 style="padding: -4px;">
+                <i class="fas fa-edit" style="margin-right: 7px;"></i>
+                Edit
+              </a>
+              <button class="button is-small is-danger" style="padding: -4px;">
+                <i class="fas fa-times" style="margin-right: 7px;"></i>
+                Delete
+              </button>
+            </div>
+          </li>
+        {{/each}}
+      </ol>
+    {{else}}
+      <p class="has-text-centered">No lessons</p>
+    {{/if}}
+    <br>
+    <button id="module-edit-btn-lesson-create" class="button is-link" style="display: block; margin: auto;">
+      <i class="fas fa-plus"></i>
+      Add Lesson
+    </button>
+  </section>
+
+  <nav style="margin: 20px auto; max-width: 350px;">
+    <button id="module-edit-btn-reset" class="button is-warning"
+            onclick="if (confirm('Revert all changes?')) window.location.href = window.location.href"
+            style="float: right;">
+      <i class="fas fa-undo" style="margin-right: 7px;"></i>
+      Reset
+    </button>
+    <button id="module-edit-btn-delete" class="button is-danger" style="float: left;">
+      <i class="fas fa-times" style="margin-right: 7px;"></i>
+      Delete
+    </button>
+    <button id="module-edit-btn-save" class="button is-primary"
+            style="margin: 0 auto; display: block; min-width: 125px;">
+      <i class="fas fa-check"></i>
+      Save
+    </button>
+  </nav>
+
+  <section class="is-small">
+    <h2 class="title is-medium">Comments</h2>
+    {{#if module.ratings}}
+      {{#each module.ratings}}
+        <div class="box"
+             data-id="{{id}}"
+             data-rater-id="{{raterId}}"
+             data-module-id="{{moduleId}}"
+             data-updated-at="{{updatedAt}}"
+             data-created-at="{{createdAt}}"
+             style="margin: 20px auto 0;">
+          <div style="margin-bottom: 10px;">
+            <strong>{{stars}}/5</strong> by <em><a href="/user/{{rater.email}}">{{rater.email}}</a></em>
+          </div>
+          <p class="content">{{comment}}</p>
+        </div>
+      {{/each}}
+    {{else}}
+      <p class="has-text-centered">No comments</p>
+    {{/if}}
+  </section>
+</div>
+
+<script src="/javascripts/module/edit.js" async></script>

@@ -1,0 +1,118 @@
+<section class="hero"
+         style="margin: 50px 12vw 0 12vw; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-around;">
+  {{#if loggedIn}}
+    <a href="/user?tab=enrollments" class="button is-small" style="margin-bottom: 10px;">
+      <i class="fas fa-arrow-left" style="margin-right: 7px;"></i>
+      Enrollments
+    </a>
+  {{/if}}
+  <h1 id="module-h-name" class="title" style="">
+    {{module.name}}
+  </h1>
+  <h3 id="module-h-topic" class="subtitle">
+    {{module.topic}}
+  </h3>
+  {{#if loggedIn}}
+    {{#if module.isEnrolled}}
+      <button id="module-btn-enroll" class="button is-danger" onclick="unEnroll({{module.id}})">
+        <i class="fas fa-times" style="margin-right: 7px;"></i>
+        Unenroll
+      </button>
+    {{else}}
+      {{#if module.isMine}}
+        <a href="/module/{{module.id}}/edit" class="button is-warning">
+          <i class="fas fa-edit" style="margin-right: 7px;"></i>
+          Edit
+        </a>
+      {{else}}
+        <button id="module-btn-enroll" class="button is-primary" onclick="enroll({{module.id}})">
+          <i class="fas fa-check" style="margin-right: 7px;"></i>
+          Enroll
+        </button>
+      {{/if}}
+    {{/if}}
+  {{else}}
+    <div class="message is-warning" style="margin: 50px auto 0 auto; width: 80%;">
+      <div class="message-header">
+        <p>Warning</p>
+        <button class="delete" aria-label="delete"></button>
+      </div>
+      <div class="message-body">
+        Log in to enroll and see lessons' contents.
+      </div>
+    </div>
+  {{/if}}
+</section>
+
+<div style="margin: 0 12vw 50px;">
+  <section class="content" style="margin-top: 40px;">
+    <strong>Author</strong> <a href="/user/{{module.author.id}}">{{module.author.email}}</a>
+    <br>
+    <strong>Rating</strong> <span id="module-rating">{{module.rating}}/5</span>
+  </section>
+  <section class="is-medium" style="margin-bottom: 30px;">
+    <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
+    {{#if module.summary}}
+      <pre style="background: inherit; font: inherit; padding: inherit; margin: inherit;">
+        {{{module.summary}}}
+      </pre>
+    {{else}}
+      <p class="is-medium has-text-centered">No summary</p>
+    {{/if}}
+  </section>
+  <section class="is-medium" style="margin-bottom: 30px;">
+    <h2 class="title is-medium">Lessons</h2>
+    {{#if module.lessons}}
+      <ol id="module-lessons" class="list" style="min-width: 100%;">
+        {{#if loggedIn}}
+          {{#each module.lessons}}
+            <li class="list-item"
+                data-id="{{id}}"
+                data-name="{{name}}"
+                data-created-at="{{createdAt}}"
+                data-summary="{{summary}}"
+                data-updated-at="{{updatedAt}}">
+              <a data-id="{{id}}">{{name}}</a>
+            </li>
+          {{/each}}
+        {{else}}
+          {{#each module.lessons}}
+            <li class="list-item"
+                data-id="{{id}}"
+                data-name="{{name}}"
+                data-created-at="{{createdAt}}"
+                data-summary="{{summary}}"
+                data-updated-at="{{updatedAt}}">
+              <a data-id="{{id}}">{{name}}</a>
+            </li>
+          {{/each}}
+        {{/if}}
+      </ol>
+    {{else}}
+      <p class="has-text-centered">No lessons</p>
+    {{/if}}
+  </section>
+  <section class="is-small">
+    <h2 class="title is-medium">Comments</h2>
+    {{#if module.ratings}}
+      {{#each module.ratings}}
+        <div class="box"
+             data-id="{{id}}"
+             data-rater-id="{{raterId}}"
+             data-module-id="{{moduleId}}"
+             data-updated-at="{{updatedAt}}"
+             data-created-at="{{createdAt}}"
+             style="margin: 20px auto 0;">
+          <div style="margin-bottom: 10px;">
+            <strong>{{stars}}/5</strong> by <em><a href="/user/{{rater.email}}">{{rater.email}}</a></em>
+          </div>
+          <p class="content">{{comment}}</p>
+        </div>
+      {{/each}}
+    {{else}}
+      <p class="has-text-centered">No comments</p>
+    {{/if}}
+  </section>
+</div>
+
+<script src="/javascripts/module/view.js" async></script>

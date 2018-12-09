@@ -1,0 +1,71 @@
+<nav class="navbar">
+  <div class="navbar-brand has-background-grey-lighter">
+    <a href="/" class="navbar-item has-background-grey-lighter">
+      <img src="/images/logo.png" width="30" height="30" alt="Logo">
+    </a>
+  </div>
+  <div class="navbar-menu has-background-grey-lighter">
+    <div class="navbar-start">
+      <a href="/" id="layout-btn-user-home" class="navbar-item">Home</a>
+      {{#if user.isMe}}
+        <script>
+          if (window.location.pathname.match(/\/user\/\d+$/)) {
+            document.getElementById('layout-btn-user-home').onclick = function(event) {
+              event.preventDefault();
+              return alert('already at home');
+            };
+          }
+        </script>
+      {{/if}}
+      <div class="navbar-item has-dropdown is-hoverable">
+        <a href="/user" class="navbar-link">Search</a>
+        <div class="navbar-dropdown">
+          <a href="/module/search" class="navbar-item">Modules</a>
+          <a href="/user/search" class="navbar-item">Users</a>
+        </div>
+      </div>
+      <div class="navbar-item has-dropdown is-hoverable">
+        <a href="/user" class="navbar-link">Create</a>
+        <div class="navbar-dropdown">
+          <a id="layout-btn-create-module" class="navbar-item">Module</a>
+        </div>
+      </div>
+      <a href="/about" class="navbar-item">About Us</a>
+    </div>
+  </div>
+  <div class="navbar-end has-background-grey-lighter" style="padding-right: 100px;">
+    <div class="navbar-item has-dropdown is-hoverable">
+      <a href="/user" class="navbar-link">
+        <i class="fas fa-user" style="margin-right: 10px;"></i>
+        {{#if loggedin.firstname}}
+          Hi {{loggedIn.firstName}}!
+        {{else}}
+          Hi <span class="greeting-email" style="margin-left: 3px;"> {{loggedIn.email}}</span>!
+        {{/if}}
+      </a>
+      <div class="navbar-dropdown">
+        <a href="/user/edit?tab=enrollments" id="navbar-auth-btn-user-enrollments" class="navbar-item">
+          <i class="fas fa-user-graduate" style="margin-right: 7px;"></i>
+          Enrollments
+        </a>
+        <a href="/user/edit?tab=created-modules" id="navbar-auth-btn-user-created-modules" class="navbar-item">
+          <i class="fas fa-university" style="margin-right: 7px;"></i>
+          Created Modules
+        </a>
+        <a href="/user/edit?tab=personal-details" id="navbar-auth-btn-user-settings" class="navbar-item">
+          <i class="fas fa-user" style="margin-right: 7px;"></i>
+          Settings
+        </a>
+        <a href="/help" class="navbar-item">
+          <i class="fas fa-question" style="margin-right: 7px;"></i>
+          Help
+        </a>
+        <hr class="navbar-divider">
+        <a href id="navbar-auth-btn-log-out" class="navbar-item">
+          <i class="fas fa-sign-out-alt" style="margin-right: 7px;"></i>
+          Log out
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
