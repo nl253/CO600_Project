@@ -51,7 +51,7 @@ const sequelize = new Sequelize({
     underscored: false,
     // By default, sequelize will automatically transform all passed model names (first parameter of define) into plural
     freezeTableName: true,
-    // add updatedAt, createdAt
+    // add updatedAt, createdOn
     timestamps: true,
   },
 

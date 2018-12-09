@@ -35,7 +35,7 @@ function setCookie(name, value, opts = {}) {
     expires: new Date(Date.now() + HOUR * 2),
   }, opts);
   const cookieStr = [
-    [name, value].map(encodeURIComponent), 
+    [name, value].map(encodeURIComponent),
     ['Expires', options.expires.toGMTString()],
     ['Path', options.path],
     ['SameSite', options.sameSite]
@@ -44,6 +44,9 @@ function setCookie(name, value, opts = {}) {
   document.cookie = cookieStr;
 }
 
+/**
+ * @param event
+ */
 function toggleTabEnrollments(event) {
   document.getElementById('user-created-modules').classList.add('is-hidden');
   document.getElementById('user-enrollments').classList.remove('is-hidden');
@@ -79,3 +82,4 @@ function toggleTabPersonalDetails(event) {
   document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
   sessionStorage.setItem('homeTab', 'personal-details');
 }
+
