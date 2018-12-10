@@ -1,5 +1,4 @@
-<section class="hero"
-         style="margin: 50px 12vw 0 12vw; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-around;">
+<div style="margin: 50px 20vw;">
   {{#if loggedIn}}
     <a href="/user?tab=enrollments" class="button is-small" style="margin-bottom: 10px;">
       <i class="fas fa-arrow-left" style="margin-right: 7px;"></i>
@@ -42,16 +41,13 @@
       </div>
     </div>
   {{/if}}
-</section>
-
-<div style="margin: 0 12vw 50px;">
   <section class="content" style="margin-top: 40px;">
     <strong>Author</strong> <a href="/user/{{module.author.id}}">{{module.author.email}}</a>
     <br>
     <strong>Rating</strong> <span id="module-rating">{{module.rating}}/5</span>
   </section>
   <section class="is-medium" style="margin-bottom: 30px;">
-    <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
+    <h2 class="title is-medium" style="margin-bottom: 20px;">Summary</h2>
     {{#if module.summary}}
       <pre style="background: inherit; font: inherit; padding: inherit; margin: inherit;">
         {{{module.summary}}}
