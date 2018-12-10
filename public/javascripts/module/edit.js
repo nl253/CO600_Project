@@ -1,3 +1,12 @@
+(function() {
+  const summary = document.getElementById('module-edit-summary');
+  summary.rows = Math.floor(Math.min(20, Math.max(summary.value.split('\n').length / 2, 4)));
+})();
+
+/**
+ * Lessons
+ */
+
 for (const lesson of document.querySelectorAll('#module-edit-lessons li')) {
   const modNameLink = lesson.querySelector('a:first-of-type');
   if (modNameLink.innerText.trim() === '') {
