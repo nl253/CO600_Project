@@ -1,0 +1,258 @@
+<section class="hero is-info is-bold">
+  <div class="hero-body">
+    <form action="">
+      <div class="columns">
+        <div class="column is-one-fifth">
+          <h1 class="title is-4">Module Search:</h1>
+        </div>
+        <div class="column is-half ">
+          <div class="field">
+            <div class="control has-icons-left">
+              <input class="input is-large" id="module-searchBar" type="text" placeholder="Module name">
+              <span class="icon is-left">
+                <i class="fas fa-search"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          <button class="button is-large">Search</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="section">
+  <div class="columns">
+    <div class="column is-one-fifth">
+      <nav class="panel">
+        <p class="panel-heading">
+          Filter by Date
+        </p>
+        <p class="panel-tabs">
+          <a class="tabLinks is-active" id="module-dateCreated" onclick="selectDateFilter(event, dateCreated, 'tabLinks')">Date created</a>
+          <a class="tabLinks" id="module-dateUpdated" onclick="selectDateFilter(event, dateUpdated, 'tabLinks')">Date updated</a>
+        </p>
+        <a class="panel-block time filter" id="module-1Week" onclick="selectDateFilter(event, '1Week', 'time')">
+          <span class="panel-icon">
+            <i class="fas fa-check-square" aria-hidden="true"></i>
+          </span>
+          1 Week
+        </a>
+        <a class="panel-block time filter" id="module-1Month" onclick="selectDateFilter(event, '1Month', 'time')">
+          <span class="panel-icon">
+            <i class="fas fa-check-square" aria-hidden="true"></i>
+          </span>
+          1 Month
+        </a>
+        <a class="panel-block time filter" id="module-6Months" onclick="selectDateFilter(event, '6Months', 'time')">
+          <span class="panel-icon">
+            <i class="fas fa-check-square" aria-hidden="true"></i>
+          </span>
+          6 Months
+        </a>
+        <a class="panel-block time filter" id="module-1Year" onclick="selectDateFilter(event, '1Year', 'time')">
+          <span class="panel-icon">
+            <i class="fas fa-check-square" aria-hidden="true"></i>
+          </span>
+          1 Year
+        </a>
+        <a class="panel-block time filter" id="5Years" onclick="selectDateFilter(event, '5Years', 'time')">
+          <span class="panel-icon">
+            <i class="fas fa-check-square" aria-hidden="true"></i>
+          </span>
+          5 Years
+        </a>
+        <a class="panel-block time filter" id="Older" onclick="selectDateFilter(event, 'Older', 'time')">
+          <span class="panel-icon">
+            <i class="fas fa-check-square" aria-hidden="true"></i>
+          </span>
+          Older
+        </a>
+        <p class="panel-heading">
+          Filter by Rating
+        </p>
+        <a class="panel-block rating filter" id="module-5stars" onclick="selectDateFilter(event, '5stars', 'rating')">
+          <span class="panel-icon">
+            <i class="fas fa-check-square" aria-hidden="true"></i>
+          </span>
+          5 <i class="far fa-star"></i>
+        </a>
+        <a class="panel-block rating filter" id="module-4stars" onclick="selectDateFilter(event, '4stars', 'rating')">
+          <span class="panel-icon">
+            <i class="fas fa-check-square" aria-hidden="true"></i>
+          </span>
+          4 <i class="far fa-star"></i>
+        </a>
+        <a class="panel-block rating filter" id="module-3stars" onclick="selectDateFilter(event, '3stars', 'rating')">
+          <span class="panel-icon">
+            <i class="fas fa-check-square" aria-hidden="true"></i>
+          </span>
+          3 <i class="far fa-star"></i>
+        </a>
+        <a class="panel-block rating filter" id="module-2stars" onclick="selectDateFilter(event, '2stars', 'rating')">
+          <span class="panel-icon">
+            <i class="fas fa-check-square" aria-hidden="true"></i>
+          </span>
+          2 <i class="far fa-star"></i>
+        </a>
+        <a class="panel-block rating filter" id="module-1stars" onclick="selectDateFilter(event, '1stars', 'rating')">
+          <span class="panel-icon">
+            <i class="fas fa-check-square" aria-hidden="true"></i>
+          </span>
+          1 <i class="far fa-star"></i>
+        </a>
+        <div class="panel-block">
+          <button class="button is-link is-outlined is-fullwidth" onclick="resetFilters()">
+            reset all filters
+          </button>
+        </div>
+      </nav>
+    </div>
+    <div class="column is-three-fifths">
+      <div id="module-searchResults">
+        
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+
+function selectDateFilter(evt, tabName, filterName) {
+      // Declare all variables
+      let i, tabs;
+
+      //Change variable to updated or selected.
+
+      // Get all elements with class="tabs" and remove the class "active"
+      tabs = document.getElementsByClassName(filterName);
+      for (i = 0; i < tabs.length; i++) {
+          tabs[i].className = tabs[i].className.replace(" is-active", "");
+      }
+
+      // Show the current tab, and add an "active" class to the button that opened the tab
+      evt.currentTarget.className += " is-active";
+      if(tabs[0].classList.contains('time')){
+        time = evt.currentTarget.id.toString();
+      } else if(tabs[0].classList.contains('rating')){
+        rating = evt.currentTarget.id.toString();
+      }
+      console.log(time + " " + rating);
+  }
+  
+(function () {
+  let date, rating, time;
+  date = 'created';
+  rating = null;
+  time = null;
+
+  let today = new Date();
+  let dd = today.getDate();
+  let mm = today.getMonth()+1;
+  let yyyy = today.getFullYear();
+
+  const searchBtn  = document.getElementById('module-searchBtn');
+  if (searchBtn) {
+
+    searchBtn.onclick = (event) => {
+
+      // don't send the HTML form
+      event.preventDefault();
+
+      const searchTerm = document.getElementById('module-searchBar').value;
+
+      const queryParams = {name: searchTerm};
+
+      const cfg = {
+        redirect:'follow',
+        cache: "no-cache",
+        mode: "cors",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      };
+
+      let uri = `/api/module/search`;
+
+      if ([...Object.keys(queryParams)].length > 0) {
+      uri += '?' + Object.entries(queryParams).map(pair => pair.join('=')).join('&');
+      }
+
+      // error codes 400..499 and 500..599 are client and server errors
+      return fetch(uri, cfg)
+        .then(response => response.status >= 400 
+          // if it goes wrong force it to jump to reject
+          ? response.json().then(errMsg => Promise.reject(errMsg))
+          // the JSON object is guaranteed to have a "msg" property
+          : response.json())
+        .then(json => {
+          //Display results
+          if(rating === null && time === null){
+            for(module in json.result) {
+              const moduleName = json.result[module].name;
+              const moduleSummary = json.result[module].summary;
+
+              document.getElementById('module-searchResults').innerHTML += 
+              `<div class="box" onclick="location.href = "/module">
+                <div class="media-content">
+                  <div class="content">
+                    <p class="is-size-5">
+                      <a href="module/"><strong>${moduleName}</strong></a>
+                      <br>
+                      ${moduleSummary}
+                    </p>
+                  </div>
+                </div>
+                <br>
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+              </div>`;
+            }
+          } else if(time == null){
+            for(module in json.result) {
+              if(module.rating == rating){
+                const moduleName = json.result[module].name;
+                const moduleSummary = json.result[module].summary;
+
+                document.getElementById('module-searchResults').innerHTML += 
+                `<div class="box" onclick="location.href = "/module">
+                  <div class="media-content">
+                    <div class="content">
+                      <p class="is-size-5">
+                        <a href="module/"><strong>${moduleName}</strong></a>
+                        <br>
+                        ${moduleSummary}
+                      </p>
+                    </div>
+                  </div>
+                  <br>
+                  <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                </div>`;
+              }
+            }
+          }
+          
+          //forLoop through array        
+
+        })
+        .catch(err => {
+          console.error(err);
+          return alert(err.msg || err.message || err.toString());
+        });
+    }
+  }
+
+  function resetFilters(){
+    tabs = document.getElementsByClassName('filter');
+      for (i = 0; i < tabs.length; i++) {
+          tabs[i].className = tabs[i].className.replace(" is-active", "");
+      }
+      rating = null;
+      time = null;
+  }
+})();
+
+</script>
