@@ -20,7 +20,7 @@
  */
 
 const {MissingDataErr, NotLoggedIn, InvalidRequestErr} = require('../../errors');
-const {Session, Module, Enrollment, Lesson, File} = require('../../database');
+const {Session, Module, Enrollment, Lesson, File, Sequelize} = require('../../database');
 const router = require('express').Router();
 
 const {suggestRoutes, msg} = require('../lib');
@@ -114,18 +114,18 @@ router.get('/create',
   }).then(module => res.json(msg(`successfully created module`, module.id)))
     .catch(err => next(err)));
 
-
 router.get(['/', '/search'],
   validColumns(Module, (req) => Object.keys(req.query)),
   (req, res) => {
     const queryParams = {};
     for (const q in req.query) {
-      queryParams[q] = req.query[q];
+      if (q === 'name' || q === 'topic') queryParams[q] = {[Sequelize.Op.like]: `%${req.query[q]}%`};
+      else queryParams[q] = req.query[q];
     }
     return Module.findAll({
       limit: process.env.MAX_RESULTS || 100,
       where: queryParams,
-    }).then(modules => modules.map(r => r.dataValues))
+    }).then(ms => ms.map(m => m.dataValues))
       .then(modules => {
         let s = `found ${modules.length} modules`;
         if (Object.keys(req.query).length > 0) {
