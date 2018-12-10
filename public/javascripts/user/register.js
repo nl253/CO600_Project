@@ -14,10 +14,10 @@ document.getElementById('register-btn').onclick = async (event) => {
 
   let [firstName, lastName] = [null, null];
 
-  let maybeFirstName = document.getElementById('first-name').value;
+  let maybeFirstName = document.getElementById('reg-first-name').value;
   if (maybeFirstName !== '') firstName = maybeFirstName;
 
-  let maybeLastName = document.getElementById('last-name').value;
+  let maybeLastName = document.getElementById('reg-last-name').value;
   if (maybeLastName !== '') lastName = maybeLastName;
 
   const email = document.getElementById('reg-email').value;
@@ -74,7 +74,7 @@ document.getElementById('register-btn').onclick = async (event) => {
 
   setCookie('token', token);
   // redirect
-  if (location.pathname.match(/register\/?$/) || location.pathname === '/') {
+  if (location.pathname.match(/\/register\/?$/) || location.pathname === '/') {
     location.href = '/user/edit';
   }
 };
