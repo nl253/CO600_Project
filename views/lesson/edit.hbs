@@ -1,47 +1,39 @@
-<div style="margin: 50px 0 20px;">
-  <h1 class="title is-1 has-text-centered">
+<div style="margin: 50px 0 20px; display: flex; flex-direction: row; justify-content: center; align-items: center;">
+  <h1 class="title is-1 has-text-centered" style="margin: 0 15px 0 0;">
     Modify Lesson
   </h1>
   {{#if lesson.module.isMine}}
-    <a href="/module/{{lesson.module.id}}/{{lesson.id}}" class="button is-link"
-       style="display: block; margin: auto; max-width: 100px;">
+    <a href="/module/{{lesson.module.id}}/{{lesson.id}}" class="button is-light is-small"
+       style="max-width: 100px; display: block;">
       <i class="far fa-eye" style="margin-right: 7px;"></i>
       View
     </a>
   {{/if}}
 </div>
 
-<a href="/module/{{lesson.moduleId}}/edit" class="button" style="margin-left: 10.6vw; display: block; max-width: 100px;">
-  <i class="fas fa-arrow-left" style="margin-right: 7px;"></i>
-  Back
-</a>
-<div class="columns is-multiline" style="margin: 0 10vw 100px 10vw;">
+<div class="columns is-multiline" style="margin: 0 10vw 10px 10vw;">
   <nav class="panel column is-2-desktop is-full-tablet is-full-mobile">
-    {{#if lesson.module.name}}
-      <h4 class="title panel-heading has-text-centered">
-        <strong style="font-weight: bold;">Module</strong>
-        <br>
-        <a href="/module/{{lesson.module.id}}/edit">{{lesson.module.name}}</a>
-      </h4>
-    {{else}}
-      <h4 class="title panel-heading">
-
-        Lessons
-      </h4>
-    {{/if}}
+    <h2 class="title has-text-centered" style="margin-bottom: 20px;">
+      <a class="button is-link" href="/module/{{lesson.module.id}}/edit" style="width: 100%;">
+        <span style="position: relative; right: 3px;">
+            <i class="fas fa-arrow-left" style="margin-right: 7px;"></i>
+            Module
+        </span>
+      </a>
+    </h2>
     {{#each lesson.module.lessons}}
-      <a href="/module/{{../lesson.module.id}}/{{id}}/edit"
+      <a href="/module/{{../lesson.module.id}}/{{this.id}}/edit"
          class="panel-block has-text-link"
-         data-id="{{id}}"
-         data-created-on="{{createdOn}}"
-         data-updated-at="{{updatedAt}}">
+         data-id="{{this.id}}"
+         data-created-on="{{this.createdAt}}"
+         data-updated-at="{{this.updatedAt}}">
           <span class="panel-icon" style="margin-right: 7px;">
             <i class="fas fa-book" aria-hidden="true"></i>
           </span>
         {{#if name}}
-          {{name}}
+          {{this.name}}
         {{else}}
-          unnamed #{{id}}
+          unnamed #{{this.id}}
         {{/if}}
       </a>
     {{/each}}
@@ -59,7 +51,7 @@
     <div style="margin: 30px 0 20px 0;">
       <h2 class="title is-3">Summary</h2>
       <textarea id="lesson-edit-summary" name="summary" autocomplete="on"
-                style="padding: 5px; min-width: 650px; min-height: 50px; max-height: 100px; border: 1px #c9c3c3 dashed;">{{lesson.summary}}</textarea>
+                style="padding: 5px; min-width: 650px; min-height: 50px; max-height: 800px; border: 1px #c9c3c3 dashed;">{{lesson.summary}}</textarea>
     </div>
 
     <div
@@ -159,7 +151,7 @@
 </div>
 
 <div
-    style="display: flex; flex-direction: row; justify-content: space-around; align-items: center; margin: auto; min-width: 300px; max-width: 500px;">
+    style="display: flex; flex-direction: row; justify-content: space-around; align-items: center; margin: 20px auto; min-width: 300px; max-width: 500px;">
   <a class="button is-warning" style="min-width: 100px;"
      onclick="if (confirm('Lose all changes?')) location.href = location.href">
     <i class="fas fa-undo" style="margin-right: 7px;"></i>
