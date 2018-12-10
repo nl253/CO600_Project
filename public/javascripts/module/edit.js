@@ -17,30 +17,26 @@ for (const lesson of document.querySelectorAll('#module-edit-lessons li')) {
     if (!confirm('Delete lesson?')) return;
     const moduleId = /(\d+)(\/edit)?\/?$/.exec(location.pathname)[1];
     const lessonId = lesson.getAttribute('data-id');
-    const response = await fetch(`/api/module/${moduleId}/${lessonId}/delete`, {
-      redirect: 'follow',
-      cache: 'no-cache',
-      mode: 'cors',
-      credentials: 'include',
-      headers: {'Accept': 'application/json'},
-    });
-    if (response.status >= 400) {
-      const json = await response.json();
-      const msg = json.msg || json.message || json.toString();
+    try {
+      const response = await fetch(`/api/module/${moduleId}/${lessonId}/delete`, {
+        redirect: 'follow',
+        cache: 'no-cache',
+        mode: 'cors',
+        credentials: 'include',
+        headers: {Accept: 'application/json'},
+      });
+      if (response.status >= 400) throw (await response.json());
+    } catch(err) {
+      const msg = err.msg || err.message || err.toString();
       console.error(msg);
       return alert(msg);
     }
-    lesson.remove();
-    let list = document.querySelectorAll('#module-edit-lessons li');
-    if ([...list].length === 0) {
-      list.outerHTML = `<br><p class="has-text-centered">No Lessons.</p>`;
-    }
+    const isLast = (lesson.parentElement.querySelectorAll('li').length - 1) === 0;
+    if (isLast) {
+      lesson.parentElement.outerHTML = `<br><p class="has-text-centered">No Lessons.</p><br>`;
+    } else return lesson.remove();
   };
 }
-
-/**
- * Lessons
- */
 
 document.getElementById('module-edit-btn-lesson-create').onclick = async function() {
   try {
