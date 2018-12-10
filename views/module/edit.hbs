@@ -1,66 +1,64 @@
-<section class="hero" style="margin-top: 20px;">
-  <div style="margin: 30px 12vw 0; padding-bottom: 15px;">
-    <h1 class="title has-text-centered is-1" style="margin-bottom: 10px;">
-      Modify Module
-      <a href="/module/{{module.id}}" class="button is-light is-small" style="position: relative; top: 11px;">
-        <i class="far fa-eye" style="margin-right: 7px;"></i>
-        View
-      </a>
-    </h1>
-    <a href="/user/edit?tab=created-modules" class="button is-small" style="margin-bottom: 10px;">
-      <i class="fas fa-arrow-left" style="margin-right: 7px;"></i>
-      Created Modules
+<div style="margin: 30px 12vw 50px;">
+  <h1 class="title has-text-centered is-1" style="margin-bottom: 10px;">
+    Modify Module
+    <a href="/module/{{module.id}}" class="button is-light is-small" style="position: relative; top: 11px;">
+      <i class="far fa-eye" style="margin-right: 7px;"></i>
+      View
     </a>
-    <h2 class="title" style="margin-bottom: 10px;">
-      Name
-    </h2>
-    <div id="module-edit-name" contenteditable="true" style="max-width: 300px;">
-      {{module.name}}
-    </div>
-    <h3 class="subtitle" style="margin: 25px 0 0 0;">Topic</h3>
-    <div class="dropdown" style="border: 1px #bdbdbd dashed;" onmouseover="this.classList.add('is-active')"
-         onmouseout="this.classList.remove('is-active')">
-      <div class="dropdown-trigger">
-        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu" style="background: #d3d3d329;">
-          <span id="module-edit-topic" style="min-width: 150px;">{{module.topic}}</span>
-          <span class="icon is-small">
+  </h1>
+  <a href="/user/edit?tab=created-modules" class="button is-small" style="margin-bottom: 10px;">
+    <i class="fas fa-arrow-left" style="margin-right: 7px;"></i>
+    Created Modules
+  </a>
+  <h2 class="title" style="margin-bottom: 10px;">
+    Name
+  </h2>
+  <div id="module-edit-name" contenteditable="true" style="max-width: 300px;">
+    {{module.name}}
+  </div>
+  <h3 class="subtitle" style="margin: 25px 0 0 0;">Topic</h3>
+  <div class="dropdown" style="border: 1px #bdbdbd dashed;" onmouseover="this.classList.add('is-active')"
+       onmouseout="this.classList.remove('is-active')">
+    <div class="dropdown-trigger">
+      <button class="button" aria-haspopup="true" aria-controls="dropdown-menu" style="background: #d3d3d329;">
+        <span id="module-edit-topic" style="min-width: 150px;">{{module.topic}}</span>
+        <span class="icon is-small">
               <i class="fas fa-angle-down" aria-hidden="true"></i>
             </span>
-        </button>
-      </div>
-      <div class="dropdown-menu" id="dropdown-menu" role="menu">
-        <div class="dropdown-content">
-          {{#each module.topics}}
-            <a class="dropdown-item"
-               onclick="document.getElementById('module-edit-topic').innerText = this.innerText.trim()">
-              {{this}}
-            </a>
-          {{/each}}
-          <hr class="dropdown-divider">
-          <span class="dropdown-item" style="font-weight: bold;">
+      </button>
+    </div>
+    <div class="dropdown-menu" id="dropdown-menu" role="menu">
+      <div class="dropdown-content">
+        {{#each module.topics}}
+          <a class="dropdown-item"
+             onclick="document.getElementById('module-edit-topic').innerText = this.innerText.trim()">
+            {{this}}
+          </a>
+        {{/each}}
+        <hr class="dropdown-divider">
+        <span class="dropdown-item" style="font-weight: bold;">
               Other
             </span>
-          <a class="dropdown-item" id="module-edit-topic-other" contenteditable="true"
-             style="margin: 5px 10px; max-width: 90%;">
-            {{module.topic}}
-          </a>
-        </div>
+        <a class="dropdown-item" id="module-edit-topic-other" contenteditable="true"
+           style="margin: 5px 10px; max-width: 90%;">
+          {{module.topic}}
+        </a>
       </div>
     </div>
   </div>
-</section>
 
-<div style="margin: 0 12vw 50px;">
   <section class="content" style="margin-top: 40px;">
     <strong>Author</strong> <a href="/user/{{module.author.id}}">{{module.author.email}}</a>
     <br>
     <strong>Rating</strong> <span id="module-edit-rating">{{module.rating}}/5</span>
   </section>
-  <section class="is-medium" style="margin-bottom: 30px;">
+
+  <section style="margin-bottom: 30px;">
     <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
     <textarea id="module-edit-summary"
               style="min-width: 100%; min-height: 90px; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">{{module.summary}}</textarea>
   </section>
+
   <section class="is-medium" style="margin-bottom: 30px;">
     <h2 class="title is-medium">Lessons</h2>
     {{#if module.lessons}}
@@ -105,7 +103,7 @@
     </button>
   </section>
 
-  <nav style="margin: 20px auto; max-width: 350px;">
+  <nav style="margin: 0 auto; max-width: 350px;">
     <button id="module-edit-btn-reset" class="button is-warning"
             onclick="if (confirm('Revert all changes?')) window.location.href = window.location.href"
             style="float: right;">
