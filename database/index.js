@@ -9,14 +9,14 @@ const {existsSync} = require('fs');
 const {join, resolve} = require('path');
 
 // Project
-const {createLogger} = require('../../lib');
+const {createLogger} = require('../lib');
 
 /**
  * Logger for the database. Logs all queries.
  *
  * @type {winston.Logger}
  */
-// const log = createLogger({label: 'DATABASE', lvl: process.env.LOGGING_DB});
+// const log = createLogger({label: 'DATABASE', lvl: process.env.js.LOGGING_DB});
 const log = createLogger({label: 'DATABASE', lvl: process.env.LOGGING_DB || 'warn'});
 
 if (process.env.NODE_ENV !== 'development') {
@@ -156,6 +156,7 @@ const Module = sequelize.define('Module', {
     autoIncrement: true,
   },
   authorId: {
+    allowNull: false,
     type: INTEGER,
     references: {
       model: User,
@@ -185,6 +186,10 @@ const Lesson = sequelize.define('Lesson', {
     onDelete: 'CASCADE',
     allowNull: false,
   },
+  order: {
+    allowNull: false,
+    type: INTEGER,
+  },
   name: STRING,
   summary: TEXT,
   content: BLOB,
@@ -203,6 +208,7 @@ const File = sequelize.define('File', {
       model: Lesson,
       key: 'id',
     },
+    allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
   },
@@ -232,6 +238,7 @@ const Rating = sequelize.define('Rating', {
     autoIncrement: true,
   },
   raterId: {
+    allowNull: false,
     type: INTEGER,
     references: {
       model: User,
@@ -267,31 +274,6 @@ const Rating = sequelize.define('Rating', {
 });
 
 const Enrollment = sequelize.define('Enrollment', {
-  moduleId: {
-    type: INTEGER,
-    references: {
-      model: Module,
-      key: 'id',
-    },
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    allowNull: false,
-    unique: 'compositeIndex',
-  },
-  studentId: {
-    type: INTEGER,
-    references: {
-      model: User,
-      key: 'id',
-    },
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    allowNull: false,
-    unique: 'compositeIndex',
-  },
-});
-
-const Question = sequelize.define('Question', {
   id: {
     type: INTEGER,
     allowNull: false,
@@ -307,12 +289,45 @@ const Question = sequelize.define('Question', {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     allowNull: false,
-    unique: 'compositeIndex',
   },
-  correctAnswer: {
-    type: TEXT,
+  studentId: {
+    type: INTEGER,
+    references: {
+      model: User,
+      key: 'id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
     allowNull: false,
   },
+});
+
+const Question = sequelize.define('Question', {
+  id: {
+    type: INTEGER,
+    allowNull: false,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  order: {
+    allowNull: false,
+    type: INTEGER,
+  },
+  moduleId: {
+    type: INTEGER,
+    references: {
+      model: Module,
+      key: 'id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+    allowNull: false,
+  },
+  correctAnswer: {type: STRING, allowNull: false},
+  badAnswer1: STRING,
+  badAnswer2: STRING,
+  badAnswer3: STRING,
+  badAnswer4: STRING,
 });
 
 // Sync all models that aren't already in the database
@@ -322,17 +337,20 @@ if (process.env.DB_SYNC === '1' || (process.env.DB_PATH !== undefined && !exists
   log.warn(`syncing database to ${process.env.DB_PATH}`);
   sequelize.sync().then(async () => {
     if (process.env.NODE_ENV === 'production') {
-      return console.error(`NODE_ENV set to producting so DB_SYNC failed`);
+      return console.error(`NODE_ENV set to production so DB_SYNC failed`);
     } else console.warn(`generating mock data ...`);
     // write info about mock data to a separate file
     const log = createLogger({label: 'MOCKS', logFileName: 'mocks'});
     const faker = require('faker');
-    const {sha256} = require('../lib');
-    function save(obj) {
-      return log.warn(`${obj._modelOptions.name.singular} ${Object.entries(obj.dataValues).filter(pair => pair[1]).map(pair => pair[0] + ' = ' + pair[1].toString().slice(0, 30)).join(', ')}`);
-    }
+    const {sha256} = require('../routes/lib');
     const users = [];
-    for (let i = 0; i < 5; i++) {
+    const modules = [];
+    function randArrEl(arr) {return arr[faker.random.number(arr.length - 1)];}
+    function randUserId() {return randArrEl(users).id;}
+    function randModuleId() {return randArrEl(modules).id;}
+    function save(obj) {return log.warn(`${obj._modelOptions.name.singular} ${Object.entries(obj.dataValues).filter(pair => pair[1]).map(pair => pair[0] + ' = ' + pair[1].toString().slice(0, 30)).join(', ')}`);}
+
+    for (let i = 0; i < process.env.NO_MOCKS; i++) {
       const password = faker.internet.password();
       const user = await User.create({
         firstName: faker.name.firstName(),
@@ -341,31 +359,56 @@ if (process.env.DB_SYNC === '1' || (process.env.DB_PATH !== undefined && !exists
         email: faker.internet.email(),
         password: sha256(password),
       });
-      users.push(user.dataValues);
-      const module = await Module.create({
-        name: faker.random.words(3),
-        topic: faker.random.word(),
-        authorId: user.id,
-        summary: faker.random.words(20),
-      });
-      const _ = Promise.all([...Array(10)].map(_ => Rating.create({
-        raterId: users[faker.random.number(users.length - 1)].id,
-        moduleId: module.id,
-        comment: faker.random.words(6),
-        stars: faker.random.number(1, 5),
-      })));
-      let lessons = Promise.all([...Array(5)].map(_ => Lesson.create({
-        moduleId: module.id,
-        summary: faker.random.words(10),
-        name: faker.random.words(3),
-        content: Buffer.from(faker.random.words(500)),
-      })));
       delete user.dataValues.password;
       user.dataValues.password = password;
       save(user);
-      save(module);
-      for (const l of await lessons) save(l);
+      users.push(user.dataValues);
     }
+
+    for (let i = 0; i < process.env.NO_MOCKS; i++) {
+      const module = await Module.create({
+        name: faker.random.words(3),
+        topic: faker.random.word(),
+        authorId: randUserId(),
+        summary: faker.random.words(20),
+      });
+      save(module);
+      modules.push(module.dataValues);
+    }
+
+    const lessons = Promise.all([...Array(process.env.NO_MOCKS * 3).keys()]
+      .map(ord =>
+        Lesson.create({
+          moduleId: randModuleId(),
+          summary: faker.random.words(10),
+          order: ord,
+          name: faker.random.words(3),
+          content: Buffer.from(faker.random.words(500)),
+        })));
+
+    const ratings =  Promise.all([...Array(process.env.NO_MOCKS).keys()]
+      .map(_ => Rating.create({
+        raterId: randUserId(),
+        moduleId: randModuleId(),
+        comment: faker.random.words(6),
+        stars: faker.random.number(1, 5),
+      })));
+
+    const questions = Promise.all([...Array(process.env.NO_MOCKS * 3).keys()]
+      .map(ord =>
+        Question.create({
+          correctAnswer: faker.random.words(2),
+          badAnswer1: faker.random.words(2),
+          badAnswer2: faker.random.words(3),
+          badAnswer3: faker.random.words(2),
+          badAnswer4: faker.random.words(1),
+          moduleId: randModuleId(),
+          order: ord,
+        })));
+
+    for (const l of await lessons) save(l);
+    for (const r of await ratings) save(r);
+    for (const q of await questions) save(q);
   });
 }
 
