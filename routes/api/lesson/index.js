@@ -4,7 +4,20 @@ const {suggestRoutes, msg} = require('../lib');
 const {NoSuchRecord, NotLoggedIn, DeniedErr} = require('../../errors');
 const router = require('express').Router();
 
+const MEDIA_REGEX = /.+\.((pn|jpe?|mp[34])g|gif)$/;
 const {Lesson, Module, User, sequelize} = require('../../../database');
+
+router.get(['/:id/download', '/:id/content'], isLoggedIn(),
+  async (req, res) => {
+    try {
+      const lesson = await Lesson.findOne({where: {id: req.params.id}}).then(l => l.dataValues);
+      res.set('Content-Type', 'text/html');
+      res.send(lesson.content);
+      return res.end();
+    } catch (e) {
+      return next(e);
+    }
+  });
 
 router.delete('/:id', isLoggedIn(),
   async (req, res) => {

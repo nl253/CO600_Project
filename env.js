@@ -41,7 +41,7 @@ function printEnv(env = process.env) {
     `APPLICATION ENVIRONMENT\n${'-'.repeat(Math.min(80, padStartLen + padEndLen + 3))}`);
   for (const pair of Object.entries(env).filter(pair => pair[0].match(/^[-_A-Z0-9]+$/))) {
     const [k, v] = pair;
-    console.info(`${k.padEnd(padStartLen)} = ${v}`);
+    console.info(`${k.padEnd(padStartLen)} ${v.length > 60 ? v.slice(0, 60) + ' ...' : v}`);
   }
 }
 
