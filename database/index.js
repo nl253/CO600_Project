@@ -309,6 +309,7 @@ const Question = sequelize.define('Question', {
     primaryKey: true,
     autoIncrement: true,
   },
+  name: STRING,
   order: {
     allowNull: false,
     type: INTEGER,
@@ -327,7 +328,6 @@ const Question = sequelize.define('Question', {
   badAnswer1: STRING,
   badAnswer2: STRING,
   badAnswer3: STRING,
-  badAnswer4: STRING,
 });
 
 // Sync all models that aren't already in the database
@@ -398,10 +398,10 @@ if (process.env.DB_SYNC === '1' || (process.env.DB_PATH !== undefined && !exists
       .map(ord =>
         Question.create({
           correctAnswer: faker.random.words(2),
+          name: faker.random.words(10),
           badAnswer1: faker.random.words(2),
           badAnswer2: faker.random.words(3),
           badAnswer3: faker.random.words(2),
-          badAnswer4: faker.random.words(1),
           moduleId: randModuleId(),
           order: ord,
         })));

@@ -22,8 +22,7 @@
     </h2>
     <!--list of modules-->
     <ul id="module-edit-module-list" class="menu-list" style="margin-top: 20px; margin-bottom: 20px;"></ul>
-    <button class="button is-success" style="display: block; max-width: 150px; margin: 0 auto;"
-            onclick="create('Module', JSON.stringify({authorId: {{loggedIn.id}} })).then(m => appendModule(m))">
+    <button onclick="createMod({{loggedIn.id}})" class="button is-success" style="display: block; max-width: 150px; margin: 0 auto;">
       <i class="fas fa-plus" style="position: relative; top: 3px;"></i>
       Module
     </button>
@@ -39,7 +38,7 @@
     <ol id="module-edit-lesson-list" class="menu-list" style="margin-bottom: 20px; list-style-type: none;"></ol>
 
     <!--create lesson btn-->
-    <button onclick="create('Lesson', JSON.stringify({moduleId: getSelModId()})).then(l => appendLesson(l))"
+    <button onclick="createLess({{loggedIn.id}})"
             class="button is-success" style="margin: 0 auto; display: block; max-width: 150px;">
       <i class="fas fa-plus" style="position: relative; top: 3px;"></i>
       Lesson
@@ -56,7 +55,7 @@
 
     <!--add question btn-->
     <button id="module-edit-btn-quiz" class="button is-success"
-            onclick="create('Question', JSON.stringify({moduleId: getSelModId()})).then(q => appendQuestion(q))"
+            onclick="createQuest({{loggedIn.id}})"
             style="margin: 10px auto 0; display: block; max-width: 150px;">
       <i class="fas fa-plus" style="position: relative; top: 3px;"></i>
       Question

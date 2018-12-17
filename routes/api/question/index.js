@@ -30,7 +30,7 @@ router.post('/create',
     }
   });
 
-router.post('/:id', validCols(Question),
+router.post(['/:id', '/:id/modify', '/:id/update'], validCols(Question),
   async (req, res, next) => {
     try {
       let question = await Question.findOne({where: {id: req.params.id}});

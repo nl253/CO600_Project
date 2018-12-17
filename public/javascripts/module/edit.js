@@ -181,64 +181,43 @@ async function showModEditPane(module, topics = []) {
     return alert(msg);
   }
 }
-function showQuestEditPane() {
+function showQuestEditPane(question) {
   document.getElementById('module-edit-pane').innerHTML = `
     <h1 class="title is-3"style="margin-bottom: 10px;">Question</h1>
-    <p><strong>Note:</strong> Save the current question before creating a new one</p>
+    <p><strong>Note:</strong> Save the current question before editing another one</p>
     <br>
     <div class="field">
-      <a class="button is-medium is-light" contenteditable="true" style="width: 50%; padding: 5px; border: 1px; margin: auto;"></a>
+      <a id="module-edit-question-name" class="button is-medium is-light" contenteditable="true" style="width: 50%; padding: 5px; border: 1px; margin: auto;">${question.name ? question.name : ''}</a>
     </div>
     <br>
 
     <div class="field">
       <h2 class="title is-3" style="margin-bottom: 10px;">Correct Answer</h2>
-      <p><strong>Note:</strong> Only include one correct answer for the quiz</p>
-      <br>
-      <a class="button is-medium is-light" contenteditable="true" style="width: 50%; padding: 5px; border: 1px; margin: auto;"></a>
+      <a id="module-edit-question-answer" class="button is-medium is-light" contenteditable="true" style="width: 50%; padding: 5px; border: 1px; margin: auto;">${question.correctAnswer ? question.correctAnswer : ''}</a>
     </div>
     <br>
     
     <h3 class="title is-3" style="margin-bottom: 10px;">Other Answers</h3>
 
-    <p><strong>Note:</strong> Include other answers, which are wrong (at least two or at most five)</p>
+    <p><strong>Note:</strong> Include other answers which are wrong</p>
 
     <br>
 
     <div class="field is-horizontal">
-      <a class="button is-medium is-light" contenteditable="true" style="width: 50%; padding: 5px; border: 1px; margin-right: 10px;"></a>
-      <a class="button is-danger is-small" style="position: relative; top: 10px;">
-        <span class="icon" style="margin-right: 7px;">
-          <i class="fas fa-times"></i>
-        </span>
-        Delete
-      </a>
+      <a class="button is-medium is-light" contenteditable="true" style="width: 50%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer1 ? question.badAnswer1 : ''}</a>
     </div>
 
     <div class="field is-horizontal">
-      <a class="button is-medium is-light" contenteditable="true" style="width: 50%; padding: 5px; border: 1px; margin-right: 10px;"></a>
-      <a class="button is-danger is-small" style="position: relative; top: 10px;">
-        <span class="icon" style="margin-right: 7px;">
-          <i class="fas fa-times"></i>
-        </span>
-        Delete
-      </a>  
+      <a class="button is-medium is-light" contenteditable="true" style="width: 50%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer2 ? question.badAnswer2 : ''}</a>
     </div>
-    <br>
     
     <div class="field is-horizontal">
-      <a class="button is-medium is-light" contenteditable="true" style="width: 50%; padding: 5px; border: 1px; margin-right: 10px;"></a>
-      <a class="button is-danger is-small" style="position: relative; top: 10px;">
-        <span class="icon" style="margin-right: 7px;">
-          <i class="fas fa-times"></i>
-        </span>
-        Delete
-      </a>  
+      <a class="button is-medium is-light" contenteditable="true" style="width: 50%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer3 ? question.badAnswer3 : ''}</a>
     </div>
     <br>
 
     <div class="field is-grouped">
-      <a class="button is-success" style="margin: 7px">
+      <a onclick="saveQuest().then(msg => alert(msg))" class="button is-success" style="margin: 7px">
         <i class="fas fa-check" style="margin-right: 7px;"></i>
         Save
       </a>
@@ -280,7 +259,7 @@ async function toggleQuestion(id) {
   unselectLess();
   selectQuest(id);
   clearPane();
-  return showQuestEditPane(await get('Question', {id})[0]);
+  return showQuestEditPane((await get('Question', {id}))[0]);
 }
 
 /**
@@ -499,7 +478,41 @@ async function saveLesson(lessonId) {
   }
 }
 
-function saveQuest() {}
+function saveQuest() {
+  const pane = document.getElementById('module-edit-pane');
+  const maybeBadA1 = pane.querySelector('#module-edit-question-bad-answer-1');
+  const maybeBadA2 = pane.querySelector('#module-edit-question-bad-answer-2');
+  const maybeBadA3 = pane.querySelector('#module-edit-question-bad-answer-3');
+  const maybeA = pane.querySelector('#module-edit-question-answer');
+  let maybeName = pane.querySelector('#module-edit-question-name');
+  return update('Question', getSelQuestId(), JSON.stringify({
+    id: getSelQuestId(),
+    moduleId: getSelModId(),
+    name: maybeName ? maybeName : null,
+    badAnswer1: maybeBadA1 ? maybeBadA1 : null,
+    badAnswer2: maybeBadA2 ? maybeBadA2 : null,
+    badAnswer3: maybeBadA3 ? maybeBadA3 : null,
+    correctAnswer: maybeA ? maybeA : null,
+  }));
+}
+
+async function createMod(authorId) {
+  const module = create('Module', JSON.stringify({authorId} ));
+  sessionStorage.removeItem(`${location.pathname}modules?authorId=${authorId}`);
+  return appendModule(await module);
+}
+
+async function createLess() {
+  const lesson = create('Lesson', JSON.stringify({moduleId: getSelModId()} ));
+  sessionStorage.removeItem(`${location.pathname}lessons?moduleId=${getSelModId()}`);
+  return appendLesson(await lesson);
+}
+
+async function createQuest() {
+  const question = create('Question', JSON.stringify({moduleId: getSelModId()} ));
+  sessionStorage.removeItem(`${location.pathname}questions?moduleId=${getSelModId()}`);
+  return appendQuestion(await question);
+}
 
 async function init(authorId) {
   try {
@@ -555,3 +568,4 @@ async function recall() {
   }
   return tryRecallMod().then(ok => ok || tryRecallLess().then(ok2 => ok2 || tryRecallQuest()));
 }
+

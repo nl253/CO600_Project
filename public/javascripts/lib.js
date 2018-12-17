@@ -49,7 +49,7 @@ function setCookie(name, value, opts = {}) {
  * @param {Object} query
  * @return {Promise<Array<Object>>}
  */
-async function get(name, query = {}) {
+async function get(name, query = {}, force = false) {
   function tryCache() {
     const memory = sessionStorage.getItem(`${location.pathname}${name.toLowerCase()}s?${Object.entries(query).map(pair => pair.join('=')).join('&')}`);
     if (!memory) return false;
@@ -76,7 +76,7 @@ async function get(name, query = {}) {
       return alert(msg);
     }
   }
-  return tryCache() || await tryFetch();
+  return (force && await tryFetch()) || tryCache() || await tryFetch();
 }
 
 
@@ -108,15 +108,15 @@ async function create(name, postData = '') {
 /**
  * Upadate an object in the database.
  *
- * @param {String} name e.g. User, Lesson, Module
+ * @param {String} model e.g. User, Lesson, Module
  * @param {*} postData
  * @return {Promise} promise of updated object
  */
-async function update(name, postData) {
+async function update(model, id, postData, contentType = 'application/json') {
   try {
-    return await fetch(`/api/${name.toLowerCase()}`, {
+    return await fetch(`/api/${model.toLowerCase()}/${id}`, {
       method: 'post',
-      headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
+      headers: contentType ? {Accept: 'application/json', 'Content-Type': contentType} : {'Accept': 'application/json'},
       mode: 'cors',
       credentials: 'include',
       redirect: 'follow',
