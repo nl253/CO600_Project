@@ -31,17 +31,16 @@ function getCookie(name) {
 function setCookie(name, value, opts = {}) {
   const options = Object.assign({
     path: '/',
+    httpOnly: false,
     sameSite: 'Strict',
-    expires: new Date(Date.now() + HOUR * 2),
+    // expires: new Date(Date.now() + HOUR * 2),
   }, opts);
-  const cookieStr = [
+  document.cookie = [
     [name, value].map(encodeURIComponent),
-    ['Expires', options.expires.toGMTString()],
+    // ['Expires', options.expires.toGMTString()],
     ['Path', options.path],
     ['SameSite', options.sameSite]
   ].map((pair) => pair.join('=')).join('; ');
-  console.log(cookieStr);
-  document.cookie = cookieStr;
 }
 
 /**
