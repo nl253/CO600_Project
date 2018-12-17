@@ -323,7 +323,7 @@ const Question = sequelize.define('Question', {
     onDelete: 'CASCADE',
     allowNull: false,
   },
-  correctAnswer: {type: STRING, allowNull: false},
+  correctAnswer: STRING,
   badAnswer1: STRING,
   badAnswer2: STRING,
   badAnswer3: STRING,
