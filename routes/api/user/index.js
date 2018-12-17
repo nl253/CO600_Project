@@ -151,24 +151,6 @@ router.post(['/', '/update', '/modify'],
     .catch((err) => next(err)));
 
 /**
- * Get details of a single user.
- *
- * Doesn't require authentication.
- */
-router.get('/:email',
-  exists(User, (req) => ({email: req.params.email})),
-  (req, res) => User
-    .findOne({
-      where: {email: req.params.email},
-      attributes: Object.keys(User.attributes).filter(attr => attr !== 'password'),
-    })
-    .then((user) => res.json(msg(`found user ${req.params.email}`, user.dataValues)))
-    .catch((err) => next(err)),
-);
-
-
-
-/**
  * If an API user tries to query the database for users' info with POST suggest using GET.
  */
 suggestRoutes(router, /.*/, {
