@@ -33,7 +33,7 @@ document.getElementById('layout-btn-log-in').onclick = async (event) => {
   const json = await logInRes.json();
   const token = json.result;
   setCookie('token', token);
-  location.href = location.pathname.match(/\/register\/?$/)
-    ? '/user/edit'
+  location.href = location.pathname.includes('/register')
+    ? '/user/home'
     : location.href;
 };
