@@ -72,49 +72,5 @@
 <script src="/javascripts/module/edit.js"></script>
 
 <!--Populate the page using AJAX-->
-<script>
-  (async function() {
+<script>recall({{loggedIn.id}})</script>
 
-    const authorId = {{loggedIn.id}};
-    try {
-      const modules = await get('Module', {authorId});
-      for (const m of modules) appendModule(m);
-    } catch (e) {
-      const msg = e.msg || e.message || e.toLocaleString();
-      console.error(e);
-      alert(msg);
-    }
-
-    async function tryRecallMod() {
-      const maybeModuleId = sessionStorage.getItem('/module/edit?moduleId');
-      if (!(maybeModuleId && maybeModuleId.match(/^\d+$/))) {
-        // fallback to expanding the first module
-        document.querySelector('#module-edit-module-list > li[data-id]:first-of-type > a').dispatchEvent(new Event('click'));
-        return false;
-      }
-      const maybeModEl = document.querySelector(`#module-edit-module-list li[data-id='${maybeModuleId}'] > a`);
-      if (!maybeModEl) return false;
-      await toggleModule(eval(maybeModuleId));
-      return true;
-    }
-    async function tryRecallLess() {
-      const maybeLessId = sessionStorage.getItem('/module/edit?lessonId');
-      if (!maybeLessId || !maybeLessId.match(/^\d+$/)) return false;
-      const maybeLessEl = document.querySelector(`#module-edit-lesson-list li[data-id='${maybeLessId}'] > a`);
-      if (!maybeLessEl) return false;
-      await toggleLesson(eval(maybeLessId));
-      return true;
-    }
-    async function tryRecallQuest() {
-      /** Try to recall last expanded module */
-      const maybeQuestId = sessionStorage.getItem('/module/edit?questionId');
-      if (!maybeQuestId || !maybeQuestId.match(/^\d+$/)) return false;
-      const maybeQuestEl = document.querySelector(`#module-edit-question-list li[data-id='${maybeQuestId}'] > a`);
-      if (!maybeQuestEl) return false;
-      await toggleQuestion(eval(maybeQuestId));
-      return true;
-    }
-    return tryRecallMod().then(ok => ok && tryRecallLess().then(ok2 => ok2 || tryRecallQuest()));
-  })();
-
-</script>

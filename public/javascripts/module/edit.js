@@ -349,8 +349,8 @@ function showQuestEditPane() {
   `;
 }
 
-async function toggleModule(id) {
-  sessionStorage.setItem('/module/edit?moduleId', id);
+async function toggleModule(id, doSave = true) {
+  if (doSave) sessionStorage.setItem('/module/edit?click', JSON.stringify({page: 'module', id}));
   unselectLess();
   unselectQuest();
   unselectMod();
@@ -364,7 +364,7 @@ async function toggleModule(id) {
 }
 async function toggleLesson(id) {
   if (id === getSelLessId()) return;
-  sessionStorage.setItem('/module/edit?lessonId', id.toString());
+  sessionStorage.setItem('/module/edit?click', JSON.stringify({page: 'lesson', id}));
   unselectLess();
   unselectQuest();
   clearPane();
@@ -373,7 +373,7 @@ async function toggleLesson(id) {
 }
 async function toggleQuestion(id) {
   if (id === getSelQuestId()) return;
-  sessionStorage.setItem(`/module/edit?questionId`, id);
+  sessionStorage.setItem('/module/edit?click', JSON.stringify({page: 'question', id}));
   unselectQuest();
   unselectLess();
   selectQuest(id);
@@ -598,3 +598,55 @@ async function saveLesson(lessonId) {
 }
 
 function saveQuest() {}
+
+<!--Populate the page using AJAX-->
+async function recall(authorId) {
+  try {
+    const modules = await get('Module', {authorId});
+    for (const m of modules) appendModule(m);
+  } catch (e) {
+    const msg = e.msg || e.message || e.toLocaleString();
+    console.error(e);
+    alert(msg);
+  }
+
+  async function tryRecallMod() {
+    const memory = sessionStorage.getItem('/module/edit?click');
+    if (!memory) return false;
+    const parsed = JSON.parse(memory);
+    if (parsed.page !== 'module') {
+      await toggleModule(eval(document.querySelector(`#module-edit-module-list li[data-id]:first-of-type`).getAttribute('data-id')), false);
+      return false;
+    }
+    if (!document.querySelector(`#module-edit-module-list li[data-id='${parsed.id}'] > a`)) {
+      return false;
+    }
+    await toggleModule(eval(parsed.id));
+    return true;
+  }
+  async function tryRecallLess() {
+    const memory = sessionStorage.getItem('/module/edit?click');
+    if (!memory) return false;
+    const parsed = JSON.parse(memory);
+    if (parsed.page !== 'lesson') return false;
+    if (!document.querySelector(
+      `#module-edit-lesson-list li[data-id='${parsed.id}'] > a`)) {
+      return false;
+    }
+    await toggleLesson(eval(parsed.id));
+    return true;
+  }
+  async function tryRecallQuest() {
+    /** Try to recall last expanded module */
+    const memory = sessionStorage.getItem('/module/edit?click');
+    if (!memory) return false;
+    const parsed = JSON.parse(memory);
+    if (parsed.page !== 'question') return false;
+    if (!document.querySelector(`#module-edit-question-list li[data-id='${parsed.id}'] > a`)) {
+      return false;
+    }
+    await toggleQuestion(eval(parsed.id));
+    return true;
+  }
+  return tryRecallMod().then(ok => ok || tryRecallLess().then(ok2 => ok2 || tryRecallQuest()));
+}
