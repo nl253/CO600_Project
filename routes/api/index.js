@@ -60,16 +60,17 @@ for (const mod of MODELS.map(key => key.toLowerCase())) {
   } else router.all(`/${mod}`, (req, res, next) => next(new NotImplYetErr(`${mod} part of the REST API`)));
 }
 
+router.use((err, req, res, next) => {
+  console.error(err);
+  const msg = err.message || err.msg || err.toString();
+  log.error(msg);
+  return res.status(err.code || 500).json(errMsg(msg));
+});
+
 suggestRoutes(router, /.*/, {
   user: 'user-related operations e.g.: register, lookup, delete',
   lesson: 'lesson-related operations e.g.: create, lookup, delete',
   module: 'module-related operations e.g.: create, lookup, delete',
-});
-
-router.use((err, req, res, next) => {
-  const msg = err.message || err.msg || err.toString();
-  log.error(msg);
-  return res.status(err.code || 500).json(errMsg(msg));
 });
 
 module.exports = router;
