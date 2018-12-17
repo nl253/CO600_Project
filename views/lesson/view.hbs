@@ -2,7 +2,7 @@
   <nav class="panel column is-2-desktop is-full-tablet is-full-mobile">
     <h2 class="title has-text-centered" style="margin-bottom: 20px;">
       <a class="button is-link" href="/module/{{lesson.module.id}}" style="width: 100%;">
-        <i class="fas fa-arrow-left" style="margin-right: 7px;"></i>
+        <i class="fas fa-arrow-left"></i>
         Module
       </a>
     </h2>
@@ -12,7 +12,7 @@
          data-id="{{this.id}}"
          data-created-at="{{this.createdAt}}"
          data-updated-at="{{this.updatedAt}}">
-          <span class="panel-icon" style="margin-right: 7px;">
+          <span class="panel-icon">
             <i class="fas fa-book" aria-hidden="true"></i>
           </span>
         {{this.name}}
@@ -24,8 +24,10 @@
     <div style="display: flex; flex-direction: row; justify-content: flex-start; align-items: center; margin-bottom: 20px;">
       <h2 class="title" style="margin: 0 10px 0 0;">{{lesson.name}}</h2>
       {{#if lesson.isMine}}
-        <a href="/module/{{lesson.module.id}}/{{lesson.id}}/edit" class="button is-warning is-small" style="max-width: 100px; display: block;">
-          <i class="far fa-edit" style="margin-right: 7px;"></i>
+        <a href="/module/{{lesson.module.id}}/{{lesson.id}}/edit"
+           class="button is-warning is-small"
+           style="max-width: 100px; display: block;">
+          <i class="far fa-edit"></i>
           Edit
         </a>
       {{/if}}

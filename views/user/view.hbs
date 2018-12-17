@@ -1,6 +1,5 @@
 <section class="hero is-primary is-bold">
-  <div class="hero-head"
-       style="display: flex; flex-direction: column; justify-content: space-around; align-items: center; margin-bottom: 50px;">
+  <div class="hero-head" style="display: flex; flex-direction: column; justify-content: space-around; align-items: center; margin-bottom: 50px;">
     <h1 class="title is-1 has-text-centered" style="margin-top: 80px;">
       <!--<i class="fas fa-user"></i>-->
       {{#if user.firstName}}
@@ -16,32 +15,31 @@
       </a>
     {{/if}}
   </div>
-  <div class="tabs is-centered is-boxed is-medium">
+  <div class="tabs is-boxed" style="margin-left: 20vw;">
     <ul>
       <li>
         <a id="user-btn-enrollments-tab" onclick="toggleTabEnrollments()">
-          <span class="icon is-small"><i class="fas fa-user-graduate"></i></span>
-          <span>Enrollments</span>
-        </a>
+            <span class="icon is-small"><i class="fas fa-user-graduate"></i></span>
+            <span>Enrollments</span>
+          </a>
       </li>
       <li>
         <a id="user-btn-created-modules-tab" onclick="toggleTabCreatedModules()">
-          <span class="icon is-small"><i class="fas fa-university"></i></span>
-          <span>Created Modules</span>
-        </a>
+            <span class="icon is-small"><i class="fas fa-university"></i></span>
+            <span>Created Modules</span>
+          </a>
       </li>
       <li>
         <a id="user-btn-personal-details" onclick="toggleTabPersonalDetails()">
-          <span class="icon is-small"><i class="fas fa-user"></i></span>
-          <span>Personal Details</span>
-        </a>
+            <span class="icon is-small"><i class="fas fa-user"></i></span>
+            <span>Personal Details</span>
+          </a>
       </li>
     </ul>
   </div>
 </section>
 
-<section id="user-personal-details"
-         class="is-hidden"
+<section id="user-personal-details" class="is-hidden"
          style="margin: 3vw 30vw; display: flex; flex-direction: column; justify-content: space-around; align-items: center;">
   <h5 class="title is-6">Email</h5>
   <p>{{user.email}}</p><br/>
@@ -97,9 +95,7 @@
             data-module-summary="{{this.module.summary}}"
             data-module-author-id="{{this.module.authorId}}"
             style="padding: 14px;">
-          <a href="/module/{{this.moduleId}}"
-             class="has-text-link"
-             style="display: inline;">
+          <a href="/module/{{this.moduleId}}" class="has-text-link" style="display: inline;">
             {{module.name}}
           </a>
         </li>

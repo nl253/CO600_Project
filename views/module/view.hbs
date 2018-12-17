@@ -1,7 +1,7 @@
 <div style="margin: 50px 20vw;">
   {{#if loggedIn}}
     <a href="/user?tab=enrollments" class="button is-small" style="margin-bottom: 10px;">
-      <i class="fas fa-arrow-left" style="margin-right: 7px;"></i>
+      <i class="fas fa-arrow-left"></i>
       Enrollments
     </a>
   {{/if}}
@@ -14,18 +14,18 @@
   {{#if loggedIn}}
     {{#if module.isEnrolled}}
       <button id="module-btn-enroll" class="button is-danger" onclick="unEnroll({{module.id}})">
-        <i class="fas fa-times" style="margin-right: 7px;"></i>
+        <i class="fas fa-times"></i>
         Unenroll
       </button>
     {{else}}
       {{#if module.isMine}}
         <a href="/module/{{module.id}}/edit" class="button is-warning">
-          <i class="fas fa-edit" style="margin-right: 7px;"></i>
+          <i class="fas fa-edit"></i>
           Edit
         </a>
       {{else}}
         <button id="module-btn-enroll" class="button is-primary" onclick="enroll({{module.id}})">
-          <i class="fas fa-check" style="margin-right: 7px;"></i>
+          <i class="fas fa-check"></i>
           Enroll
         </button>
       {{/if}}
