@@ -23,9 +23,17 @@ app.use((req, res, next) => {
   return next();
 });
 
-/**
- * Gives access to `req.cookies`.
- */
+const hbs = require('hbs');
+
+hbs.registerPartials(process.env.PARTIALS_PATH);
+
+// view engine setup
+app.set('views', process.env.VIEW_PATH);
+app.engine('hbs', hbs.__express);
+app.set('view engine', 'hbs');
+app.set('x-powered-by', false);
+
+// Gives access to `req.cookies`
 app.use(require('cookie-parser')({
   secret: process.env.SECRET,
   options: {
