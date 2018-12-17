@@ -1,5 +1,6 @@
-if (location.pathname.match(/user\/register\/?$/)) {
-  document.getElementById('layout-btn-register-redirect').remove();
+if (location.pathname.includes('/user/register')) {
+  const btn = document.getElementById('layout-btn-register-redirect');
+  if (btn) btn.remove();
 }
 
 document.getElementById('layout-btn-log-in').onclick = async (event) => {
