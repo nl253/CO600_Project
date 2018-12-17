@@ -19,127 +19,35 @@
  * @author Norbert
  */
 
-const {MissingDataErr, NotLoggedIn, InvalidRequestErr} = require('../../errors');
-const {Session, Module, Enrollment, Lesson, File, Sequelize} = require('../../database');
+const validCols = require('../../lib').validCols;
+const isLoggedIn = require('../../lib').isLoggedIn;
+const {MissingDataErr} = require('../../errors');
+const {Session, Module, Lesson, File, Sequelize} = require('../../../database');
 const router = require('express').Router();
 
-const {suggestRoutes, msg} = require('../lib');
+const {suggestRoutes, msg, log} = require('../lib');
 
 // Project
-const {needs, hasFreshSess, exists, decrypt, validColumns} = require('../../lib');
+const {needs, decrypt} = require('../../lib');
 
-router.get([
-  '/:moduleId/:lessonId/:fileName/delete',
-  '/:moduleId/:lessonId/:fileName/remove'], async (req, res) => {
-  if (!res.locals.loggedIn) return next(new NotLoggedIn());
-  try {
-    (await File.findOne({
-      where: {
-        lessonId: req.params.lessonId,
-        name: req.params.fileName,
-      }
-    })).destroy();
-    return res.json(msg(`deleted ${req.params.fileName} from lesson`));
-  } catch (e) {
-    return next(e);
-  }
-});
 
-router.get([
-  '/:moduleId/:lessonId/delete',
-  '/:moduleId/:lessonId/remove'], async (req, res) => {
-  if (!res.locals.loggedIn) return next(new NotLoggedIn());
-  try {
-    (await Lesson.findOne({
-      where: {
-        id: req.params.lessonId,
-        moduleId: req.params.moduleId,
-      }
-    })).destroy();
-    return res.json(msg(`deleted lesson from module`));
-  } catch (e) {
-    return next(e);
-  }
-});
-
-router.get(['/:id/delete', '/:id/remove', '/:id/destroy'],
-  needs('token', 'cookies'),
-  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
-  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
-  exists(Module, (req) => ({id: req.params.id})),
+router.delete(['/:id', '/:id/delete', '/:id/remove'],
+  isLoggedIn(),
   (req, res, next) => Module.findOne({where: {id: req.params.id}})
     .then(module => module.destroy())
     .then(() => res.json(msg(`successfully deleted module`)))
     .catch(err => next(err)));
 
-router.get('/:id/lesson/create',
-  needs('token', 'cookies'),
-  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
-  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
-  exists(Module, (req) => ({id: req.params.id})),
-  (req, res, next) => Lesson.create({moduleId: req.params.id,})
-    .then(lesson => res.json(msg(`successfully created lesson`, lesson.id)))
-    .catch(err => next(err)));
 
-router.get('/:id/enroll',
-  exists(Module, (req) => ({id: req.params.id})),
-  needs('token', 'cookies'),
-  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
-  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
-  (req, res, next) => Enrollment.create({
-    moduleId: req.params.id,
-    studentId: res.locals.loggedIn.id,
-  }).then(() => res.json(msg('successfully enrolled')))
-    .catch(err => next(err)));
-
-router.get('/:id/unenroll',
-  needs('token', 'cookies'),
-  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
-  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
-  exists(Module, (req) => ({id: req.params.id})),
-  (req, res, next) => Enrollment.findOne({
-    moduleId: req.params.id,
-    studentId: res.locals.loggedIn.email,
-  }).then(enrollment => enrollment.destroy())
-    .then(() => res.json(msg('successfully un-enrolled')))
+router.post('/create', isLoggedIn(),
+  (req, res, next) => Module.create(Object.assign({authorId: res.locals.loggedIn.d}, req.body))
+    .then(module => res.json(msg(`successfully created module`, module)))
     .catch(err => next(err)));
 
 
-router.get('/create',
-  needs('token', 'cookies'),
-  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
-  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
-  (req, res, next) => Module.create({
-    authorId: res.locals.loggedIn.id,
-  }).then(module => res.json(msg(`successfully created module`, module.id)))
-    .catch(err => next(err)));
-
-router.get(['/', '/search'],
-  validColumns(Module, (req) => Object.keys(req.query)),
-  (req, res) => {
-    const queryParams = {};
-    for (const q in req.query) {
-      if (q === 'name' || q === 'topic') queryParams[q] = {[Sequelize.Op.like]: `%${req.query[q]}%`};
-      else queryParams[q] = req.query[q];
-    }
-    return Module.findAll({
-      limit: process.env.MAX_RESULTS || 100,
-      where: queryParams,
-    }).then(ms => ms.map(m => m.dataValues))
-      .then(modules => {
-        let s = `found ${modules.length} modules`;
-        if (Object.keys(req.query).length > 0) {
-          s += ` matching given ${Object.keys(req.query).join(', ')}`;
-        }
-        return res.json(msg(s, modules));
-      });
-  });
-
-router.post(['/:id', '/:id/update'],
-  needs('token', 'cookies'),
-  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
-  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
-  exists(Module, (req) => ({id: req.params.id})),
+router.post(['/:id', '/:id/update', '/:id/modify'],
+  validCols(Module, 'body', ['createdAt', 'updatedAt', 'authorId']),
+  isLoggedIn(),
   (req, res, next) => Module.findOne({
     where: {
       authorId: res.locals.loggedIn.id,
@@ -151,26 +59,31 @@ router.post(['/:id', '/:id/update'],
     .then(() => res.json(msg('successfully updated the module')))
     .catch(err => next(err)));
 
-router.post(['/:moduleId/:lessonId', '/:moduleId/:lessonId/update'],
-  needs('token', 'cookies'),
-  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
-  validColumns(Lesson, (req) => (req.body)),
-  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
-  exists(Lesson, (req) => ({id: req.params.lessonId})),
-  async (req, res, next) => {
+
+router.get(['/', '/search'],
+  validCols(Module, 'query'),
+  async (req, res) => {
     try {
-      const lesson = await Lesson.findOne({
-        where: {
-          moduleId: req.params.moduleId,
-          id: req.params.lessonId,
-        },
-      });
-      await lesson.update(req.body);
-      return res.json(msg('updated lesson'));
+      if (req.query.name) {
+        req.query.name = {[Sequelize.Op.like]: `%${req.query.name}%`};
+      }
+      if (req.query.topic) {
+        req.query.name = {[Sequelize.Op.like]: `%${req.query.topic}%`};
+      }
+      const modules = await Module.findAll({
+        limit: process.env.MAX_RESULTS || 100,
+        where: req.query,
+      }).then(ms => ms.map(m => m.dataValues));
+      let s = `found ${modules.length} modules`;
+      if (Object.keys(req.query).length > 0) {
+        s += ` matching given ${Object.keys(req.query).join(', ')}`;
+      }
+      return res.json(msg(s, modules));
     } catch (e) {
-      return next(e);
+      return log.error(e);
     }
   });
+
 
 /**
  * If none of the above match, shows help.
