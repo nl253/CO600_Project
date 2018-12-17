@@ -72,5 +72,5 @@
 <script src="/javascripts/module/edit.js"></script>
 
 <!--Populate the page using AJAX-->
-<script>recall({{loggedIn.id}})</script>
+<script>init({{loggedIn.id}}).then(() => recall())</script>
 

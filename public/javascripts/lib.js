@@ -44,41 +44,113 @@ function setCookie(name, value, opts = {}) {
 }
 
 /**
- * @param event
+ * Query the database for objects.
+ *
+ * @param {Object} query
+ * @return {Promise<Array<Object>>}
  */
-function toggleTabEnrollments(event) {
-  document.getElementById('user-created-modules').classList.add('is-hidden');
-  document.getElementById('user-enrollments').classList.remove('is-hidden');
-  document.getElementById('user-personal-details').classList.add('is-hidden');
-  document.getElementById('user-btn-personal-details').parentElement.classList.remove('is-active');
-  document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
-  document.getElementById('user-btn-enrollments-tab').parentElement.classList.add('is-active');
-  sessionStorage.setItem('homeTab', 'enrollments');
+async function get(name, query = {}) {
+  function tryCache() {
+    const memory = sessionStorage.getItem(`${location.pathname}${name.toLowerCase()}s?${Object.entries(query).map(pair => pair.join('=')).join('&')}`);
+    if (!memory) return false;
+    console.debug(`using cache for ${name} with ${Object.keys(query).join(', ')}`);
+    return JSON.parse(memory)
+  }
+  async function tryFetch() {
+    try {
+      console.debug(`using AJAX for ${name} with ${Object.keys(query).join(', ')}`);
+      const results = await fetch(`/api/${name.toLowerCase()}/search?${Object.entries(query)
+        .map(pair => pair.join('='))
+        .join('&')}`, {
+        headers: {Accept: 'application/json'},
+        mode: 'cors',
+        credentials: 'include',
+        redirect: 'follow',
+        cache: 'no-cache',
+      }).then(res => res.json()).then(json => json.result);
+      sessionStorage.setItem(`${location.pathname}${name.toLowerCase()}s?${Object.entries(query).map(pair => pair.join('=')).join('&')}`, JSON.stringify(results));
+      return results;
+    } catch (e) {
+      const msg = e.msg || e.message || e.toString();
+      console.error(msg);
+      return alert(msg);
+    }
+  }
+  return tryCache() || await tryFetch();
+}
+
+
+/**
+ * Create a new object in the database.
+ *
+ * @param {String} name e.g. User, Lesson, Module
+ * @param {*} postData
+ * @return {Promise} promise of created object
+ */
+async function create(name, postData = '') {
+  try {
+    return await fetch(`/api/${name.toLowerCase()}/create`, {
+      method: 'post',
+      headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
+      mode: 'cors',
+      credentials: 'include',
+      redirect: 'follow',
+      body: postData,
+      cache: 'no-cache',
+    }).then(res => res.json()).then(json => json.result);
+  } catch (e) {
+    const msg = e.msg || e.message || e.toString();
+    console.error(msg);
+    return alert(msg);
+  }
 }
 
 /**
- * @param event
+ * Upadate an object in the database.
+ *
+ * @param {String} name e.g. User, Lesson, Module
+ * @param {*} postData
+ * @return {Promise} promise of updated object
  */
-function toggleTabCreatedModules(event) {
-  document.getElementById('user-personal-details').classList.add('is-hidden');
-  document.getElementById('user-enrollments').classList.add('is-hidden');
-  document.getElementById('user-created-modules').classList.remove('is-hidden');
-  document.getElementById('user-btn-created-modules-tab').parentElement.classList.add('is-active');
-  document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
-  document.getElementById('user-btn-personal-details').parentElement.classList.remove('is-active');
-  sessionStorage.setItem('homeTab', 'created-modules');
+async function update(name, postData) {
+  try {
+    return await fetch(`/api/${name.toLowerCase()}`, {
+      method: 'post',
+      headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
+      mode: 'cors',
+      credentials: 'include',
+      redirect: 'follow',
+      body: postData,
+      cache: 'no-cache',
+    }).then(res => res.json()).then(json => json.result);
+  } catch (e) {
+    const msg = e.msg || e.message || e.toString();
+    console.error(msg);
+    return alert(msg);
+  }
 }
 
 /**
- * @param event
+ * Destroy an object from the database.
+ *
+ * @param {String} name e.g. User, Module, Lesson
+ * @param {Number} id
+ * @return {Promise<*>}
  */
-function toggleTabPersonalDetails(event) {
-  document.getElementById('user-personal-details').classList.remove('is-hidden');
-  document.getElementById('user-enrollments').classList.add('is-hidden');
-  document.getElementById('user-created-modules').classList.add('is-hidden');
-  document.getElementById('user-btn-personal-details').parentElement.classList.add('is-active');
-  document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
-  document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
-  sessionStorage.setItem('homeTab', 'personal-details');
+async function destroy(name, id) {
+  try {
+    const response = await fetch(`/api/${name.toLowerCase()}/${id}`, {
+      method: 'delete',
+      headers: {Accept: 'application/json'},
+      mode: 'cors',
+      credentials: 'include',
+      redirect: 'follow',
+      cache: 'no-cache',
+    });
+    return await response.json().then(json => json.result);
+  } catch (e) {
+    const msg = e.msg || e.message || e.toString();
+    console.error(msg);
+    return alert(msg);
+  }
 }
-

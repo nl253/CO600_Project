@@ -4,105 +4,6 @@
  *      * lessons list
  */
 
-/**
- * Create a new object in the database.
- *
- * @param {String} name e.g. User, Lesson, Module
- * @param {*} postData
- * @return {Promise} promise of created object
- */
-async function create(name, postData = '') {
-  try {
-    return await fetch(`/api/${name.toLowerCase()}/create`, {
-      method: 'post',
-      headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
-      mode: 'cors',
-      credentials: 'include',
-      redirect: 'follow',
-      body: postData,
-      cache: 'no-cache',
-    }).then(res => res.json()).then(json => json.result);
-  } catch (e) {
-    const msg = e.msg || e.message || e.toString();
-    console.error(msg);
-    return alert(msg);
-  }
-}
-
-/**
- * Upadate an object in the database.
- *
- * @param {String} name e.g. User, Lesson, Module
- * @param {*} postData
- * @return {Promise} promise of updated object
- */
-async function update(name, postData) {
-  try {
-    return await fetch(`/api/${name.toLowerCase()}`, {
-      method: 'post',
-      headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
-      mode: 'cors',
-      credentials: 'include',
-      redirect: 'follow',
-      body: postData,
-      cache: 'no-cache',
-    }).then(res => res.json()).then(json => json.result);
-  } catch (e) {
-    const msg = e.msg || e.message || e.toString();
-    console.error(msg);
-    return alert(msg);
-  }
-}
-
-/**
- * Destroy an object from the database.
- *
- * @param {String} name e.g. User, Module, Lesson
- * @param {Number} id
- * @return {Promise<*>}
- */
-async function destroy(name, id) {
-  try {
-    const response = await fetch(`/api/${name.toLowerCase()}/${id}`, {
-      method: 'delete',
-      headers: {Accept: 'application/json'},
-      mode: 'cors',
-      credentials: 'include',
-      redirect: 'follow',
-      cache: 'no-cache',
-    });
-    return await response.json().then(json => json.result);
-  } catch (e) {
-    const msg = e.msg || e.message || e.toString();
-    console.error(msg);
-    return alert(msg);
-  }
-}
-
-/**
- * Query the database for objects.
- *
- * @param {Object} query
- * @return {Promise<Array<Object>>}
- */
-async function get(name, query = {}) {
-  try {
-    return await fetch(`/api/${name.toLowerCase()}/search?${Object.entries(query)
-      .map(pair => pair.join('='))
-      .join('&')}`, {
-      headers: {Accept: 'application/json'},
-      mode: 'cors',
-      credentials: 'include',
-      redirect: 'follow',
-      cache: 'no-cache',
-    }).then(res => res.json()).then(json => json.result);
-  } catch (e) {
-    const msg = e.msg || e.message || e.toString();
-    console.error(msg);
-    return alert(msg);
-  }
-}
-
 function clearPane() {
   document.getElementById('module-edit-pane').innerHTML = '';
 }
@@ -348,6 +249,7 @@ function showQuestEditPane() {
     </div>
   `;
 }
+
 
 async function toggleModule(id, doSave = true) {
   if (doSave) sessionStorage.setItem('/module/edit?click', JSON.stringify({page: 'module', id}));
@@ -599,17 +501,20 @@ async function saveLesson(lessonId) {
 
 function saveQuest() {}
 
-<!--Populate the page using AJAX-->
-async function recall(authorId) {
+async function init(authorId) {
   try {
-    const modules = await get('Module', {authorId});
-    for (const m of modules) appendModule(m);
+    for (const m of await get('Module', {authorId})) {
+      appendModule(m);
+    }
   } catch (e) {
     const msg = e.msg || e.message || e.toLocaleString();
     console.error(e);
     alert(msg);
   }
+}
 
+<!--Populate the page using AJAX-->
+async function recall() {
   async function tryRecallMod() {
     const memory = sessionStorage.getItem('/module/edit?click');
     if (!memory) return false;
