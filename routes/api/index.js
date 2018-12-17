@@ -40,11 +40,17 @@ const express = require('express');
 const router = express.Router();
 
 const {suggestRoutes, log, errMsg} = require('./lib');
-const {TypoErr, NotImplYetErr} = require('./../errors');
+const {NotImplYetErr} = require('./../errors');
 
 const MODELS = [
-  'User',
+  'Enrollment',
+  'File',
+  'Lesson',
   'Module',
+  'Question',
+  'Rating',
+  'Session',
+  'User',
 ];
 
 for (const mod of MODELS.map(key => key.toLowerCase())) {
