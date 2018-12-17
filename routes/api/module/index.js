@@ -19,6 +19,7 @@
  * @author Norbert
  */
 
+const NoSuchRecord = require('../../errors').NoSuchRecord;
 const validCols = require('../../lib').validCols;
 const isLoggedIn = require('../../lib').isLoggedIn;
 const {MissingDataErr} = require('../../errors');
@@ -48,21 +49,30 @@ router.post('/create', isLoggedIn(),
 router.post(['/:id', '/:id/update', '/:id/modify'],
   validCols(Module, 'body', ['createdAt', 'updatedAt', 'authorId']),
   isLoggedIn(),
-  (req, res, next) => Module.findOne({
-    where: {
-      authorId: res.locals.loggedIn.id,
-      id: req.params.id
-    },
-  }).then(module => req.body && Object.entries(req.body).length >= 0
-    ? module.update(req.body)
-    : Promise.reject(new MissingDataErr('data to modify', 'request body')))
-    .then(() => res.json(msg('successfully updated the module')))
-    .catch(err => next(err)));
+  async (req, res, next) => {
+    try {
+      const module = await Module.findOne({
+        where: {
+          authorId: res.locals.loggedIn.id,
+          id: req.params.id
+        },
+      });
+      if (module === null) {
+        return next(new NoSuchRecord('Module', {id: req.params.id}));
+      }
+      if (Object.keys(req.body).length === 0) {
+        return next(new MissingDataErr('data to modify', 'request body'));
+      }
+      return res.json(msg('successfully updated the module', await module.update(req.body).then(m => m.dataValues)));
+    } catch (e) {
+      return next(e);
+    }
+  });
 
 
 router.get(['/', '/search'],
   validCols(Module, 'query'),
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       if (req.query.name) {
         req.query.name = {[Sequelize.Op.like]: `%${req.query.name}%`};
@@ -80,7 +90,7 @@ router.get(['/', '/search'],
       }
       return res.json(msg(s, modules));
     } catch (e) {
-      return log.error(e);
+      return next(e);
     }
   });
 

@@ -109,6 +109,7 @@ async function create(name, postData = '') {
  * Upadate an object in the database.
  *
  * @param {String} model e.g. User, Lesson, Module
+ * @param {Number} id
  * @param {*} postData
  * @return {Promise} promise of updated object
  */

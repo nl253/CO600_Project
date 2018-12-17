@@ -54,6 +54,79 @@ function getSelQuestId() {
   return maybeQuest ?  eval(maybeQuest.getAttribute('data-id')) : null;
 }
 
+async function showModEditPane(module, topics = ['AI', 'Biology', 'Chemistry', 'Physics', 'Sociology', 'Social Sciences', 'Computer Science', 'Mathematics', 'Psychology', 'Architercture', 'Engineering']) {
+  try {
+    document.getElementById('module-edit-pane').innerHTML = `
+      <h2 class="title" style="margin-bottom: 10px;">
+        Name
+      </h2>
+      
+      <div id="module-edit-name" contenteditable="true" style="max-width: 300px;">
+        ${module.name ? module.name : ''}
+      </div>
+      <h3 class="subtitle" style="margin: 25px 0 0 0;">
+        Topic
+      </h3>
+      <div class="dropdown" 
+           onmouseover="this.classList.add('is-active')"
+           onmouseout="this.classList.remove('is-active')"
+           style="border: 1px #bdbdbd dashed;">
+        <div class="dropdown-trigger">
+          <button class="button" aria-haspopup="true" aria-controls="dropdown-menu" style="background: #d3d3d329;">
+            <span id="module-edit-topic" style="min-width: 150px;">${module.topic ? module.topic : ''}</span>
+            <span class="icon is-small">
+              <i class="fas fa-angle-down" aria-hidden="true"></i>
+            </span>
+          </button>
+        </div>
+        <div class="dropdown-menu" id="dropdown-menu" role="menu">
+          <div class="dropdown-content">
+            ${topics.map(t => "<a class='dropdown-item' onclick='document.getElementById(\"module-edit-topic\").innerText = this.innerText.trim()'>" + t + "</a>")}
+            <hr class="dropdown-divider">
+            <span class="dropdown-item" style="font-weight: bold;">
+              Other
+            </span>
+            <a class="dropdown-item" onmouseout="document.getElementById('module-edit-topic').innerText = this.innerText.trim()" id="module-edit-topic-other" contenteditable="true"
+               style="margin: 5px 10px; max-width: 90%;">
+              ${module.topic ? module.topic : ''}
+            </a>
+          </div>
+        </div>
+      </div>
+      <section class="content" style="margin-top: 40px;">
+        <strong>Author</strong>   
+        <a href="/user/${module.authorId}">
+          ${await get('User', {id: module.authorId}).then(us => us[0].email)}
+        </a>
+        <br>
+        <strong>Rating</strong> <span id="module-edit-rating">${await get('Rating', {moduleId: module.id}).then(rs => rs.map(r => r.stars)).then(rs => {
+      const n = rs.length;
+      return n > 0 ? rs.reduce((l, r) => l + r)  / n : 0;
+    })}/5</span>
+      </section>
+      <section class="is-medium" style="margin-bottom: 30px;">
+        <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
+        <textarea id="module-edit-summary"
+                  style="min-width: 100%; min-height: 90px; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">${module.summary ? module.summary : ''}</textarea>
+      </section>
+      <div class="field is-grouped">
+        <a onclick="updateMod()" class="button is-success" style="margin: 7px">
+          <i class="fas fa-check" style="margin-right: 7px;"></i>
+          Save
+        </a>
+        <a class="button is-warning" style="margin: 7px">
+          <i class="fas fa-undo" style="margin-right: 7px;"></i>
+            Reset
+        </a>
+      </div>
+    `;
+  } catch (e) {
+    const msg = e.msg || e.message || e.toString();
+    console.error(e);
+    return alert(msg);
+  }
+}
+
 /**
  * Populate the right pane with lesson editing view.
  *
@@ -119,67 +192,6 @@ function showLessEditPane(lesson = {id: null, moduleId: null, name: null, create
   //   appendAttachment(moduleId, id, f.name, f.createdAt, f.updatedAt);
   // }
 
-}
-async function showModEditPane(module, topics = []) {
-  try {
-    document.getElementById('module-edit-pane').innerHTML = `
-      <h2 class="title" style="margin-bottom: 10px;">
-        Name
-      </h2>
-      <div id="module-edit-name" contenteditable="true" style="max-width: 300px;">
-        ${module.name ? module.name : ''}
-      </div>
-      <h3 class="subtitle" style="margin: 25px 0 0 0;">
-        Topic
-      </h3>
-      <div class="dropdown" 
-           onmouseover="this.classList.add('is-active')"
-           onmouseout="this.classList.remove('is-active')"
-           style="border: 1px #bdbdbd dashed;">
-        <div class="dropdown-trigger">
-          <button class="button" aria-haspopup="true" aria-controls="dropdown-menu" style="background: #d3d3d329;">
-            <span id="module-edit-topic" style="min-width: 150px;">${module.topic ? module.topic : ''}</span>
-            <span class="icon is-small">
-              <i class="fas fa-angle-down" aria-hidden="true"></i>
-            </span>
-          </button>
-        </div>
-        <div class="dropdown-menu" id="dropdown-menu" role="menu">
-          <div class="dropdown-content">
-            ${topics.map(t => `<a class="dropdown-item" onclick="document.getElementById('module-edit-topic').innerText = this.innerText.trim()">${t}</a>`)}
-            <hr class="dropdown-divider">
-            <span class="dropdown-item" style="font-weight: bold;">
-              Other
-            </span>
-            <a class="dropdown-item" id="module-edit-topic-other" contenteditable="true"
-               style="margin: 5px 10px; max-width: 90%;">
-              ${module.topic ? module.topic : ''}
-            </a>
-          </div>
-        </div>
-      </div>
-      <section class="content" style="margin-top: 40px;">
-        <strong>Author</strong>   
-        <a href="/user/${module.authorId}">
-          ${await get('User', {id: module.authorId}).then(us => us[0].email)}
-        </a>
-        <br>
-        <strong>Rating</strong> <span id="module-edit-rating">${await get('Rating', {moduleId: module.id}).then(rs => rs.map(r => r.stars)).then(rs => {
-          const n = rs.length;
-          return n > 0 ? rs.reduce((l, r) => l + r)  / n : 0;
-        })}/5</span>
-      </section>
-      <section class="is-medium" style="margin-bottom: 30px;">
-        <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
-        <textarea id="module-edit-summary"
-                  style="min-width: 100%; min-height: 90px; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">${module.summary ? module.summary : ''}</textarea>
-      </section>
-    `;
-  } catch (e) {
-    const msg = e.msg || e.message || e.toString();
-    console.error(e);
-    return alert(msg);
-  }
 }
 function showQuestEditPane(question = {id: null, moduleId: null, createdAt: null, updatedAt: null, correctAnswer: null, badAnswer1: null, badAnswer2: null, badAnswer3: null}) {
   document.getElementById('module-edit-pane').innerHTML = `
@@ -412,26 +424,24 @@ function unsetLessContent(lessonId) {
 /**
  * Modifies a module and updates UI.
  *
- * @param {Number} moduleId
  * @return {Promise<*>}
  */
-async function saveModule(moduleId) {
-  try {
-    const response = await fetch(`/api/module/${moduleId}`, {
-      method: 'post',
-      headers: {Accept: 'application/json'},
-      mode: 'cors',
-      credentials: 'include',
-      redirect: 'follow',
-      cache: 'no-cache',
-      body: JSON.stringify(modObj),
-    });
-    return await response.json().then(json => json.result);
-  } catch (e) {
-    const msg = e.msg || e.message || e.toString();
-    console.error(msg);
-    return alert(msg);
-  }
+async function updateMod() {
+  const moduleId = getSelModId();
+  const pane = document.getElementById('module-edit-pane');
+  const maybeName = pane.querySelector('#module-edit-name').innerText;
+  const maybeTopic = pane.querySelector('#module-edit-topic').innerText;
+  const maybeSummary = pane.querySelector('#module-edit-summary').value;
+  const res = await update('Module', moduleId, JSON.stringify({
+    summary: maybeSummary ? maybeSummary : null,
+    name: maybeName ? maybeName : null,
+    topic: maybeTopic ? maybeTopic : null,
+  }));
+  sessionStorage.removeItem(`${location.pathname}/modules?authorId=${JSON.parse(sessionStorage.getItem('loggedIn')).id}`);
+  sessionStorage.removeItem(`${location.pathname}/modules?id=${getSelModId()}`);
+  await toggleModule(getSelModId());
+  document.querySelector(`#module-edit-module-list li[data-id='${moduleId}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${moduleId}`;
+  return alert('Updated module.');
 }
 
 /**
@@ -440,49 +450,7 @@ async function saveModule(moduleId) {
  * @param {Number} lessonId
  * @return {Promise<*>}
  */
-async function saveLesson(lessonId) {
-  const vars = {};
-  const form = document.querySelector(`form[data-id=${lessonId}]`);
-  const lessNameEl = form.querySelector('input[name=name]');
-  const lessSummaryEl = form.querySelector('textarea[name=summary]');
-  if (lessNameEl.value.trim() !== '') vars.name = lessNameEl.value.trim();
-  if (lessSummaryEl.value.trim() !== '') vars.summary = lessSummaryEl.value.trim();
-  try {
-    // save name and summary
-    await fetch(`/api/lesson/${lessonId}`, {
-      method: 'post',
-      headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
-      mode: 'cors',
-      credentials: 'include',
-      redirect: 'follow',
-      cache: 'no-cache',
-      body: JSON.stringify(vars),
-    });
-    // save attachments
-    const attachementFormData = new FormData();
-    const attachments = form.querySelector('input[type=file][multiple]').files;
-    for (let i = 0; i < attachments.length; i++) {
-      attachementFormData.append(`attachment-${i + 1}`, attachments[i]);
-    }
-    const newFile = create('file', attachementFormData);
-    const contentFormData = new FormData();
-    contentFormData.append('lesson', form.querySelector('input[type=file]:not([multiple])').files[0]);
-    await fetch('/api/lesson', {
-      method: 'post',
-      body: contentFormData,
-      credentials: 'include',
-      mode: 'cors',
-      cache: 'no-cache',
-      redirect: 'follow',
-    });
-    return alert('lesson updated');
-    // save content
-  } catch (e) {
-    const msg = e.msg || e.message || e.toString();
-    console.error(msg);
-    return alert(msg);
-  }
-}
+async function updateLess() {}
 
 async function updateQuest() {
   const pane = document.getElementById('module-edit-pane');
@@ -490,19 +458,21 @@ async function updateQuest() {
   const maybeBadA2 = pane.querySelector('#module-edit-question-bad-answer-2').innerText;
   const maybeBadA3 = pane.querySelector('#module-edit-question-bad-answer-3').innerText;
   const maybeA = pane.querySelector('#module-edit-question-answer').innerText;
+  const questionId = getSelQuestId();
+  const moduleId = getSelModId();
   let maybeName = pane.querySelector('#module-edit-question-name').innerText;
-  sessionStorage.removeItem(`${location.pathname}/questions?moduleId=${getSelModId()}`);
-  sessionStorage.removeItem(`${location.pathname}/questions?id=${getSelQuestId()}&moduleId=${getSelModId()}`);
-  const newQ = await update('Question', getSelQuestId(), JSON.stringify({
-    id: getSelQuestId(),
-    moduleId: getSelModId(),
+  sessionStorage.removeItem(`${location.pathname}/questions?moduleId=${moduleId}`);
+  sessionStorage.removeItem(`${location.pathname}/questions?id=${questionId}&moduleId=${moduleId}`);
+  const newQ = await update('Question', questionId, JSON.stringify({
+    id: questionId,
+    moduleId: moduleId,
     name: maybeName ? maybeName : null,
     badAnswer1: maybeBadA1 ? maybeBadA1 : null,
     badAnswer2: maybeBadA2 ? maybeBadA2 : null,
     badAnswer3: maybeBadA3 ? maybeBadA3 : null,
     correctAnswer: maybeA ? maybeA : null,
   }));
-  document.querySelector(`#module-edit-question-list li[data-id='${getSelQuestId()}'] > a`).innerText = maybeName ? maybeName : '';
+  document.querySelector(`#module-edit-question-list li[data-id='${questionId}'] > a > span`).innerText = maybeName ? maybeName : `unnamed #${questionId}`;
   return alert('Question updated.');
 }
 
