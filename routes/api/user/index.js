@@ -1,6 +1,6 @@
 // 3rd Party
 const {suggestRoutes, msg} = require('../lib');
-const {NoSuchRecord, BadMethodErr} = require('../../errors');
+const {NoSuchRecord} = require('../../errors');
 const router = require('express').Router();
 
 // Project
@@ -8,58 +8,47 @@ const {
   encrypt,
   decrypt,
   needs,
-  hasFreshSess,
-  exists,
-  validColumns,
-  notExists,
-  notRestrictedColumns,
+  isLoggedIn,
   genToken,
+  validCols,
 } = require('../../lib');
-
 
 const {sha256} = require('../../lib');
 
-const {User, Session} = require('../../database');
+const {User, Session} = require('../../../database');
 
 /**
  * Logs a user in.
  *
  * Requires credentials (BOTH email AND password) to be sent in POST request body.
  */
-router.post([
-    '/login',
-    '/authenticate',
-  ],
+router.post(['/login', '/authenticate'],
   needs('email', 'body'),
   needs('password', 'body'),
-  exists(User, (req) => ({email: req.body.email, password: sha256(req.body.password)})),
-  (req, res, next) =>
-    Session.findOne({where: {email: req.body.email}})
-      .then(result => result === null
-        ? next()
-        : result.destroy().then(() => next())),
-  (req, res, next) => {
-    const token = genToken();
-    return Session
-      .create({email: req.body.email, token})
-      .then(() => res.json(msg(`successfully authenticated ${req.body.email}`, encodeURIComponent(encrypt(token)))))
-      .catch((err) => next(err));
+  async (req, res, next) => {
+    try {
+      const user = await User.findOne({where: {
+          email: req.body.email,
+          password: sha256(req.body.password),
+        }});
+      if (user === null) return next(new NoSuchRecord('User', {email: req.body.email}));
+      let sess = await Session.findOrCreate({
+        where: {email: req.body.email},
+        defaults: {email: req.body.email, token: genToken()}
+      }).spread((s, created) => created ? s : s.update({updatedAt: Date.now()}));
+      return res.json(msg(`successfully authenticated ${req.body.email}`, encodeURIComponent(encrypt(sess.token))))
+    } catch (e) {
+      return next(e);
+    }
   });
-
-/** POST not used for logout since the token will be sent in cookies. */
-router.post(['/logout', '/unauthenticate'], (req, res, next) => next(new BadMethodErr('POST', 'GET')));
 
 /**
  * Clears the session for the user that is currently logged in.
  *
  * Requires a session token to be passed in cookies.
  */
-router.get([
-    '/logout',
-    '/unauthenticate',
-  ],
-  needs('token', 'cookies'),
-  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
+router.get(['/logout', '/unauthenticate'],
+  isLoggedIn(),
   (req, res, next) => Session
     .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
     .then(session => session.destroy())
@@ -68,35 +57,25 @@ router.get([
 );
 
 /**
- * If an API user tries to perform these actions,
- * show suggestion that they should use POST not GET.
- */
-router.get(['/register', '/login'],
-  (req, res, next) => next(new BadMethodErr('GET', 'POST')));
-
-/**
  * Inserts a new user into the database.
  *
  * Requires credentials (BOTH email AND password) to be sent in POST request body.
  */
-router.post([
-    '/register',
-    '/create',
-  ],
+router.post(['/register', '/create'],
   needs('email', 'body'),
   needs('password', 'body'),
-  validColumns(User, (req) => Object.keys(req.body)),
-  notRestrictedColumns((req) => Object.keys(req.body), ['updatedAt', 'createdAt', 'isAdmin']),
-  notExists(User, (req) => ({email: req.body.email})),
+  validCols(User),
   (req, res, next) => {
-    const attrs = {};
-    for (const attr in req.body) {
-      attrs[attr] = attr === 'password' ?  sha256(req.body.password) : req.body[attr];
-    }
-    return User
-      .create(attrs)
-      .then(() => res.json(msg(`created user ${req.body.email}`)))
-      .catch((err) => next(err));
+    req.body.password = sha256(req.body.password);
+    return User.findOrCreate({
+      where: {email: req.body.email},
+      defaults: req.body,
+    }).spread((u, created) => {
+      u = u.dataValues;
+      console.log(u);
+      delete u.password;
+      return res.json(msg(created ? `created user ${req.body.email}` : `${req.body.email} already has an account`, u));
+    }).catch(err => next(err));
   });
 
 /**
@@ -104,18 +83,12 @@ router.post([
  *
  * Requires a session token to be passed in cookies.
  */
-router.get([
-    '/unregister',
-    '/delete',
-    '/remove',
-  ],
-  needs('token', 'cookies'),
-  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
-  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
+router.delete(['/', '/unregister', '/delete', '/remove'],
+  isLoggedIn(),
   (req, res, next) => Session
     .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
     .then((session) => {
-      const email = JSON.parse(JSON.stringify(session.dataValues)).email;
+      const email = session.dataValues.email;
       return session.destroy().then(() => User.findOne({where: {email}}))
     })
     .then((user) => user.destroy())
@@ -131,7 +104,6 @@ router.post('/password',
   needs('email', 'body'),
   needs('password', 'body'),
   needs('value', 'body'),
-  exists(User, (req) => ({email: req.body.email, password: sha256(req.body.password)})),
   (req, res, next) => User
     .findOne({where: {email: req.body.email}})
     .then(user => user.update({password: sha256(req.body.value)}))
@@ -146,28 +118,19 @@ router.post('/password',
  * Doesn't require authentication.
  */
 router.get(['/', '/search'],
-  validColumns(User, (req) => Object.keys(req.query)),
-  notRestrictedColumns((req) => Object.keys(req.query), ['password']),
-  (req, res, next) => {
-    const queryParams = {};
-    if (req.query) {
-      for (const q in req.query) {
-        queryParams[q] = req.query[q];
-      }
-    }
-    return User.findAll({
+  validCols(User, 'query', ['password']),
+  async (req, res, next) => {
+    const users = await User.findAll({
       limit: process.env.MAX_RESULTS || 100,
-      where: queryParams,
+      where: req.query,
       attributes: Object.keys(User.attributes).filter(attr => attr !== 'password'),
-    }).then((results) => results.map((u) => u.dataValues))
-      .then((users) => {
-        let s = `found ${users.length} users`;
-        if (Object.keys(req.query).length > 0) {
-          s += ` matching given ${Object.keys(req.query).join(', ')}`;
-        }
-        return res.json(msg(s, users));
-      }).catch((err) => next(err));
-  },
+    }).then((results) => results.map((u) => u.dataValues));
+    let s = `found ${users.length} users`;
+    if (Object.keys(req.query).length > 0) {
+      s += ` matching given ${Object.keys(req.query).join(', ')}`;
+    }
+    return res.json(msg(s, users));
+  }
 );
 
 /**
@@ -178,17 +141,12 @@ router.get(['/', '/search'],
  * XXX modifying password through this call if forbidden, POST to `/api/user/password`
  */
 router.post(['/', '/update', '/modify'],
-  needs('token', 'cookies'),
-  exists(Session, (req) => ({token: decrypt(decodeURIComponent(req.cookies.token))})),
-  hasFreshSess((req) => decrypt(decodeURIComponent(req.cookies.token))),
-  validColumns(User, (req) => Object.keys(req.body)),
-  notRestrictedColumns((req) => Object.keys(req.body), ['createdAt', 'updatedAt', 'isAdmin', 'password']),
-  (req, res, next) => Session
-    .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
-    .then((session) => User.findOne({where: {email: session.email}}))
+  isLoggedIn(),
+  validCols(User, 'body', ['password', 'isAdmin', 'updatedAt', 'createdAt']),
+  (req, res, next) => User.findOne({where: {id: res.locals.loggedIn.id}})
     .then((user) => user === null
       ? Promise.reject(new NoSuchRecord('User'))
-      : user.update(JSON.parse(JSON.stringify(req.body))))
+      : user.update(req.body))
     .then(() => res.json(msg(`updated ${Object.keys(req.body).join(', ')}`)))
     .catch((err) => next(err)));
 
