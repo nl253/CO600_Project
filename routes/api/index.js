@@ -54,19 +54,10 @@ const MODELS = [
 ];
 
 for (const mod of MODELS.map(key => key.toLowerCase())) {
-
-  router.all(new RegExp(`/${mod}s`, 'i'),
-    (req, res, next) => next(new TypoErr(mod)));
-
-  if (existsSync(join(__dirname, `${mod}.js`)) ||
-    existsSync(join(__dirname, mod, 'index.js'))) {
+  if (existsSync(join(__dirname, `${mod}.js`)) || existsSync(join(__dirname, mod, 'index.js'))) {
     log.info(`mounting the ${mod} part of the api to /api/${mod}`);
     router.use(`/${mod}`, require(`./${mod}`));
-    continue;
-  }
-
-  router.all(`/${mod}`, (req, res, next) => next(new NotImplYetErr(`${mod} part of the REST API`)));
-
+  } else router.all(`/${mod}`, (req, res, next) => next(new NotImplYetErr(`${mod} part of the REST API`)));
 }
 
 suggestRoutes(router, /.*/, {
