@@ -51,7 +51,7 @@ function setCookie(name, value, opts = {}) {
  */
 async function get(name, query = {}, force = false) {
   function tryCache() {
-    const memory = sessionStorage.getItem(`${location.pathname}${name.toLowerCase()}s?${Object.entries(query).map(pair => pair.join('=')).join('&')}`);
+    const memory = sessionStorage.getItem(`${location.pathname}/${name.toLowerCase()}s?${Object.entries(query).map(pair => pair.join('=')).join('&')}`);
     if (!memory) return false;
     console.debug(`using cache for ${name} with ${Object.keys(query).join(', ')}`);
     return JSON.parse(memory)
@@ -68,7 +68,7 @@ async function get(name, query = {}, force = false) {
         redirect: 'follow',
         cache: 'no-cache',
       }).then(res => res.json()).then(json => json.result);
-      sessionStorage.setItem(`${location.pathname}${name.toLowerCase()}s?${Object.entries(query).map(pair => pair.join('=')).join('&')}`, JSON.stringify(results));
+      sessionStorage.setItem(`${location.pathname}/${name.toLowerCase()}s?${Object.entries(query).map(pair => pair.join('=')).join('&')}`, JSON.stringify(results));
       return results;
     } catch (e) {
       const msg = e.msg || e.message || e.toString();

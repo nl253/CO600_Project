@@ -72,9 +72,8 @@ document.getElementById('reg-btn').onclick = async (event) => {
 
     // result should store the token if things go well
     const json = await logInRes.json();
-    const token = json.result;
-
-    setCookie('token', token);
+    sessionStorage.setItem('loggedIn', JSON.stringify(json.result));
+    setCookie('token', json.result.token);
     // redirect
     location.pathname = location.pathname.endsWith('/register')
       ? '/'

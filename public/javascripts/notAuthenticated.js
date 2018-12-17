@@ -31,8 +31,8 @@ document.getElementById('layout-btn-log-in').onclick = async (event) => {
   }
 
   const json = await logInRes.json();
-  const token = json.result;
-  setCookie('token', token);
+  sessionStorage.setItem('loggedIn', JSON.stringify(json.result));
+  setCookie('token', json.result.token);
   location.href = location.pathname.includes('/register')
     ? '/user/home'
     : location.href;

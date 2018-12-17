@@ -181,19 +181,19 @@ async function showModEditPane(module, topics = []) {
     return alert(msg);
   }
 }
-function showQuestEditPane(question) {
+function showQuestEditPane(question = {id: null, moduleId: null, createdAt: null, updatedAt: null, correctAnswer: null, badAnswer1: null, badAnswer2: null, badAnswer3: null}) {
   document.getElementById('module-edit-pane').innerHTML = `
     <h1 class="title is-3"style="margin-bottom: 10px;">Question</h1>
     <p><strong>Note:</strong> Save the current question before editing another one</p>
     <br>
     <div class="field">
-      <a id="module-edit-question-name" class="button is-medium is-light" contenteditable="true" style="width: 50%; padding: 5px; border: 1px; margin: auto;">${question.name ? question.name : ''}</a>
+      <a id="module-edit-question-name" class="button is-medium is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin: auto;">${question.name ? question.name : ''}</a>
     </div>
     <br>
 
     <div class="field">
       <h2 class="title is-3" style="margin-bottom: 10px;">Correct Answer</h2>
-      <a id="module-edit-question-answer" class="button is-medium is-light" contenteditable="true" style="width: 50%; padding: 5px; border: 1px; margin: auto;">${question.correctAnswer ? question.correctAnswer : ''}</a>
+      <a id="module-edit-question-answer" class="button is-medium is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin: auto;">${question.correctAnswer ? question.correctAnswer : ''}</a>
     </div>
     <br>
     
@@ -204,20 +204,26 @@ function showQuestEditPane(question) {
     <br>
 
     <div class="field is-horizontal">
-      <a class="button is-medium is-light" contenteditable="true" style="width: 50%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer1 ? question.badAnswer1 : ''}</a>
+      <a id="module-edit-question-bad-answer-1" class="button is-medium is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer1 ?
+    question.badAnswer1 :
+    ''}</a>
     </div>
 
     <div class="field is-horizontal">
-      <a class="button is-medium is-light" contenteditable="true" style="width: 50%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer2 ? question.badAnswer2 : ''}</a>
+      <a id="module-edit-question-bad-answer-2" class="button is-medium is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer2 ?
+    question.badAnswer2 :
+    ''}</a>
     </div>
     
     <div class="field is-horizontal">
-      <a class="button is-medium is-light" contenteditable="true" style="width: 50%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer3 ? question.badAnswer3 : ''}</a>
+      <a id="module-edit-question-bad-answer-3" class="button is-medium is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer3 ?
+    question.badAnswer3 :
+    ''}</a>
     </div>
     <br>
 
     <div class="field is-grouped">
-      <a onclick="saveQuest().then(msg => alert(msg))" class="button is-success" style="margin: 7px">
+      <a onclick="updateQuest()" class="button is-success" style="margin: 7px">
         <i class="fas fa-check" style="margin-right: 7px;"></i>
         Save
       </a>
@@ -231,7 +237,7 @@ function showQuestEditPane(question) {
 
 
 async function toggleModule(id, doSave = true) {
-  if (doSave) sessionStorage.setItem('/module/edit?click', JSON.stringify({page: 'module', id}));
+  if (doSave) sessionStorage.setItem(`${location.pathname}?click`, JSON.stringify({page: 'module', id}));
   unselectLess();
   unselectQuest();
   unselectMod();
@@ -245,21 +251,21 @@ async function toggleModule(id, doSave = true) {
 }
 async function toggleLesson(id) {
   if (id === getSelLessId()) return;
-  sessionStorage.setItem('/module/edit?click', JSON.stringify({page: 'lesson', id}));
+  sessionStorage.setItem(`${location.pathname}?click`, JSON.stringify({page: 'lesson', id}));
   unselectLess();
   unselectQuest();
   clearPane();
   selectLess(id);
-  return showLessEditPane((await get('Lesson', {id}))[0]);
+  return showLessEditPane((await get('Lesson', {id, moduleId: getSelModId()}))[0]);
 }
 async function toggleQuestion(id) {
   if (id === getSelQuestId()) return;
-  sessionStorage.setItem('/module/edit?click', JSON.stringify({page: 'question', id}));
+  sessionStorage.setItem(`${location.pathname}?click`, JSON.stringify({page: 'question', id}));
   unselectQuest();
   unselectLess();
   selectQuest(id);
   clearPane();
-  return showQuestEditPane((await get('Question', {id}))[0]);
+  return showQuestEditPane((await get('Question', {id, moduleId: getSelModId()}))[0]);
 }
 
 /**
@@ -274,7 +280,7 @@ function appendModule(m = {id: null , name: null, createdAt: Date.now(), updated
         data-created-at="${m.createdAt}">
       <a onclick="toggleModule(${m.id})" style="min-width: 100px; padding: 10px; margin-right: 5px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
         <span>${m.name ? m.name : 'unnamed #' + m.id.toString()}</span>
-        <button class="button is-danger is-small" style="width: 20px; height: 23px;" onclick="if (confirm('Delete module?')) destroy('Module', ${m.id}).then(() => this.parentElement.parentElement.remove());">
+        <button class="button is-danger is-small" style="width: 20px; height: 23px;" onclick="if (confirm('Delete module?')) destroyMod(${m.id});">
           <i class="fas fa-times fa-xs" style="margin: initial;"></i>
         </button>
       </a>
@@ -296,7 +302,7 @@ function appendLesson(lesson = {id: null, name: null, moduleId: null, createdAt:
       <a onclick="toggleLesson(${lesson.id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
         <span>${lesson.name ? lesson.name : 'unnamed #' + lesson.id}</span>
         <div style="display: flex; flex-direction: row; justify-content: space-between;">
-          <button class="button is-small is-danger" onclick="if (confirm('Delete lesson?')) destroy('Lesson', ${lesson.id}).then(() => this.parentElement.parentElement.parentElement.remove());" style="width: 20px; height: 23px;">
+          <button class="button is-small is-danger" onclick="if (confirm('Delete lesson?')) destroyLess(${lesson.id});" style="width: 20px; height: 23px;">
             <i class="fas fa-times fa-xs" style="margin: initial;"></i>
           </button>
         </div>
@@ -308,7 +314,7 @@ function appendLesson(lesson = {id: null, name: null, moduleId: null, createdAt:
 /**
  * Appends a question to the quiz for the selected module.
  */
-function appendQuestion(question = {moduleId: null, correctAnswer: null, badAnswer1: null, badAnswer2: null, badAnswer3: null, badAnswer4: null, createdAt: Date.now(), updatedAt: Date.now()}) {
+function appendQuestion(question = {moduleId: null, correctAnswer: null, badAnswer1: null, badAnswer2: null, badAnswer3: null, createdAt: Date.now(), updatedAt: Date.now()}) {
   document.querySelector(`#module-edit-question-list`).innerHTML += `
     <li data-id="${question.id}"
         data-created-on="${question.createdAt}"
@@ -317,7 +323,7 @@ function appendQuestion(question = {moduleId: null, correctAnswer: null, badAnsw
       <a class="has-text-dark" onclick="toggleQuestion(${question.id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
         <span>${question.name ? question.name : 'unnamed #' + question.id}</span>
         <div style="display: flex; flex-direction: row; justify-content: space-between;">
-          <button class="button is-small is-danger" onclick="if (confirm('Delete question?')) destroy('Question', ${question.id}).then(() => this.parentElement.parentElement.parentElement.remove());" style="width: 20px; height: 23px;">
+          <button class="button is-small is-danger" onclick="if (confirm('Delete question?')) destroyQuest(${question.id});" style="width: 20px; height: 23px;">
             <i class="fas fa-times fa-xs" style="margin: initial;"></i>
           </button>
         </div>
@@ -478,14 +484,16 @@ async function saveLesson(lessonId) {
   }
 }
 
-function saveQuest() {
+async function updateQuest() {
   const pane = document.getElementById('module-edit-pane');
-  const maybeBadA1 = pane.querySelector('#module-edit-question-bad-answer-1');
-  const maybeBadA2 = pane.querySelector('#module-edit-question-bad-answer-2');
-  const maybeBadA3 = pane.querySelector('#module-edit-question-bad-answer-3');
-  const maybeA = pane.querySelector('#module-edit-question-answer');
-  let maybeName = pane.querySelector('#module-edit-question-name');
-  return update('Question', getSelQuestId(), JSON.stringify({
+  const maybeBadA1 = pane.querySelector('#module-edit-question-bad-answer-1').innerText;
+  const maybeBadA2 = pane.querySelector('#module-edit-question-bad-answer-2').innerText;
+  const maybeBadA3 = pane.querySelector('#module-edit-question-bad-answer-3').innerText;
+  const maybeA = pane.querySelector('#module-edit-question-answer').innerText;
+  let maybeName = pane.querySelector('#module-edit-question-name').innerText;
+  sessionStorage.removeItem(`${location.pathname}/questions?moduleId=${getSelModId()}`);
+  sessionStorage.removeItem(`${location.pathname}/questions?id=${getSelQuestId()}&moduleId=${getSelModId()}`);
+  const newQ = await update('Question', getSelQuestId(), JSON.stringify({
     id: getSelQuestId(),
     moduleId: getSelModId(),
     name: maybeName ? maybeName : null,
@@ -494,29 +502,51 @@ function saveQuest() {
     badAnswer3: maybeBadA3 ? maybeBadA3 : null,
     correctAnswer: maybeA ? maybeA : null,
   }));
+  document.querySelector(`#module-edit-question-list li[data-id='${getSelQuestId()}'] > a`).innerText = maybeName ? maybeName : '';
+  return alert('Question updated.');
 }
 
-async function createMod(authorId) {
+async function destroyMod(id) {
+  destroy('Module', id);
+  let authorId = JSON.parse(sessionStorage.getItem('loggedIn')).id;
+  sessionStorage.removeItem(`${location.pathname}/modules?authorId=${authorId}`);
+  document.querySelector(`#module-edit-module-list li[data-id='${id}']`).remove();
+}
+
+async function destroyLess(id) {
+  destroy('Lesson', id);
+  sessionStorage.removeItem(`${location.pathname}/lessons?moduleId=${getSelModId()}`);
+  document.querySelector(`#module-edit-lesson-list li[data-id='${id}']`).remove();
+}
+
+async function destroyQuest(id) {
+  destroy('Question', id);
+  sessionStorage.removeItem(`${location.pathname}/questions?moduleId=${getSelModId()}`);
+  document.querySelector(`#module-edit-question-list li[data-id='${id}']`).remove();
+}
+
+async function createMod() {
+  const authorId = JSON.parse(sessionStorage.getItem('loggedIn')).id;
   const module = create('Module', JSON.stringify({authorId} ));
-  sessionStorage.removeItem(`${location.pathname}modules?authorId=${authorId}`);
+  sessionStorage.removeItem(`${location.pathname}/modules?authorId=${authorId}`);
   return appendModule(await module);
 }
 
 async function createLess() {
   const lesson = create('Lesson', JSON.stringify({moduleId: getSelModId()} ));
-  sessionStorage.removeItem(`${location.pathname}lessons?moduleId=${getSelModId()}`);
+  sessionStorage.removeItem(`${location.pathname}/lessons?moduleId=${getSelModId()}`);
   return appendLesson(await lesson);
 }
 
 async function createQuest() {
   const question = create('Question', JSON.stringify({moduleId: getSelModId()} ));
-  sessionStorage.removeItem(`${location.pathname}questions?moduleId=${getSelModId()}`);
+  sessionStorage.removeItem(`${location.pathname}/questions?moduleId=${getSelModId()}`);
   return appendQuestion(await question);
 }
 
-async function init(authorId) {
+async function init() {
   try {
-    for (const m of await get('Module', {authorId})) {
+    for (const m of await get('Module', {authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id})) {
       appendModule(m);
     }
   } catch (e) {
@@ -529,11 +559,10 @@ async function init(authorId) {
 <!--Populate the page using AJAX-->
 async function recall() {
   async function tryRecallMod() {
-    const memory = sessionStorage.getItem('/module/edit?click');
+    const memory = sessionStorage.getItem(`${location.pathname}?click`);
     if (!memory) return false;
     const parsed = JSON.parse(memory);
     if (parsed.page !== 'module') {
-      await toggleModule(eval(document.querySelector(`#module-edit-module-list li[data-id]:first-of-type`).getAttribute('data-id')), false);
       return false;
     }
     if (!document.querySelector(`#module-edit-module-list li[data-id='${parsed.id}'] > a`)) {
@@ -543,29 +572,47 @@ async function recall() {
     return true;
   }
   async function tryRecallLess() {
-    const memory = sessionStorage.getItem('/module/edit?click');
+    const memory = sessionStorage.getItem(`${location.pathname}?click`);
     if (!memory) return false;
     const parsed = JSON.parse(memory);
     if (parsed.page !== 'lesson') return false;
-    if (!document.querySelector(
-      `#module-edit-lesson-list li[data-id='${parsed.id}'] > a`)) {
+    const {id} = parsed;
+    const ls = await get('Lesson', {id});
+    if (ls.length === 0) return false;
+    const moduleId = ls[0].moduleId;
+    if (!document.querySelector(`#module-edit-module-list li[data-id='${moduleId}'] > a`)) {
       return false;
     }
-    await toggleLesson(eval(parsed.id));
+    await toggleModule(moduleId);
+    if (!document.querySelector(
+      `#module-edit-lesson-list li[data-id='${id}'] > a`)) {
+      return false;
+    }
+    await toggleLesson(id);
     return true;
   }
   async function tryRecallQuest() {
     /** Try to recall last expanded module */
-    const memory = sessionStorage.getItem('/module/edit?click');
+    const memory = sessionStorage.getItem(`${location.pathname}?click`);
     if (!memory) return false;
     const parsed = JSON.parse(memory);
     if (parsed.page !== 'question') return false;
-    if (!document.querySelector(`#module-edit-question-list li[data-id='${parsed.id}'] > a`)) {
+    const {id} = parsed;
+    const qs = await get('Question', {id});
+    if (qs.length === 0) return false;
+    const moduleId = qs[0].moduleId;
+    if (!document.querySelector(`#module-edit-module-list li[data-id='${moduleId}'] > a`)) {
       return false;
     }
-    await toggleQuestion(eval(parsed.id));
+    await toggleModule(moduleId);
+    if (!document.querySelector(`#module-edit-question-list li[data-id='${id}'] > a`)) {
+      return false;
+    }
+    await toggleQuestion(id);
     return true;
   }
-  return tryRecallMod().then(ok => ok || tryRecallLess().then(ok2 => ok2 || tryRecallQuest()));
+  return tryRecallMod().then(async ok => ok || await tryRecallLess().then(async ok2 => ok2 || await tryRecallQuest()));
 }
 
+<!--Populate the page using AJAX-->
+init().then(() => recall());

@@ -36,7 +36,10 @@ router.post(['/login', '/authenticate'],
         where: {email: req.body.email},
         defaults: {email: req.body.email, token: genToken()}
       }).spread((s, created) => created ? s : s.update({updatedAt: Date.now()}));
-      return res.json(msg(`successfully authenticated ${req.body.email}`, encodeURIComponent(encrypt(sess.token))))
+      delete user.dataValues.password;
+      return res.json(
+        msg(`successfully authenticated ${req.body.email}`,
+          Object.assign(user.dataValues, {token: encodeURIComponent(encrypt(sess.token))})));
     } catch (e) {
       return next(e);
     }
