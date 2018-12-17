@@ -3,12 +3,11 @@
     <div class="columns">
       <div class="column">
         <h1 class="title is-3">Our Project</h1>
-        <p> {{title}} is a result of a group project created by three final year students from
-          the University of Kent: Imaan Fakim, Norbert Logiewa and Nicolas Valderrabano.
-          Through this project, we wanted to created an interdisciplinary platform, giving
-          a chance to people to learn and teach subjects they desire. Our user friendly interface
-          is for all types of users, from complete beginner to advanced in their field of
-          choice.
+        <p> {{title}} is a result of a group project created by three final year students from the University
+          of Kent: Imaan Fakim, Norbert Logiewa and Nicolas Valderrabano. Through this project, we
+          wanted to created an interdisciplinary platform, giving a chance to people to learn and teach
+          subjects they desire. Our user friendly interface is for all types of users, from complete
+          beginner to advanced in their field of choice.
           <br> We hope you enjoy our website !
         </p>
         <br><br>
@@ -16,7 +15,8 @@
         <h3 class="title is-5">Emails</h3>
         {{#each authors}}
           <p>{{name}}</p>
-          <a style="display: block; margin-bottom: 15px;" href="mailto:{{email}}">{{email}}</a>          {{/each}}
+          <a style="display: block; margin-bottom: 15px;" href="mailto:{{email}}">{{email}}</a>
+        {{/each}}
         <br><br>
       </div>
       <div class="column is-hidden-mobile">

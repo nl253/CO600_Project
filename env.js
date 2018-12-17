@@ -1,5 +1,5 @@
 const {join, resolve} = require('path');
-const {existsSync} = require('fs');
+const {existsSync, mkdirSync} = require('fs');
 
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;

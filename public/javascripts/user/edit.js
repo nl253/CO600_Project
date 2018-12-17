@@ -43,7 +43,7 @@
           const msg = json.msg || json.message || json.toString();
           console.error(msg);
           return alert(msg);
-      }
+      } 
     }
   }
 
@@ -73,7 +73,7 @@
           const msg = err.msg || err.message || err.toString();
           console.error(msg);
           return alert(msg);
-      }
+      } 
     };
   }
 
