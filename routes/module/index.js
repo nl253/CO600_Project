@@ -1,15 +1,42 @@
 const {IncomingForm} = require('formidable');
 const express = require('express');
-const {validColumns, notRestrictedColumns} = require('../lib');
+const isLoggedIn = require('../lib').isLoggedIn;
 const router = express.Router();
 const {join} = require('path');
-const {readFile, readFileSync} = require('fs');
+const {readFileSync} = require('fs');
+const {log} = require('../lib');
 
-const {APIErr, NoSuchRecord, InvalidRequestErr, NotLoggedIn, MissingDataErr} = require('../errors');
-const {Enrollment, Module, Lesson, Rating, sequelize, User, File} = require('../database');
+const {APIErr, NoSuchRecord, InvalidRequestErr, NotLoggedIn} = require('../errors');
+const {Enrollment, Module, Lesson, Rating, sequelize, User, File} = require('../../database');
 
-const NUM_REGEX = /\d+/;
-const MEDIA_REGEX = /.+\.((pn|jpe?)g|gif|mp[34g])$/;
+const MEDIA_REGEX = /.+\.((pn|jpe?|mp[34])g|gif)$/;
+
+router.get('/edit', isLoggedIn(),
+  async (req, res, next) => {
+    try {
+      const context = {};
+      context.modules = await Module.findAll({where: {authorId: res.locals.loggedIn.id}}).then(ms => ms.map(m => m.dataValues));
+      for (let module = 0; module < context.modules.length; module++) {
+        context.modules[module].lessons = await Lesson.findAll({
+          where: {moduleId: context.modules[module].id}}).then(ls => ls.map(l => {
+          l.dataValues.content = l.dataValues.content === null ? false : true;
+          l.dataValues.files = [];
+          return l.dataValues;
+        }));
+        for (let lesson = 0; lesson < context.modules[module].lessons.length; lesson++) {
+          context.modules[module].lessons[lesson].files = await File.findAll({
+            attributes: { exclude: ['data'] },
+            where: {
+              lessonId: context.modules[module].lessons[lesson].id,
+            }}).then(fs => fs.map(f => f.dataValues));
+        }
+      }
+      return res.render(join('module', 'edit'), context);
+    } catch (e) {
+      log(e.msg || e.message || e.toString());
+      return next(e);
+    }
+  });
 
 router.get([
   '/:moduleId/:lessonId/download',
@@ -55,36 +82,6 @@ router.get('/:moduleId/:lessonId/edit',
           moduleId: req.params.moduleId,
         }}).then(ls => ls.map(l => l.dataValues));
       return res.render(join('lesson', 'edit'), {lesson, module, author});
-    } catch (e) {
-      return next(e);
-    }
-  });
-
-router.get('/:moduleId/:lessonId/:fileName',
-  (req, res, next) => res.locals.loggedIn ? next() : res.redirect('/'),
-  async (req, res, next) => {
-    if (!MEDIA_REGEX.test(req.params.fileName)) {
-      return next(new InvalidRequestErr('File', req.params.fileName));
-    }
-    if (!NUM_REGEX.test(req.params.moduleId)) {
-      return next(new InvalidRequestErr('Module', req.params.moduleId));
-    }
-    if (!NUM_REGEX.test(req.params.lessonId)) {
-      return next(new InvalidRequestErr('Lesson', req.params.lessonId));
-    }
-    const {lessonId, fileName} = req.params;
-    try {
-      const file = await File.findOne({where: {name: fileName, lessonId}});
-      if (file === null) {
-        return next(new NoSuchRecord('lesson file', {name: req.params.fileName}));
-      } else if (file.name.match('\.png$')) {
-        res.set('Content-Type', 'image/png');
-      } else if (file.name.match('\.jpe?g$')) {
-        res.set('Content-Type', 'image/jpeg');
-      } else if (file.name.match('\.gif$')) {
-        res.set('Content-Type', 'image/gif');
-      }
-      return res.send(file.data);
     } catch (e) {
       return next(e);
     }
