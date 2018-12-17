@@ -1,5 +1,9 @@
+@import "./bulma.scss";
+
+$fancy-font: Roboto, Arial, sans;
+
 body {
-  font: 14px 'Lucida Grande', Helvetica, Arial, sans-serif;
+  font: 14px $fancy-font, 'Lucida Grande', Helvetica, Arial, sans-serif;
 }
 
 a {
@@ -13,11 +17,11 @@ a {
 
 [contenteditable] {
   padding: 3px;
-  border: 1px #c9c3c3 dashed;
+  border: 1px $grey dashed;
 }
 
 input[type=text], input[type=password], input[type=email], textarea, div[contentEditable], span[contenteditable], p[contenteditable] {
-  background: #d3d3d329;
+  background: $grey-lighter;
 }
 
 input[type=file] {
@@ -43,5 +47,57 @@ section#user-personal-details .title + p {
 section#user-personal-details .title {
   margin-bottom: 5px;
 }
+
+.fancy-font {
+  font-family: $fancy-font;
+}
+
+.button {
+  border-radius: 22px !important;
+}
+
+input[type=submit] {
+  border-radius: 22px !important;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+.message {
+  box-shadow: #000000bd 2px 1px 8px;
+}
+
+.button:hover {
+  box-shadow: $grey-darker 0px 0px 2px;
+}
+
+.button.is-link, .button.is-info {
+  color: $grey-darker;
+}
+
+.button:not(.is-danger):not(.is-warning):not(.is-active) {
+  border: $grey solid 1px;
+  color: inherit;
+}
+
+.button.is-primary {
+  color: $white !important;
+}
+
+// buttons with icons need some margin
+.button > i, .panel-block > i, .navbar-item > i {
+  float: left;
+  margin-right: 7px;
+}
+
+.button:not(.is-small) > i, .panel-block:not(.is-small) > i, .navbar-item:not(.is-small) > i {
+  float: left;
+  margin-right: 10px;
+}
+
+.button.is-success {
+  //color: $grey-darker !important;
+  color: $white !important;
+  //font-weight: bold;
+}
+
 
 /*# sourceMappingURL=style.css.map */

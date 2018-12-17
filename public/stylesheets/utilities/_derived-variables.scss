@@ -1,12 +1,14 @@
-$primary: $turquoise !default;
+$primary: hsl(40, 35%, 51%) !default;
 
-$info: $cyan !default;
-$success: $green !default;
-$warning: $yellow !default;
-$danger: $red !default;
+$info: hsl(174, 23%, 83%) !default;
+$link: $info;
+$success: hsl(165, 87%, 31%) !default;
+$warning: #ffab56 !default;
+// $warning: hsl(38, 57%, 81%) !default;
+$danger: #ff5367 !default;
 
-$light: $white-ter !default;
-$dark: $grey-darker !default;
+$light: $grey-lighter !default;
+$dark: $grey-dark !default;
 
 // Invert colors
 
