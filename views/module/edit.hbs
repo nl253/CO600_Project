@@ -21,7 +21,7 @@
       Modules
     </h2>
     <!--list of modules-->
-    <ul id="module-edit-module-list" class="menu-list" style="margin-top: 20px; margin-bottom: 20px;"></ul>
+    <ul id="module-edit-list-module" class="menu-list" style="margin-top: 20px; margin-bottom: 20px;"></ul>
     <button onclick="createMod()" class="button is-success" style="display: block; max-width: 150px; margin: 0 auto;">
       <i class="fas fa-plus" style="position: relative; top: 3px;"></i>
       Module
@@ -35,10 +35,10 @@
     </h2>
 
     <!--list of lessons-->
-    <ol id="module-edit-lesson-list" class="menu-list" style="margin-bottom: 20px; list-style-type: none;"></ol>
+    <ol id="module-edit-list-lesson" class="menu-list" style="margin-bottom: 20px; list-style-type: none;"></ol>
 
     <!--create lesson btn-->
-    <button onclick="createLess()"
+    <button id="module-edit-btn-lesson-create"
             class="button is-success" style="margin: 0 auto; display: block; max-width: 150px;">
       <i class="fas fa-plus" style="position: relative; top: 3px;"></i>
       Lesson
@@ -51,11 +51,10 @@
     </h2>
 
     <!--quiz edit (list of questions)-->
-    <ol id="module-edit-question-list" style="list-style-type: none;"></ol>
+    <ol id="module-edit-list-question" style="list-style-type: none;"></ol>
 
     <!--add question btn-->
-    <button id="module-edit-btn-quiz" class="button is-success"
-            onclick="createQuest()"
+    <button id="module-edit-btn-question-create" class="button is-success"
             style="margin: 10px auto 0; display: block; max-width: 150px;">
       <i class="fas fa-plus" style="position: relative; top: 3px;"></i>
       Question

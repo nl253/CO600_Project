@@ -1,34 +1,24 @@
-/**
- * TODO what if you have 0 modules?
- *      * quiz edit btn
- *      * lessons list
- */
-
-function clearPane() {
-  document.getElementById('module-edit-pane').innerHTML = '';
-}
-
 function unselectMod() {
-  const maybeMod = document.querySelector(`#module-edit-module-list li[class*=has-background-light]`);
+  const maybeMod = document.querySelector(`#module-edit-list-module li[class*=has-background-light]`);
   if (maybeMod) maybeMod.classList.remove('has-background-light');
 }
 function unselectLess() {
-  const maybeLess = document.querySelector(`#module-edit-lesson-list li[class*=has-background-light]`);
+  const maybeLess = document.querySelector(`#module-edit-list-lesson li[class*=has-background-light]`);
   if (maybeLess) maybeLess.classList.remove('has-background-light');
 }
 function unselectQuest() {
-  const maybeQuest = document.querySelector(`#module-edit-question-list li[class*=has-background-light]`);
+  const maybeQuest = document.querySelector(`#module-edit-list-question li[class*=has-background-light]`);
   if (maybeQuest) maybeQuest.classList.remove('has-background-light');
 }
 
 function selectMod(moduleId) {
-  return document.querySelector(`#module-edit-module-list li[data-id='${moduleId}']`).classList.add('has-background-light');
+  return document.querySelector(`#module-edit-list-module li[data-id='${moduleId}']`).classList.add('has-background-light');
 }
 function selectLess(lessonId) {
-  return document.querySelector(`#module-edit-lesson-list li[data-id='${lessonId}']`).classList.add('has-background-light');
+  return document.querySelector(`#module-edit-list-lesson li[data-id='${lessonId}']`).classList.add('has-background-light');
 }
 function selectQuest(questionId) {
-  return document.querySelector(`#module-edit-question-list li[data-id='${questionId}']`).classList.add('has-background-light');
+  return document.querySelector(`#module-edit-list-question li[data-id='${questionId}']`).classList.add('has-background-light');
 }
 
 function destroySelMod() {
@@ -42,19 +32,24 @@ function destroySelQuest() {
 }
 
 function getSelModId() {
-  const maybeMod = document.querySelector(`#module-edit-module-list li[class*=has-background-light]`);
+  const maybeMod = document.querySelector(`#module-edit-list-module li[class*=has-background-light]`);
   return maybeMod ? eval(maybeMod.getAttribute('data-id')) : null;
 }
 function getSelLessId() {
-  const maybeLess = document.querySelector(`#module-edit-lesson-list li[class*=has-background-light]`);
+  const maybeLess = document.querySelector(`#module-edit-list-lesson li[class*=has-background-light]`);
   return maybeLess ? eval(maybeLess.getAttribute('data-id')) : null;
 }
 function getSelQuestId() {
-  const maybeQuest = document.querySelector(`#module-edit-question-list li[class*=has-background-light]`);
+  const maybeQuest = document.querySelector(`#module-edit-list-question li[class*=has-background-light]`);
   return maybeQuest ?  eval(maybeQuest.getAttribute('data-id')) : null;
 }
 
-async function showModEditPane(module, topics = ['AI', 'Biology', 'Chemistry', 'Physics', 'Sociology', 'Social Sciences', 'Computer Science', 'Mathematics', 'Psychology', 'Architercture', 'Engineering']) {
+/**
+ * @param {{name: String, authorId: Number, topic: String, summary: String}} module
+ * @param {Array<String>} topics
+ * @return {Promise<void>}
+ */
+async function showModEditPane(module = {name: null, authorId: null, topic: null, summary: null}, topics = ['AI', 'Biology', 'Chemistry', 'Physics', 'Sociology', 'Social Sciences', 'Computer Science', 'Mathematics', 'Psychology', 'Architercture', 'Engineering']) {
   try {
     document.getElementById('module-edit-pane').innerHTML = `
       <h2 class="title" style="margin-bottom: 10px;">
@@ -110,14 +105,18 @@ async function showModEditPane(module, topics = ['AI', 'Biology', 'Chemistry', '
                   style="min-width: 100%; min-height: 90px; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">${module.summary ? module.summary : ''}</textarea>
       </section>
       <div class="field is-grouped">
-        <a onclick="updateMod()" class="button is-success" style="margin: 7px">
-          <i class="fas fa-check" style="margin-right: 7px;"></i>
-          Save
-        </a>
-        <a class="button is-warning" style="margin: 7px">
-          <i class="fas fa-undo" style="margin-right: 7px;"></i>
-            Reset
-        </a>
+        <button class="button is-warning" style="margin: 7px">
+          <i class="fas fa-undo"></i>
+          <span>Reset</span>
+        </button>
+        <button onclick="updateMod().then(() => alert('Updated module.'))" class="button is-success" style="margin: 7px">
+          <i class="fas fa-check"></i>
+          <span>Save</span>
+        </button>
+        <button onclick="if (confirm('Delete module?')) destroySelMod()" class="button is-warning" style="margin: 7px">
+          <i class="fas fa-times"></i>
+          <span>Delete</span>
+        </button>
       </div>
     `;
   } catch (e) {
@@ -132,7 +131,7 @@ async function showModEditPane(module, topics = ['AI', 'Biology', 'Chemistry', '
  *
  * @param {Object} lesson
  */
-function showLessEditPane(lesson = {id: null, moduleId: null, name: null, createdAt: Date.now(), updatedAt: Date.now()}) {
+function showLessEditPane(lesson = {id: null, moduleId: null, name: null}) {
   document.getElementById('module-edit-pane').innerHTML = `
     <form method="post" action="/module/${lesson.moduleId}/${lesson.id}"
           data-id="${lesson.id}"
@@ -168,16 +167,18 @@ function showLessEditPane(lesson = {id: null, moduleId: null, name: null, create
             style="display: flex; flex-direction: column; justify-content: space-around; align-items: center;"></ul>
       </div>
       <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 20px; min-width: 380px; max-width: 500px;">
-        <a class="button is-warning" style="min-width: 100px;"
-           onclick="if (confirm('Lose all changes?')) location.href = location.href">
+        <button class="button is-warning" style="min-width: 100px;">
           <i class="fas fa-undo"></i>
-          Cancel
-        </a>
-        <input class="button is-success" form="lesson-edit-form" style="min-width: 100px;" type="submit" value="Save">
-        <a class="button is-danger" style="min-width: 100px;">
-          <i class="fas fa-times" style="margin-right: 7px;"></i>
-          Delete
-        </a>
+          <span>Reset</span>
+        </button>
+        <button type="submit" class="button is-success" form="lesson-edit-form" style="min-width: 100px;">
+          <i class="fas fa-check"></i>
+          <span>Save</span>
+        </button>
+        <button onclick="if (confirm('Delete lesson?')) destroySelLess()" class="button is-danger" style="min-width: 100px;">
+          <i class="fas fa-times"></i>
+          <span>Delete</span>
+        </button>
       </div>
     </form>
     `;
@@ -189,13 +190,13 @@ function showLessEditPane(lesson = {id: null, moduleId: null, name: null, create
   // }
 
   // for (const f of attachments) {
-  //   appendAttachment(moduleId, id, f.name, f.createdAt, f.updatedAt);
+  //   appendAttachment(moduleId, id, f.name);
   // }
 
 }
-function showQuestEditPane(question = {id: null, moduleId: null, createdAt: null, updatedAt: null, correctAnswer: null, badAnswer1: null, badAnswer2: null, badAnswer3: null}) {
+function showQuestEditPane(question = {id: null, moduleId: null, correctAnswer: null, badAnswer1: null, badAnswer2: null, badAnswer3: null}) {
   document.getElementById('module-edit-pane').innerHTML = `
-    <h1 class="title is-3"style="margin-bottom: 10px;">Question</h1>
+    <h1 class="title is-3" style="margin-bottom: 10px;">Question</h1>
     <p><strong>Note:</strong> Save the current question before editing another one</p>
     <br>
     <div class="field">
@@ -235,61 +236,102 @@ function showQuestEditPane(question = {id: null, moduleId: null, createdAt: null
     <br>
 
     <div class="field is-grouped">
-      <a onclick="updateQuest()" class="button is-success" style="margin: 7px">
-        <i class="fas fa-check" style="margin-right: 7px;"></i>
-        Save
+      <a onclick="updateQuest().then(() => alert('Updated question.'))" class="button is-success" style="margin: 7px">
+        <i class="fas fa-check"></i>
+        <span>Save</span>
       </a>
       <a class="button is-warning" style="margin: 7px">
-        <i class="fas fa-undo" style="margin-right: 7px;"></i>
-          Reset
+        <i class="fas fa-undo"></i>
+        <span>Reset</span>
+      </a>
+      <a onclick="if (confirm('Delete question?')) destroySelQuest()" class="button is-danger" style="margin: 7px">
+        <i class="fas fa-check"></i>
+        <span>Delete</span>
       </a>
     </div>
   `;
 }
 
+function saveProgress() {
+  const pane = document.getElementById('module-edit-pane');
+  const moduleId = getSelModId();
+  const lessonId = getSelLessId();
+  const questionId = getSelQuestId();
+  if (moduleId && lessonId && !questionId) {
+  } else if (moduleId && !lessonId && questionId) {
+    if (!pane.querySelector('#module-edit-question-answer')) return;
+    const vars = JSON.stringify([{
+      authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id,
+      badAnswer1 : pane.querySelector('#module-edit-question-bad-answer-1').innerText.trim(),
+      badAnswer2 : pane.querySelector('#module-edit-question-bad-answer-2').innerText.trim(),
+      badAnswer3 : pane.querySelector('#module-edit-question-bad-answer-3').innerText.trim(),
+      correctAnswer : pane.querySelector('#module-edit-question-answer').innerText.trim(),
+      name : pane.querySelector('#module-edit-question-name').innerText.trim(),
+    }]);
+    sessionStorage.setItem(`${location.pathname}/questions?id=${questionId}`, vars);
+    return sessionStorage.setItem(`${location.pathname}/questions?id=${questionId}&moduleId=${moduleId}`, vars);
+  } else if (moduleId && !lessonId && !questionId) {
+    if (!pane.querySelector('#module-edit-name')) return;
+    return sessionStorage.setItem(`${location.pathname}/modules?id=${moduleId}`,
+      JSON.stringify([{
+        name: pane.querySelector('#module-edit-name').innerText.trim(),
+        topic: pane.querySelector('#module-edit-topic').innerText.trim(),
+        authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id,
+        summary: pane.querySelector('#module-edit-summary').value.trim(),
+      }]));
+  }
+}
 
-async function toggleModule(id, doSave = true) {
-  if (doSave) sessionStorage.setItem(`${location.pathname}?click`, JSON.stringify({page: 'module', id}));
+
+async function toggleModule(id) {
+  sessionStorage.setItem(`${location.pathname}?click`, JSON.stringify({page: 'module', id}));
+  saveProgress();
   unselectLess();
   unselectQuest();
-  unselectMod();
-  clearPane();
-  selectMod(id);
-  document.getElementById('module-edit-lesson-list').innerHTML = '';
-  document.getElementById('module-edit-question-list').innerHTML = '';
-  for (const l of await get('Lesson', {moduleId: id})) appendLesson(l);
-  for (const q of await get('Question', {moduleId: id})) appendQuestion(q);
+  if (getSelModId() !== id) {
+    unselectMod();
+    selectMod(id);
+    document.getElementById('module-edit-list-lesson').innerHTML = '';
+    document.getElementById('module-edit-list-question').innerHTML = '';
+    get('Lesson', {moduleId: id}).then(ls => {
+      for (const l of ls) appendLesson(l);
+    });
+    get('Question', {moduleId: id}).then(qs => {
+      for (const q of qs) appendQuestion(q);
+    });
+  }
+  document.getElementById('module-edit-pane').innerHTML = '';
   return await showModEditPane((await get('Module', {id}))[0]);
 }
 async function toggleLesson(id) {
   if (id === getSelLessId()) return;
   sessionStorage.setItem(`${location.pathname}?click`, JSON.stringify({page: 'lesson', id}));
+  saveProgress();
   unselectLess();
   unselectQuest();
-  clearPane();
   selectLess(id);
-  return showLessEditPane((await get('Lesson', {id, moduleId: getSelModId()}))[0]);
+  document.getElementById('module-edit-pane').innerHTML = '';
+  return await showLessEditPane((await get('Lesson', {id, moduleId: getSelModId()}))[0]);
 }
 async function toggleQuestion(id) {
   if (id === getSelQuestId()) return;
   sessionStorage.setItem(`${location.pathname}?click`, JSON.stringify({page: 'question', id}));
+  saveProgress();
   unselectQuest();
   unselectLess();
   selectQuest(id);
-  clearPane();
-  return showQuestEditPane((await get('Question', {id, moduleId: getSelModId()}))[0]);
+  document.getElementById('module-edit-pane').innerHTML = '';
+  return await showQuestEditPane((await get('Question', {id, moduleId: getSelModId()}))[0]);
 }
 
 /**
  * Appends a new module to module list (left-most list).
  *
- * @param {{id: String, name: String, updatedAt: Date, createdAt: Date, authorId: Number}} m
+ * @param {{name: String, id: Number, authorId: Number}} m
  */
-function appendModule(m = {id: null , name: null, createdAt: Date.now(), updatedAt: Date.now()}) {
-  document.getElementById('module-edit-module-list').innerHTML += `
-    <li data-id="${m.id}"
-        data-updated-at="${m.updatedAt}"
-        data-created-at="${m.createdAt}">
+function appendModule(m = {id: null , authorId: null, name: null}) {
+  document.getElementById('module-edit-list-module').innerHTML += `
+    <li data-id="${m.id}">
       <a onclick="toggleModule(${m.id})" style="min-width: 100px; padding: 10px; margin-right: 5px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
         <span>${m.name ? m.name : 'unnamed #' + m.id.toString()}</span>
         <button class="button is-danger is-small" style="width: 20px; height: 23px;" onclick="if (confirm('Delete module?')) destroyMod(${m.id});">
@@ -304,12 +346,10 @@ function appendModule(m = {id: null , name: null, createdAt: Date.now(), updated
  * Appends a lesson to the list of lessons AND created a form for editing it.
  *
  */
-function appendLesson(lesson = {id: null, name: null, moduleId: null, createdAt: Date.now(), updatedAt: Date.now()}) {
+function appendLesson(lesson = {id: null, name: null, moduleId: null}) {
   // append to the second (lesson) menu
-  document.getElementById('module-edit-lesson-list').innerHTML += `
+  document.getElementById('module-edit-list-lesson').innerHTML += `
     <li data-id="${lesson.id}"
-        data-created-on="${lesson.createdAt}"
-        data-updated-at="${lesson.updatedAt}"
         data-module-id="${lesson.moduleId}">
       <a onclick="toggleLesson(${lesson.id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
         <span>${lesson.name ? lesson.name : 'unnamed #' + lesson.id}</span>
@@ -326,11 +366,9 @@ function appendLesson(lesson = {id: null, name: null, moduleId: null, createdAt:
 /**
  * Appends a question to the quiz for the selected module.
  */
-function appendQuestion(question = {moduleId: null, correctAnswer: null, badAnswer1: null, badAnswer2: null, badAnswer3: null, createdAt: Date.now(), updatedAt: Date.now()}) {
-  document.querySelector(`#module-edit-question-list`).innerHTML += `
+function appendQuestion(question = {moduleId: null, correctAnswer: null, badAnswer1: null, badAnswer2: null, badAnswer3: null}) {
+  document.querySelector(`#module-edit-list-question`).innerHTML += `
     <li data-id="${question.id}"
-        data-created-on="${question.createdAt}"
-        data-updated-at="${question.updatedAt}"
         data-module-id="${question.moduleId}">
       <a class="has-text-dark" onclick="toggleQuestion(${question.id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
         <span>${question.name ? question.name : 'unnamed #' + question.id}</span>
@@ -352,19 +390,14 @@ function appendQuestion(question = {moduleId: null, correctAnswer: null, badAnsw
  * @param {!Number} lessonId
  * @param {!Number} id
  * @param {?String} name
- * @param {?Date} createdAt
- * @param {?Date} updatedAt
  */
 function appendAttachment(
-  moduleId, lessonId, id, name = 'attachment', createdAt = null,
-  updatedAt = null) {
+  moduleId, lessonId, id, name = 'attachment') {
   document.querySelector(
     `form[data-id='${lessonId}'] ul.lesson-edit-uploaded-files`).innerHTML += `
     <li class="has-text-black"
         data-id="${id}"
         data-name="${name}"
-        data-updated-at="${updatedAt}"
-        data-created-on="${createdAt}"
         style="background: #e5e5e5d4; padding: 8px 12px; display: flex; flex-direction: row; justify-content: space-between; align-items: center; width: 300px; max-width: 500px; margin-bottom: 10px;">
       <div class="module-file-name">${name}</div>
       <div style="width: 75px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
@@ -432,24 +465,23 @@ async function updateMod() {
   const maybeName = pane.querySelector('#module-edit-name').innerText;
   const maybeTopic = pane.querySelector('#module-edit-topic').innerText;
   const maybeSummary = pane.querySelector('#module-edit-summary').value;
-  const res = await update('Module', moduleId, JSON.stringify({
-    summary: maybeSummary ? maybeSummary : null,
-    name: maybeName ? maybeName : null,
-    topic: maybeTopic ? maybeTopic : null,
-  }));
-  sessionStorage.removeItem(`${location.pathname}/modules?authorId=${JSON.parse(sessionStorage.getItem('loggedIn')).id}`);
-  sessionStorage.removeItem(`${location.pathname}/modules?id=${getSelModId()}`);
-  await toggleModule(getSelModId());
-  document.querySelector(`#module-edit-module-list li[data-id='${moduleId}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${moduleId}`;
-  return alert('Updated module.');
+  try {
+    await update('Module', moduleId, JSON.stringify({
+      summary: maybeSummary ? maybeSummary : null,
+      name: maybeName ? maybeName : null,
+      topic: maybeTopic ? maybeTopic : null,
+    }));
+    sessionStorage.removeItem(`${location.pathname}/modules?authorId=${JSON.parse(sessionStorage.getItem('loggedIn')).id}`);
+    sessionStorage.removeItem(`${location.pathname}/modules?id=${getSelModId()}`);
+    await toggleModule(getSelModId());
+  } catch (e) {
+    const msg = e.msg || e.message || e.toString();
+    console.error(e);
+    return alert(msg);
+  }
+  document.querySelector(`#module-edit-list-module li[data-id='${moduleId}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${moduleId}`;
 }
 
-/**
- * Uploads the lesson content HTML file AND lesson attachments AND sets lesson: name, summary.
- *
- * @param {Number} lessonId
- * @return {Promise<*>}
- */
 async function updateLess() {}
 
 async function updateQuest() {
@@ -472,27 +504,33 @@ async function updateQuest() {
     badAnswer3: maybeBadA3 ? maybeBadA3 : null,
     correctAnswer: maybeA ? maybeA : null,
   }));
-  document.querySelector(`#module-edit-question-list li[data-id='${questionId}'] > a > span`).innerText = maybeName ? maybeName : `unnamed #${questionId}`;
-  return alert('Question updated.');
+  document.querySelector(`#module-edit-list-question li[data-id='${questionId}'] > a > span`).innerText = maybeName ? maybeName : `unnamed #${questionId}`;
 }
 
 async function destroyMod(id) {
   destroy('Module', id);
   let authorId = JSON.parse(sessionStorage.getItem('loggedIn')).id;
   sessionStorage.removeItem(`${location.pathname}/modules?authorId=${authorId}`);
-  document.querySelector(`#module-edit-module-list li[data-id='${id}']`).remove();
+  if (getSelModId() === id) {
+    document.getElementById('module-edit-pane').innerText = '';
+    document.getElementById('module-edit-list-question').innerText = '';
+    document.getElementById('module-edit-list-lesson').innerText = '';
+  }
+  document.querySelector(`#module-edit-list-module li[data-id='${id}']`).remove();
 }
 
 async function destroyLess(id) {
   destroy('Lesson', id);
   sessionStorage.removeItem(`${location.pathname}/lessons?moduleId=${getSelModId()}`);
-  document.querySelector(`#module-edit-lesson-list li[data-id='${id}']`).remove();
+  if (getSelLessId() === id) document.getElementById('module-edit-pane').innerText = '';
+  document.querySelector(`#module-edit-list-lesson li[data-id='${id}']`).remove();
 }
 
 async function destroyQuest(id) {
   destroy('Question', id);
   sessionStorage.removeItem(`${location.pathname}/questions?moduleId=${getSelModId()}`);
-  document.querySelector(`#module-edit-question-list li[data-id='${id}']`).remove();
+  if (getSelQuestId() === id) document.getElementById('module-edit-pane').innerText = '';
+  document.querySelector(`#module-edit-list-question li[data-id='${id}']`).remove();
 }
 
 async function createMod() {
@@ -502,21 +540,23 @@ async function createMod() {
   return appendModule(await module);
 }
 
-async function createLess() {
+document.getElementById('module-edit-btn-lesson-create').onclick = async function createLess() {
   const lesson = create('Lesson', JSON.stringify({moduleId: getSelModId()} ));
   sessionStorage.removeItem(`${location.pathname}/lessons?moduleId=${getSelModId()}`);
   return appendLesson(await lesson);
-}
+};
 
-async function createQuest() {
+document.getElementById('module-edit-btn-question-create').onclick = async function createQuest() {
   const question = create('Question', JSON.stringify({moduleId: getSelModId()} ));
   sessionStorage.removeItem(`${location.pathname}/questions?moduleId=${getSelModId()}`);
   return appendQuestion(await question);
-}
+};
 
-async function init() {
+<!--Populate the page using AJAX-->
+(async function() {
   try {
-    for (const m of await get('Module', {authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id})) {
+    for (const m of await get('Module',
+      {authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id})) {
       appendModule(m);
     }
   } catch (e) {
@@ -524,10 +564,7 @@ async function init() {
     console.error(e);
     alert(msg);
   }
-}
-
-<!--Populate the page using AJAX-->
-async function recall() {
+})().then(() => (async function() {
   async function tryRecallMod() {
     const memory = sessionStorage.getItem(`${location.pathname}?click`);
     if (!memory) return false;
@@ -535,12 +572,14 @@ async function recall() {
     if (parsed.page !== 'module') {
       return false;
     }
-    if (!document.querySelector(`#module-edit-module-list li[data-id='${parsed.id}'] > a`)) {
+    if (!document.querySelector(
+      `#module-edit-list-module li[data-id='${parsed.id}'] > a`)) {
       return false;
     }
     await toggleModule(eval(parsed.id));
     return true;
   }
+
   async function tryRecallLess() {
     const memory = sessionStorage.getItem(`${location.pathname}?click`);
     if (!memory) return false;
@@ -550,17 +589,19 @@ async function recall() {
     const ls = await get('Lesson', {id});
     if (ls.length === 0) return false;
     const moduleId = ls[0].moduleId;
-    if (!document.querySelector(`#module-edit-module-list li[data-id='${moduleId}'] > a`)) {
+    if (!document.querySelector(
+      `#module-edit-list-module li[data-id='${moduleId}'] > a`)) {
       return false;
     }
     await toggleModule(moduleId);
     if (!document.querySelector(
-      `#module-edit-lesson-list li[data-id='${id}'] > a`)) {
+      `#module-edit-list-lesson li[data-id='${id}'] > a`)) {
       return false;
     }
     await toggleLesson(id);
     return true;
   }
+
   async function tryRecallQuest() {
     /** Try to recall last expanded module */
     const memory = sessionStorage.getItem(`${location.pathname}?click`);
@@ -571,18 +612,20 @@ async function recall() {
     const qs = await get('Question', {id});
     if (qs.length === 0) return false;
     const moduleId = qs[0].moduleId;
-    if (!document.querySelector(`#module-edit-module-list li[data-id='${moduleId}'] > a`)) {
+    if (!document.querySelector(
+      `#module-edit-list-module li[data-id='${moduleId}'] > a`)) {
       return false;
     }
     await toggleModule(moduleId);
-    if (!document.querySelector(`#module-edit-question-list li[data-id='${id}'] > a`)) {
+    if (!document.querySelector(
+      `#module-edit-list-question li[data-id='${id}'] > a`)) {
       return false;
     }
     await toggleQuestion(id);
     return true;
   }
-  return tryRecallMod().then(async ok => ok || await tryRecallLess().then(async ok2 => ok2 || await tryRecallQuest()));
-}
 
-<!--Populate the page using AJAX-->
-init().then(() => recall());
+  return tryRecallMod()
+    .then(async ok => ok ||
+      await tryRecallLess().then(async ok2 => ok2 || await tryRecallQuest()));
+})());
