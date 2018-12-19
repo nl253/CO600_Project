@@ -113,7 +113,7 @@ async function showModEditPane(module = {name: null, authorId: null, topic: null
           <i class="fas fa-check"></i>
           <span>Save</span>
         </button>
-        <button onclick="if (confirm('Delete module?')) destroySelMod()" class="button is-warning" style="margin: 7px">
+        <button onclick="if (confirm('Delete module?')) destroySelMod()" class="button is-danger" style="margin: 7px">
           <i class="fas fa-times"></i>
           <span>Delete</span>
         </button>
