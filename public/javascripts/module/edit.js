@@ -49,7 +49,7 @@ function getSelQuestId() {
  * @param {Array<String>} topics
  * @return {Promise<void>}
  */
-async function showModEditPane(module = {name: null, authorId: null, topic: null, summary: null}, topics = ['AI', 'Biology', 'Chemistry', 'Physics', 'Sociology', 'Social Sciences', 'Computer Science', 'Mathematics', 'Psychology', 'Architercture', 'Engineering']) {
+async function showModEditPane(module = {name: null, authorId: null, topic: null, summary: null}, topics = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology']) {
   try {
     document.getElementById('module-edit-pane').innerHTML = `
       <h2 class="title" style="margin-bottom: 10px;">
