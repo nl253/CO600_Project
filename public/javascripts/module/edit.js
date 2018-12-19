@@ -63,7 +63,7 @@ function getSelId(what) {
  * @param {Array<!String>} topics
  * @return {Promise<void>}
  */
-async function showModEditPane(module = {id: null, name: null, authorId: null, topic: null, summary: null}, topics = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology']) {
+async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology']) {
   try {
     document.getElementById('module-edit-pane').innerHTML = `
       <h2 class="title" style="margin-bottom: 10px;">
@@ -152,9 +152,10 @@ async function showModEditPane(module = {id: null, name: null, authorId: null, t
 /**
  * Shows the lesson edit pane.
  *
- * @param {{id: !Number, moduleId: !Number, name: ?String, summary: ?String}} question
+ * @param {{id: !Number, moduleId: !Number, name: ?String, content: ?Boolean, summary: ?String}} lesson
+ * @param {Array<{id: !Number, name: !String}>} attachments
  */
-function showLessEditPane(lesson = {id: null, moduleId: null, name: null, summary: null}) {
+function showLessEditPane(lesson, attachments = []) {
   document.getElementById('module-edit-pane').innerHTML = `
     <form method="post" action="/module/${lesson.moduleId}/${lesson.id}"
           data-id="${lesson.id}"
@@ -225,7 +226,7 @@ function showLessEditPane(lesson = {id: null, moduleId: null, name: null, summar
  *
  * @param {{id: !Number, moduleId: !Number, correctAnswer: ?String, badAnswer1: ?String, badAnswer2: ?String, badAnswer3: ?String}} question
  */
-function showQuestEditPane(question = {id: null, moduleId: null, correctAnswer: null, badAnswer1: null, badAnswer2: null, badAnswer3: null}) {
+function showQuestEditPane(question) {
   document.getElementById('module-edit-pane').innerHTML = `
     <h1 class="title is-3" style="margin-bottom: 10px;">Question</h1>
     <p><strong>Note:</strong> Save the current question before editing another one</p>
@@ -406,7 +407,7 @@ function appendModule(module = {id: null , name: null}) {
  *
  * @param {{id: !Number, moduleId: !Number, name: ?String}} lesson
  */
-function appendLesson(lesson = {id: null, moduleId: null, name: null}) {
+function appendLesson(lesson) {
   // append to the second (lesson) menu
   document.getElementById('module-edit-list-lesson').innerHTML += `
     <li data-id="${lesson.id}"
@@ -426,9 +427,9 @@ function appendLesson(lesson = {id: null, moduleId: null, name: null}) {
 /**
  * Appends a question to the quiz for the selected module.
  *
- * @param {{id: !Number, moduleId: !Number, correctAnswer: ?String, badAnswer1: ?String, badAnswer2: ?String, badAnswer3: ?String}} question
+ * @param {{id: !Number, moduleId: !Number, name: ?String, correctAnswer: ?String, badAnswer1: ?String, badAnswer2: ?String, badAnswer3: ?String}} question
  */
-function appendQuestion(question = {id: null, moduleId: null, correctAnswer: null, badAnswer1: null, badAnswer2: null, badAnswer3: null}) {
+function appendQuestion(question) {
   document.querySelector(`#module-edit-list-question`).innerHTML += `
     <li data-id="${question.id}"
         data-module-id="${question.moduleId}">
@@ -533,8 +534,8 @@ async function updateMod() {
       topic: maybeTopic ? maybeTopic : null,
     }));
     sessionStorage.removeItem(`${location.pathname}/modules?authorId=${JSON.parse(sessionStorage.getItem('loggedIn')).id}`);
-    sessionStorage.removeItem(`${location.pathname}/modules?id=${getSelId('Module')}`);
-    await toggleModule(getSelId('Module'));
+    sessionStorage.removeItem(`${location.pathname}/modules?id=${moduleId}`);
+    // await toggleModule(getSelId('Module'));
   } catch (e) {
     const msg = e.msg || e.message || e.toString();
     console.error(e);
@@ -582,44 +583,43 @@ async function updateQuest() {
  * Destroys a module.
  *
  * @param {!Number} id
- * @return {Promise<void>}
+ * @return {void}
  */
-async function destroyMod(id) {
+function destroyMod(id) {
   destroy('Module', id);
-  let authorId = JSON.parse(sessionStorage.getItem('loggedIn')).id;
-  sessionStorage.removeItem(`${location.pathname}/modules?authorId=${authorId}`);
+  sessionStorage.removeItem(`${location.pathname}/modules?authorId=${JSON.parse(sessionStorage.getItem('loggedIn')).id}`);
   if (getSelId('Module') === id) {
-    document.getElementById('module-edit-pane').innerText = '';
-    document.getElementById('module-edit-list-question').innerText = '';
-    document.getElementById('module-edit-list-lesson').innerText = '';
+    clearPane();
+    clearList('Lesson');
+    clearList('Question');
   }
-  document.querySelector(`#module-edit-list-module li[data-id='${id}']`).remove();
+  return document.querySelector(`#module-edit-list-module li[data-id='${id}']`).remove();
 }
 
 /**
  * Destroys a lesson.
  *
  * @param {!Number} id
- * @return {Promise<void>}
+ * @return {void}
  */
-async function destroyLess(id) {
+function destroyLess(id) {
   destroy('Lesson', id);
   sessionStorage.removeItem(`${location.pathname}/lessons?moduleId=${getSelId('Module')}`);
   if (getSelId('Lesson') === id) clearPane();
-  document.querySelector(`#module-edit-list-lesson li[data-id='${id}']`).remove();
+  return document.querySelector(`#module-edit-list-lesson li[data-id='${id}']`).remove();
 }
 
 /**
  * Destroys a question.
  *
  * @param {!Number} id
- * @return {Promise<void>}
+ * @return {void}
  */
-async function destroyQuest(id) {
+function destroyQuest(id) {
   destroy('Question', id);
   sessionStorage.removeItem(`${location.pathname}/questions?moduleId=${getSelId('Module')}`);
   if (getSelId('Question') === id) clearPane();
-  document.querySelector(`#module-edit-list-question li[data-id='${id}']`).remove();
+  return document.querySelector(`#module-edit-list-question li[data-id='${id}']`).remove();
 }
 
 /**
@@ -662,6 +662,9 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
 };
 
 <!--Populate the page using AJAX-->
+/**
+ * Try to recall last click.
+ */
 (async function() {
   try {
 
@@ -673,6 +676,9 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
     if (!memory) return false;
     const {page, id} = JSON.parse(memory);
 
+    /**
+     * @return {Promise<Boolean>}
+     */
     async function tryRecallMod() {
       if (page !== 'module') {
         return false;
@@ -683,11 +689,14 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
       return true;
     }
 
+    /**
+     * @return {Promise<Boolean>}
+     */
     async function tryRecallLess() {
       if (page !== 'lesson') return false;
       const ls = await get('Lesson', {id});
       if (ls.length === 0) return false;
-      const moduleId = ls[0].moduleId;
+      const {moduleId} = ls[0];
       if (!document.querySelector(`#module-edit-list-module li[data-id='${moduleId}'] > a`)) {
         return false;
       }
@@ -699,6 +708,9 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
       return true;
     }
 
+    /**
+     * @return {Promise<Boolean>}
+     */
     async function tryRecallQuest() {
       if (page !== 'question') return false;
       const qs = await get('Question', {id});
@@ -715,7 +727,7 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
       return true;
     }
 
-    return await tryRecallMod() || await tryRecallLess() || await tryRecallQuest();
+    return (await tryRecallMod()) || ((await tryRecallLess()) || await tryRecallQuest());
 
   } catch(e) {
     const msg = e.msg || e.message || e.toString();

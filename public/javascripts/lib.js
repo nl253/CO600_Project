@@ -46,8 +46,10 @@ function setCookie(name, value, opts = {}) {
 /**
  * Query the database for objects.
  *
+ * @param {'User', 'Module', 'Lesson', 'Question', 'Rating'} model
  * @param {!Object} query
- * @return {Promise<Array<Object>>}
+ * @param {?Boolean} force
+ * @return {Promise<!Array<{id: !Number, createdAt: !Date, updatedAt: !Date}>>}
  */
 async function get(model, query = {}, force = false) {
   function tryCache() {
@@ -85,7 +87,7 @@ async function get(model, query = {}, force = false) {
  *
  * @param {'User', 'Module', 'Lesson', 'Question', 'Rating'} model
  * @param {!FormData|!String} postData
- * @return {Promise<{id: !Number, createdAt: !Date, updatedAt: !Date}>} created object
+ * @return {Promise<void|{id: !Number, createdAt: !Date, updatedAt: !Date}>} created object
  */
 async function create(model, postData = '') {
   try {
@@ -111,7 +113,8 @@ async function create(model, postData = '') {
  * @param {'User', 'Module', 'Lesson', 'Question', 'Rating'} model
  * @param {!Number} id
  * @param {!String|!FormData} postData
- * @return {Promise<Object>} promise of updated object
+ * @param {?String} contentType
+ * @return {Promise<void|{id: !Number createdAt: !Date, updatedAt: !Date}>} promise of updated object
  */
 async function update(model, id, postData, contentType = 'application/json') {
   try {
@@ -136,7 +139,7 @@ async function update(model, id, postData, contentType = 'application/json') {
  *
  * @param {'User', 'Module', 'Lesson', 'Question', 'Rating'} model
  * @param {!Number} id
- * @return {Promise<*>}
+ * @return {Promise<void|!String>}
  */
 async function destroy(model, id) {
   try {
@@ -148,7 +151,7 @@ async function destroy(model, id) {
       redirect: 'follow',
       cache: 'no-cache',
     });
-    return await response.json().then(json => json.result);
+    return await response.json().then(json => json.msg);
   } catch (e) {
     const msg = e.msg || e.message || e.toString();
     console.error(msg);
