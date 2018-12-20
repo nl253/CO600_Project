@@ -128,11 +128,11 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
       ''}</textarea>
       </section>
       <div class="field is-grouped">
-        <button class="button is-warning" style="margin: 7px">
+        <button type="reset" onclick="alert('Not Implemented Yet.')" class="button is-warning" style="margin: 7px">
           <i class="fas fa-undo"></i>
           <span>Reset</span>
         </button>
-        <button onclick="updateMod().then(() => alert('Updated module.'))" class="button is-success" style="margin: 7px">
+        <button type="submit" onclick="updateMod().then(() => alert('Updated module.'))" class="button is-success" style="margin: 7px">
           <i class="fas fa-check"></i>
           <span>Save</span>
         </button>
@@ -157,28 +157,26 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
  */
 function showLessEditPane(lesson, attachments = []) {
   document.getElementById('module-edit-pane').innerHTML = `
-    <form method="post" action="/module/${lesson.moduleId}/${lesson.id}"
-          data-id="${lesson.id}"
+    <form method="post" action="/api/lesson/${lesson.id}/"
           enctype="multipart/form-data"
+          id="module-edit-form-lesson"
           class="lesson-edit-form column is-10-desktop is-full-tablet is-full-mobile"
           style="display: flex; flex-direction: column; justify-content: space-around; align-items: flex-start; margin-top: -15px;">
       <h2 class="title is-3">Name</h2>
-      <input name="name" value="${lesson.name ? lesson.name : ''}" autocomplete="on"
-             style="background: #d3d3d329; padding: 5px; border: 1px #c9c3c3 dashed;"
-             placeholder="e.g. Introduction to AI">
+      <input name="name" value="${lesson.name ? lesson.name : ''}" 
+             autocomplete="on" placeholder="e.g. Introduction to AI"
+             style="background: #d3d3d329; padding: 5px; border: 1px #c9c3c3 dashed; min-width: 60%;">
       <h2 class="title is-3" style="margin-top: 20px;">Summary</h2>
-      <textarea class="lesson-edit-summary" name="summary" autocomplete="on"
-                style="padding: 5px; min-width: 650px; min-height: 50px; max-height: 800px; border: 1px #c9c3c3 dashed;">${lesson.summary ?
-    lesson.summary :
-    ''}</textarea>
+      <textarea name="summary" autocomplete="on"
+                style="padding: 5px; min-width: 650px; min-height: 50px; max-height: 800px; border: 1px #c9c3c3 dashed;">${lesson.summary ? lesson.summary : ''}</textarea>
       <h2 class="title is-3" style="margin-top: 20px;">Content</h2>
       <p style="margin-bottom: 10px;">Upload HTML file with the lesson content</p>
-      <div class="module-edit-lesson-content"></div>
+      <div id="module-edit-lesson-content"></div>
       <input type="file" name="lesson" style="display: block; max-width: 200px; margin-top: 20px;">
       <h2 class="title is-3" style="margin-top: 20px;">Attachments (optional)</h2>
       <p><strong>Select a file:</strong></p>
       <br>
-      <ul style="list-style-type: disc; display: flex; flex-direction: column; justify-content: space-around; align-items: flex-start;">
+      <ul style="list-style-type: disc; display: flex; flex-direction: column; justify-content: space-around; align-items: flex-start; margin-left: 19px;">
         <li>Image (.jpg, .jpeg, .png, .gif)</li>
         <li>Audio (.mp3)</li>
         <li>Video (.mp4, .mpg)</li>
@@ -186,39 +184,38 @@ function showLessEditPane(lesson, attachments = []) {
       <br>
       <input type="file" multiple style="display: block">
       <div style="display: flex; flex-direction: column; justify-content: space-around; align-items: flex-start; margin-top: 20px;">
-        <h3 class="lesson-edit-h-uploaded-files title is-5">
+        <h3 id="lesson-edit-h-uploaded-files title is-5" style="margin-bottom: 8px;">
           Uploaded Files
         </h3>
-        <ul class="lesson-edit-uploaded-files"
-            style="display: flex; flex-direction: column; justify-content: space-around; align-items: center;"></ul>
+        <ul id="lesson-edit-list-uploaded-files" style="display: flex; flex-direction: column; justify-content: space-around; align-items: center;"></ul>
       </div>
       <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 20px; min-width: 380px; max-width: 500px;">
-        <button class="button is-warning" style="min-width: 100px;">
+        <button onclick="alert('Not Implemented Yet.')" type="reset" class="button is-warning" style="min-width: 100px;">
           <i class="fas fa-undo"></i>
           <span>Reset</span>
         </button>
-        <button type="submit" class="button is-success" form="lesson-edit-form" style="min-width: 100px;">
+        <button type="submit" onclick="updateLess().then(() => alert('Updated lesson.'))" class="button is-success" form="module-edit-form-lesson" style="min-width: 100px;">
           <i class="fas fa-check"></i>
           <span>Save</span>
         </button>
-        <button onclick="if (confirm('Delete lesson?')) destroyLess(${lesson.id}) " class="button is-danger" style="min-width: 100px;">
+        <button onclick="if (confirm('Delete lesson?')) destroyLess(${lesson.id})" class="button is-danger" style="min-width: 100px;">
           <i class="fas fa-times"></i>
           <span>Delete</span>
         </button>
       </div>
     </form>
     `;
+  document.querySelector('#module-edit-pane form').querySelector('.button[type=submit]').onclick = function (e) {
+    e.preventDefault();
+    return updateLess();
+  };
 
-  // if (content) {
-  //   setLessContent(id);
-  // } else {
-  //   unsetLessContent(id);
-  // }
+  if (lesson.content) setLessContent(lesson.id);
+  else unsetLessContent(lesson.id);
 
-  // for (const f of attachments) {
-  //   appendAttachment(moduleId, id, f.name);
-  // }
-
+  for (const f of attachments) {
+    appendAttachment({lessonId: lesson.id, name: f.name});
+  }
 }
 
 /**
@@ -272,18 +269,18 @@ function showQuestEditPane(question) {
     <br>
 
     <div class="field is-grouped">
-      <a onclick="updateQuest().then(() => alert('Updated question.'))" class="button is-success" style="margin: 7px">
+      <button type="submit" onclick="updateQuest().then(() => alert('Updated question.'))" class="button is-success" style="margin: 7px">
         <i class="fas fa-check"></i>
         <span>Save</span>
-      </a>
-      <a class="button is-warning" style="margin: 7px">
+      </button>
+      <button type="reset" onclick="alert('Not Implemented Yet.')" class="button is-warning" style="margin: 7px">
         <i class="fas fa-undo"></i>
         <span>Reset</span>
-      </a>
-      <a onclick="if (confirm('Delete question?')) destroyQuest(${question.id}) " class="button is-danger" style="margin: 7px">
+      </button>
+      <button onclick="if (confirm('Delete question?')) destroyQuest(${question.id}) " class="button is-danger" style="margin: 7px">
         <i class="fas fa-check"></i>
         <span>Delete</span>
-      </a>
+      </button>
     </div>
   `;
 }
@@ -365,7 +362,8 @@ async function toggleLesson(id) {
   saveProgress();
   unSelect(focusedLessId === null ? 'Question' : 'Lesson');
   select('Lesson', id);
-  return await showLessEditPane((await get('Lesson', {id, moduleId: getSelId('Module')}))[0]);
+  const lesson = (await get('Lesson', {id, moduleId: getSelId('Module')}))[0];
+  return await showLessEditPane(lesson, await get('File', {lessonId: lesson.id}));
 }
 
 /**
@@ -445,34 +443,26 @@ function appendQuestion(question) {
   `;
 }
 
-
 /**
  * Adds attachment to a list of attachments in a lesson.
  *
- * @param {!Number} moduleId
- * @param {!Number} lessonId
- * @param {!Number} id
- * @param {?String} name
+ * @param {!{lessonId: !Number, name: !String}} file
  */
-function appendAttachment(moduleId, lessonId, id, name = 'attachment') {
-  document.querySelector(
-    `form[data-id='${lessonId}'] ul.lesson-edit-uploaded-files`).innerHTML += `
+function appendAttachment(file) {
+  document.querySelector(`#lesson-edit-list-uploaded-files`).innerHTML += `
     <li class="has-text-black"
-        data-id="${id}"
-        data-name="${name}"
-        style="background: #e5e5e5d4; padding: 8px 12px; display: flex; flex-direction: row; justify-content: space-between; align-items: center; width: 300px; max-width: 500px; margin-bottom: 10px;">
-      <div class="module-file-name">${name}</div>
-      <div style="width: 75px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
-        <a href="/file/${id}" class="button is-link is-small" data-name="${name}" data-id="${id}" download><i class="fas fa-download"></i></a>
-        <button class="button is-small is-danger"><i class="fas fa-times"></i></button>
-      </div>
+        data-name="${file.name}"
+        style="background: #e5e5e5d4; padding: 8px 12px; display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <div class="module-file-name" style="margin-right: 10px;">${file.name}</div>
+      <a href="/lesson/${file.lessonId}/${file.name}" class="button is-link is-small" download style="margin-right: 10px; float: left;"><i class="fas fa-download" style="margin-left: 10px;"></i></a>
+      <button class="button is-small is-danger"><i class="fas fa-times" style="margin: 0; float: left;"></i></button>
     </li>
       `;
 }
 
 function setLessContent(lessonId) {
   document.querySelector(
-    `form[data-id='${lessonId}'] .module-edit-lesson-content`).innerHTML = `
+    `form #module-edit-lesson-content`).innerHTML = `
     <p class="lesson-edit-msg-has-lesson">
       <br>
       <strong>NOTE</strong>
@@ -482,19 +472,16 @@ function setLessContent(lessonId) {
       Feel free to <strong>replace</strong> it by re-uploading another file.
     </p>
     <br>
-    <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-width: 200px;">
-      <a href="/api/lesson/${lessonId}/download"
-         class="lesson-edit-btn-download has-text-centered button is-link is-small"
-         download="lesson.html">
-        <i class="fas fa-download"></i>
-        Download
-      </a>
-      <button class=" lesson-edit-btn-delete-content button is-danger is-small"
-              style="margin-top: 10px; margin-bottom: 10px;">
-        <i class="fas fa-times"></i>
-        Delete
-      </button>
-    </div>
+    <a href="/api/lesson/${lessonId}/download"
+       class="button is-link is-small has-text-centered"
+       download="lesson.html">
+      <i class="fas fa-download icon"></i>
+      <span>Download</span>
+    </a>
+    <button class="button is-danger is-small">
+      <i class="fas fa-times icon"></i>
+      <span>Delete</span>
+    </button>
   `;
 }
 
@@ -504,7 +491,7 @@ function setLessContent(lessonId) {
  * @param {!Number} lessonId
  */
 function unsetLessContent(lessonId) {
-  document.querySelector(`form[data-id='${lessonId}'] .module-edit-lesson-content`).innerHTML = `
+  document.querySelector(`form #module-edit-lesson-content`).innerHTML = `
     <ul style="display: flex; flex-direction: column; justify-content: space-around;">
       <li>
         <p><em>Only</em> include the <em>content</em> of the <code>&lt;body&gt;</code> tag</p>
@@ -522,11 +509,11 @@ function unsetLessContent(lessonId) {
  * @return {Promise<void>}
  */
 async function updateMod() {
-  const moduleId = getSelId('Module');
   const pane = document.getElementById('module-edit-pane');
   const maybeName = pane.querySelector('#module-edit-name').innerText;
   const maybeTopic = pane.querySelector('#module-edit-topic').innerText;
   const maybeSummary = pane.querySelector('#module-edit-summary').value;
+  const moduleId = getSelId('Module');
   try {
     await update('Module', moduleId, JSON.stringify({
       summary: maybeSummary ? maybeSummary : null,
@@ -549,7 +536,47 @@ async function updateMod() {
  *
  * @return {Promise<void>}
  */
-async function updateLess() {}
+async function updateLess() {
+  const form = document.querySelector('#module-edit-pane form');
+  const id = getSelId('Lesson');
+  try {
+    const formData = new FormData();
+    const lessonInput  = form.querySelector('input[type=file]:not([multiple])');
+    const hasLessCont = lessonInput.files.length > 0;
+    if (hasLessCont)  {
+      if (!lessonInput.files[0].name.match(/\.x?html?$/i)) {
+        return alert('Lesson must be an HTML file.');
+      } else formData.append('lesson', lessonInput.files[0], 'lesson.html');
+    }
+    const mediaRegex = /\.((pn|jp)g|gif|mp[34g])$/i;
+    const attachments = form.querySelector('input[type=file][multiple]').files;
+    for (const f of attachments) {
+      if (!f.name.match(mediaRegex)) {
+        return alert(`Invalid attachment file type ${f.name}.`);
+      } else formData.append(f.name, f);
+    }
+    const maybeName = form.querySelector('input[name=name]').value.trim();
+    const maybeSummary = form.querySelector('textarea[name=summary]').value.trim();
+    formData.append('name', maybeName ? maybeName : null);
+    formData.append('summary', maybeSummary ? maybeSummary : null);
+    // DO NOT SET CONTENT-TYPE
+    await update('Lesson', id, formData, null);
+    if (hasLessCont) setLessContent(id);
+    for (const f of attachments) {
+      appendAttachment({name: f.name, lessonId: id});
+    }
+    const moduleId = getSelId('Module');
+    sessionStorage.removeItem(`${location.pathname}/lessons?id=${id}&moduleId=${moduleId}`);
+    sessionStorage.removeItem(`${location.pathname}/lessons?id=${id}`);
+    sessionStorage.removeItem(`${location.pathname}/lessons?moduleId=${moduleId}`);
+  } catch (e) {
+    const msg = e.msg || e.message || e.toString();
+    console.error(e);
+    return alert(msg);
+  }
+  const maybeName = form.querySelector('input[name=name]').value;
+  document.querySelector(`#module-edit-list-lesson li[data-id='${id}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${id}`;
+}
 
 /**
  * TODO Modifies a question and updates UI.
@@ -557,16 +584,16 @@ async function updateLess() {}
  * @return {Promise<void>}
  */
 async function updateQuest() {
+  const id = getSelId('Question');
+  const moduleId = getSelId('Module');
+  sessionStorage.removeItem(`${location.pathname}/questions?moduleId=${moduleId}`);
+  sessionStorage.removeItem(`${location.pathname}/questions?id=${id}&moduleId=${moduleId}`);
   const pane = document.getElementById('module-edit-pane');
+  const maybeName = pane.querySelector('#module-edit-question-name').innerText;
+  const maybeA = pane.querySelector('#module-edit-question-answer').innerText;
   const maybeBadA1 = pane.querySelector('#module-edit-question-bad-answer-1').innerText;
   const maybeBadA2 = pane.querySelector('#module-edit-question-bad-answer-2').innerText;
   const maybeBadA3 = pane.querySelector('#module-edit-question-bad-answer-3').innerText;
-  const maybeA = pane.querySelector('#module-edit-question-answer').innerText;
-  const id = getSelId('Question');
-  const moduleId = getSelId('Module');
-  let maybeName = pane.querySelector('#module-edit-question-name').innerText;
-  sessionStorage.removeItem(`${location.pathname}/questions?moduleId=${moduleId}`);
-  sessionStorage.removeItem(`${location.pathname}/questions?id=${id}&moduleId=${moduleId}`);
   await update('Question', id, JSON.stringify({
     id,
     moduleId,

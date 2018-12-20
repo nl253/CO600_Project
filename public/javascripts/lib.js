@@ -51,14 +51,8 @@ function setCookie(name, value, opts = {}) {
  * @param {?Boolean} force
  * @return {Promise<!Array<{id: !Number, createdAt: !Date, updatedAt: !Date}>>}
  */
-async function get(model, query = {}, force = false) {
-  function tryCache() {
-    const memory = sessionStorage.getItem(`${location.pathname}/${model.toLowerCase()}s?${Object.entries(query).map(pair => pair.join('=')).join('&')}`);
-    if (!memory) return false;
-    console.debug(`using cache for ${model} with ${Object.keys(query).join(', ')}`);
-    return JSON.parse(memory)
-  }
-  async function tryFetch() {
+async function get(model, query = {}, force = false, doSave = true) {
+  async function tryFetch(doSaveFetch = doSave) {
     try {
       console.debug(`using AJAX for ${model} with ${Object.keys(query).join(', ')}`);
       const results = await fetch(`/api/${model.toLowerCase()}/search?${Object.entries(query)
@@ -70,7 +64,9 @@ async function get(model, query = {}, force = false) {
         redirect: 'follow',
         cache: 'no-cache',
       }).then(res => res.json()).then(json => json.result);
-      sessionStorage.setItem(`${location.pathname}/${model.toLowerCase()}s?${Object.entries(query).map(pair => pair.join('=')).join('&')}`, JSON.stringify(results));
+      if (doSaveFetch) {
+        sessionStorage.setItem(`${location.pathname}/${model.toLowerCase()}s?${Object.entries(query).map(pair => pair.join('=')).join('&')}`, JSON.stringify(results));
+      }
       return results;
     } catch (e) {
       const msg = e.msg || e.message || e.toString();
@@ -78,6 +74,22 @@ async function get(model, query = {}, force = false) {
       return alert(msg);
     }
   }
+
+  if (model.toLowerCase() === 'file') {
+    return tryFetch(false);
+  }
+
+  function tryCache() {
+    const memory = sessionStorage.getItem(
+      `${location.pathname}/${model.toLowerCase()}s?${Object.entries(query)
+        .map(pair => pair.join('='))
+        .join('&')}`);
+    if (!memory) return false;
+    console.debug(
+      `using cache for ${model} with ${Object.keys(query).join(', ')}`);
+    return JSON.parse(memory);
+  }
+
   return (force && await tryFetch()) || tryCache() || await tryFetch();
 }
 
@@ -120,7 +132,7 @@ async function update(model, id, postData, contentType = 'application/json') {
   try {
     return await fetch(`/api/${model.toLowerCase()}/${id}`, {
       method: 'post',
-      headers: contentType ? {Accept: 'application/json', 'Content-Type': contentType} : {'Accept': 'application/json'},
+      headers: contentType ? {Accept: 'application/json', 'Content-Type': contentType} : {Accept: 'application/json'},
       mode: 'cors',
       credentials: 'include',
       redirect: 'follow',
@@ -137,7 +149,7 @@ async function update(model, id, postData, contentType = 'application/json') {
 /**
  * Destroy an object from the database.
  *
- * @param {'User', 'Module', 'Lesson', 'Question', 'Rating'} model
+ * @param {'User', 'Module', 'Lesson', 'Question', 'Rating', 'File'} model
  * @param {!Number} id
  * @return {Promise<void|!String>}
  */

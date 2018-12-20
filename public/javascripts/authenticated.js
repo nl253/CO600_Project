@@ -11,14 +11,12 @@ document.getElementById('navbar-auth-btn-log-out').onclick = async (event) => {
         'Accept': 'application/json',
       },
     });
-    if (response.status >= 400) throw new (await response.json());
     sessionStorage.clear();
-    location.href = '/';
+    if (response.status >= 400) throw new (await response.json());
   } catch (e) {
-    const msg = e.msg || e.message || e.toString();
-    console.error(msg);
-    return alert(msg);
+    console.error(e);
   }
+  location.href = '/';
 };
 
 (function() {

@@ -1,11 +1,12 @@
 // 3rd Party
+const fs = require('fs');
 const {validCols, needs, isLoggedIn} = require('../../lib');
 const {suggestRoutes, msg} = require('../lib');
 const {NoSuchRecord, NotLoggedIn, DeniedErr} = require('../../errors');
 const router = require('express').Router();
+const {IncomingForm} = require('formidable');
 
-const MEDIA_REGEX = /.+\.((pn|jpe?|mp[34])g|gif)$/;
-const {Lesson, Module, User, sequelize} = require('../../../database');
+const {Lesson, Module, User, sequelize, File} = require('../../../database');
 
 router.get(['/:id/download', '/:id/content'], isLoggedIn(),
   async (req, res) => {
@@ -20,7 +21,7 @@ router.get(['/:id/download', '/:id/content'], isLoggedIn(),
   });
 
 router.delete('/:id', isLoggedIn(),
-  async (req, res) => {
+  async (req, res, next) => {
     if (!res.locals.loggedIn) return new NotLoggedIn();
     try {
       const lesson = await Lesson.findOne({where: {id: req.params.id}});
@@ -31,8 +32,7 @@ router.delete('/:id', isLoggedIn(),
       const module = await Module.findOne({where: {id: lesson.moduleId}});
       const author = await User.findOne({where: {id: module.authorId}});
       if (author.id !== res.locals.loggedIn.id) {
-        return DeniedErr(
-          `delete lesson ${req.params.id}`);
+        return next(new DeniedErr(`delete lesson ${req.params.id}`));
       }
       await lesson.destroy();
       return res.json(msg(`deleted lesson`));
@@ -67,19 +67,40 @@ router.post(['/:id', '/:id/update', '/:id/modify'], isLoggedIn(),
   async (req, res, next) => {
     if (!res.locals.loggedIn) return new NotLoggedIn();
     try {
-      const lesson = await Lesson.findOne({where: {id: req.params.id}});
+      let lesson = await Lesson.findOne({where: {id: req.params.id}});
       if (lesson === null) {
-        return new NoSuchRecord('Lesson',
-          {id: req.params.id});
+        return next(new NoSuchRecord('Lesson', {id: req.params.id}));
       }
       const module = await Module.findOne({where: {id: lesson.moduleId}});
       const author = await User.findOne({where: {id: module.authorId}});
       if (author.id !== res.locals.loggedIn.id) {
-        return DeniedErr(
-          `delete lesson ${req.params.id}`);
+        return next(new DeniedErr(`delete lesson ${req.params.id}`));
       }
-      await lesson.update(req.body);
-      return res.json(msg('updated lesson'));
+      return Object.assign(new IncomingForm(), {multiples: true, keepExtensions: true})
+        .parse(req, async (err, fields, files) => {
+          console.log(fields);
+          console.log(req.body);
+          console.log(files);
+          const promises = [lesson.update(fields)];
+          if (files.lesson) {
+            promises.push(lesson.update({
+              content: fs.readFileSync(files.lesson.path),
+            }));
+          }
+          // attachments
+          for (const i in files) {
+            const f = files[i];
+            if (f.size > 0 && f.name !== 'lesson') {
+              promises.push(File.create({
+                lessonId: lesson.id,
+                name: f.name,
+                data: fs.readFileSync(f.path),
+              }));
+            }
+          }
+          await Promise.all(promises);
+          return res.json(msg('updated lesson'));
+        });
     } catch (e) {
       return next(e);
     }
