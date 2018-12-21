@@ -59,8 +59,8 @@ function getSelId(what) {
 /**
  * Shows the lesson edit pane.
  *
- * @param {{id: !Number, name: ?String, authorId: !Number, topic: ?String, summary: ?String}} module
- * @param {Array<!String>} topics
+ * @param {!{id: !Number, name: ?String, authorId: !Number, topic: ?String, summary: ?String}} module
+ * @param {!Array<!String>} topics
  * @return {Promise<void>}
  */
 async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology']) {
@@ -143,9 +143,8 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
       </div>
     `;
   } catch (e) {
-    const msg = e.msg || e.message || e.toString();
     console.error(e);
-    return alert(msg);
+    return alert(e.msg || e.message || e.toString());
   }
 }
 
@@ -294,6 +293,7 @@ function saveProgress() {
   const lessonId = getSelId('Lesson');
   const questionId = getSelId('Question');
   if (moduleId && lessonId && !questionId) {
+    // TODO saveProgress for lesson
   } else if (moduleId && !lessonId && questionId) {
     if (!pane.querySelector('#module-edit-question-answer')) return;
     const vars = JSON.stringify([{
@@ -328,12 +328,18 @@ function saveProgress() {
 async function toggleModule(id) {
   saveClick('Module', id);
   saveProgress();
+  const focusedMod = getSelId('Module');
+
+  if (focusedMod === id && !getSelId('Lesson') && !getSelId('Question')) {
+    // re-select *the same* module - do nothing
+    return;
+  } // else
   unSelect('Lesson');
   unSelect('Question');
-  const focusedMod = getSelId('Module');
-  if (focusedMod === id && !getSelId('Lesson') && !getSelId('Question')) {
-    return;
-  } else if (focusedMod !== id) {
+
+
+  if (focusedMod !== id) {
+    // selected *different* module
     unSelect('Module');
     select('Module', id);
     clearList('Lesson');
@@ -345,7 +351,7 @@ async function toggleModule(id) {
       for (const q of qs) appendQuestion(q);
     });
   }
-  return await showModEditPane((await get('Module', {id}))[0]);
+  return showModEditPane(await get('Module', {id}).then(ms => ms[0]));
 }
 
 
