@@ -51,7 +51,7 @@ function setCookie(name, value, opts = {}) {
  * @param {?Boolean} force
  * @return {Promise<!Array<{id: !Number, createdAt: !Date, updatedAt: !Date}>>}
  */
-async function get(model, query = {}, force = false, doSave = true) {
+async function get(model, query = {}, force = true, doSave = false) {
   async function tryFetch(doSaveFetch = doSave) {
     try {
       console.debug(`using AJAX for ${model} with ${Object.keys(query).join(', ')}`);

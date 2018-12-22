@@ -1,0 +1,53 @@
+<div class="has-background-white"
+     style="padding: 50px 0 20px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+  <a href="/user/home"
+     class="button is-light"
+     style="max-width: 100px; align-self: flex-start; margin-left: 10vw; position: relative; top: 11px;">
+    <i class="fas fa-arrow-left"></i>
+    Home
+  </a>
+  <h1 class="title is-1 has-text-centered" style="margin: 0 15px 0 0; position: relative; bottom: 30px;">
+    Modify
+  </h1>
+</div>
+
+<!--3-column layout: list, list, editing -->
+<div class="columns is-centered is-multiline" style="margin-top: 30px;">
+
+  <div class="column is-narrow-desktop is-2-desktop is-5-tablet is-11-mobile"
+       style="margin-left: 30px; display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch;">
+
+    <h2 class="title has-text-centered" style="margin-bottom: 10px;">
+      Modules
+    </h2>
+    <!--list of modules-->
+    <ul id="module-edit-list-module" class="menu-list" style="margin-top: 20px; margin-bottom: 20px;"></ul>
+    
+  </div>
+
+  <div class="column is-narrow-desktop is-2-desktop is-5-tablet is-11-mobile" style="margin-left: 30px;">
+
+    <h2 class="title has-text-centered" style="margin-bottom: 20px;">
+      Lessons
+    </h2>
+
+    <!--list of lessons-->
+    <ol id="module-edit-list-lesson" class="menu-list" style="margin-bottom: 20px; list-style-type: none;"></ol>
+
+    <br>
+
+    <h2 class="title has-text-centered" style="margin: 35px 0 20px;">
+      Quiz
+    </h2>
+
+    <!--quiz edit (list of questions)-->
+    <ol id="module-edit-list-question" style="list-style-type: none;"></ol>
+
+  </div>
+
+  <!--right side of the screen-->
+  <!--only one of the divs inside can be visible-->
+  <div id="module-edit-pane" class="column is-7-desktop is-10-tablet is-11-mobile"></div>
+</div>
+
+<script async src="/javascripts/module/learn.js"></script>
