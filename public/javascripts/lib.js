@@ -5,8 +5,8 @@ const HOUR = 60 * MINUTE;
 /**
  * Returns the value of a cookie.
  *
- * @param {String} name
- * @return {String} cookie value
+ * @param {!String} name
+ * @return {?String} cookie value
  */
 function getCookie(name) {
   const pairs = document.cookie
@@ -24,62 +24,143 @@ function getCookie(name) {
 /**
  * Sets the value of a cookie.
  *
- * @param {String} name
+ * @param {!String} name
  * @param {{path: String, sameSite: 'Strict' | 'Lax', expires: Date}} opts
- * @param {String} value
+ * @param {!String} value
  */
 function setCookie(name, value, opts = {}) {
   const options = Object.assign({
     path: '/',
+    httpOnly: false,
     sameSite: 'Strict',
-    expires: new Date(Date.now() + HOUR * 2),
+    // expires: new Date(Date.now() + HOUR * 2),
   }, opts);
-  const cookieStr = [
+  document.cookie = [
     [name, value].map(encodeURIComponent),
-    ['Expires', options.expires.toGMTString()],
+    // ['Expires', options.expires.toGMTString()],
     ['Path', options.path],
     ['SameSite', options.sameSite]
   ].map((pair) => pair.join('=')).join('; ');
-  console.log(cookieStr);
-  document.cookie = cookieStr;
 }
 
 /**
- * @param event
+ * Query the database for objects.
+ *
+ * @param {'User', 'Module', 'Lesson', 'Question', 'Rating'} model
+ * @param {!Object} query
+ * @param {?Boolean} force
+ * @return {Promise<!Array<{id: !Number, createdAt: !Date, updatedAt: !Date}>>}
  */
-function toggleTabEnrollments(event) {
-  document.getElementById('user-created-modules').classList.add('is-hidden');
-  document.getElementById('user-enrollments').classList.remove('is-hidden');
-  document.getElementById('user-personal-details').classList.add('is-hidden');
-  document.getElementById('user-btn-personal-details').parentElement.classList.remove('is-active');
-  document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
-  document.getElementById('user-btn-enrollments-tab').parentElement.classList.add('is-active');
-  sessionStorage.setItem('homeTab', 'enrollments');
+async function get(model, query = {}, force = false, doSave = true) {
+  async function tryFetch(doSaveFetch = doSave) {
+    try {
+      console.debug(`using AJAX for ${model} with ${Object.keys(query).join(', ')}`);
+      const results = await fetch(`/api/${model.toLowerCase()}/search?${Object.entries(query)
+        .map(pair => pair.join('='))
+        .join('&')}`, {
+        headers: {Accept: 'application/json'},
+        mode: 'cors',
+        credentials: 'include',
+        redirect: 'follow',
+        cache: 'no-cache',
+      }).then(res => res.json()).then(json => json.result);
+      if (doSaveFetch) {
+        sessionStorage.setItem(`${location.pathname}/${model.toLowerCase()}s?${Object.entries(query).map(pair => pair.join('=')).join('&')}`, JSON.stringify(results));
+      }
+      return results;
+    } catch (e) {
+      const msg = e.msg || e.message || e.toString();
+      console.error(msg);
+      return alert(msg);
+    }
+  }
+
+  function tryCache() {
+    const memory = sessionStorage.getItem(
+      `${location.pathname}/${model.toLowerCase()}s?${Object.entries(query)
+        .map(pair => pair.join('='))
+        .join('&')}`);
+    if (!memory) return false;
+    console.debug(
+      `using cache for ${model} with ${Object.keys(query).join(', ')}`);
+    return JSON.parse(memory);
+  }
+
+  return (force && await tryFetch()) || tryCache() || await tryFetch();
+}
+
+
+/**
+ * Create a new object in the database.
+ *
+ * @param {'User', 'Module', 'Lesson', 'Question', 'Rating'} model
+ * @param {!Blob|!BufferSource|!FormData|!URLSearchParams|!ReadableStream|!String} postData
+ * @return {Promise<void|{id: !Number, createdAt: !Date, updatedAt: !Date}>} created object
+ */
+async function create(model, postData = '') {
+  try {
+    return await fetch(`/api/${model.toLowerCase()}/create`, {
+      method: 'post',
+      headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
+      mode: 'cors',
+      credentials: 'include',
+      redirect: 'follow',
+      body: postData,
+      cache: 'no-cache',
+    }).then(res => res.json()).then(json => json.result);
+  } catch (e) {
+    console.error(e);
+    return alert(e.msg || e.message || e.toString());
+  }
 }
 
 /**
- * @param event
+ * Update an object in the database.
+ *
+ * @param {'User', 'Module', 'Lesson', 'Question', 'Rating'} model
+ * @param {!Number} id
+ * @param {!Blob|!BufferSource|!FormData|!URLSearchParams|!ReadableStream|!String} postData
+ * @param {?String} contentType
+ * @return {Promise<Response>} promise of updated object
  */
-function toggleTabCreatedModules(event) {
-  document.getElementById('user-personal-details').classList.add('is-hidden');
-  document.getElementById('user-enrollments').classList.add('is-hidden');
-  document.getElementById('user-created-modules').classList.remove('is-hidden');
-  document.getElementById('user-btn-created-modules-tab').parentElement.classList.add('is-active');
-  document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
-  document.getElementById('user-btn-personal-details').parentElement.classList.remove('is-active');
-  sessionStorage.setItem('homeTab', 'created-modules');
+function update(model, id, postData, contentType = 'application/json') {
+  const headers = {
+    Accept: ['application/json', 'text/html', 'application/xhtml+xml', 'text/plain', '*'].join(', '),
+  };
+  if (contentType) headers['Content-Type'] = contentType;
+  return fetch(`/api/${model.toLowerCase()}/${id}`, {
+    method: 'post',
+    headers,
+    mode: 'cors',
+    credentials: 'include',
+    redirect: 'follow',
+    body: postData,
+    cache: 'no-cache',
+  }).then(res => res.status >= 400
+    ? res.json().then(json => json.msg).then(msg => Promise.reject(msg))
+    : res.json().then(json => json.result ? json.result : json.msg ));
 }
 
 /**
- * @param event
+ * Destroy an object from the database.
+ *
+ * @param {'User', 'Module', 'Lesson', 'Question', 'Rating', 'File'} model
+ * @param {!Number} id
+ * @return {Promise<void|!String>}
  */
-function toggleTabPersonalDetails(event) {
-  document.getElementById('user-personal-details').classList.remove('is-hidden');
-  document.getElementById('user-enrollments').classList.add('is-hidden');
-  document.getElementById('user-created-modules').classList.add('is-hidden');
-  document.getElementById('user-btn-personal-details').parentElement.classList.add('is-active');
-  document.getElementById('user-btn-created-modules-tab').parentElement.classList.remove('is-active');
-  document.getElementById('user-btn-enrollments-tab').parentElement.classList.remove('is-active');
-  sessionStorage.setItem('homeTab', 'personal-details');
+async function destroy(model, id) {
+  try {
+    const response = await fetch(`/api/${model.toLowerCase()}/${id}`, {
+      method: 'delete',
+      headers: {Accept: 'application/json'},
+      mode: 'cors',
+      credentials: 'include',
+      redirect: 'follow',
+      cache: 'no-cache',
+    });
+    return await response.json().then(json => json.msg);
+  } catch (e) {
+    console.error(e);
+    return alert(e.msg || e.message || e.toString());
+  }
 }
-

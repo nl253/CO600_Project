@@ -1,6 +1,6 @@
-<section class="hero is-fullheight is-primary is-bold">
+<section class="hero is-fullheight is-light is-bold">
   <div class="hero-head"></div>
-  <div class="hero-body">
+  <div class="hero-body has-background-white">
     <div class="container is-widescreen">
       <div class="columns">
         <div class="column is-half">
@@ -18,23 +18,23 @@
             <div class="message-header">Don't have an account?</div>
             <div class="message-body">
               <form>
-                <h1 class="title is-4 has-text-primary">Register!</h1>
+                <h1 class="title is-4 has-text-dark">Register!</h1>
                 <div class="field">
                   <label class="label">First Name</label>
                   <div class="control">
-                    <input class="input" id="first-name" type="text" placeholder="e.g. Amy">
+                    <input id="reg-first-name" class="input" type="text" placeholder="e.g. Amy">
                   </div>
                 </div>
                 <div class="field">
                   <label class="label">Last Name</label>
                   <div class="control">
-                    <input class="input" id="last-name" type="text" placeholder="e.g. Adams">
+                    <input id="reg-last-name" class="input" type="text" placeholder="e.g. Adams">
                   </div>
                 </div>
                 <div class="field">
                   <label class="label">Email</label>
                   <div class="control has-icons-left">
-                    <input class="input" id="reg-email" type="email" pattern=".{2,}@.{2,}\..{2,}"
+                    <input id="reg-email" class="input" type="email" pattern=".{2,}@.{2,}\..{2,}"
                            placeholder="example@email.com" autocomplete="on" required>
                     <span class="icon is-small is-left">
                       <i class="fa fa-envelope"></i>
@@ -54,7 +54,7 @@
                 <div class="field">
                   <label class="label">Password</label>
                   <div class="control has-icons-left">
-                    <input class="input" id="reg-password" type="password" pattern=".{6,}" required>
+                    <input id="reg-password" class="input" type="password" pattern=".{6,}" required>
                     <span class="icon is-small is-left">
                       <i class="fa fa-lock"></i>
                     </span>
@@ -63,14 +63,16 @@
                 <div class="field">
                   <label class="label">Confirm Password</label>
                   <div class="control has-icons-left">
-                    <input class="input" id="reg-password-2" type="password" pattern=".{6,}" required>
+                    <input id="reg-password-2" class="input" type="password" pattern=".{6,}" required>
                     <span class="icon is-small is-left">
                       <i class="fa fa-lock"></i>
                     </span>
                   </div>
                 </div>
                 <div class="control">
-                  <button class="button is-primary" id="btn-register">Submit</button>
+                  <button id="reg-btn" class="button is-success">
+                    Submit
+                  </button>
                 </div>
               </form>
             </div>

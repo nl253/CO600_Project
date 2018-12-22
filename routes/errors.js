@@ -119,14 +119,19 @@ class NotLoggedIn extends APIErr {
   }
 }
 
+class DeniedErr extends APIErr {
+  constructor(action) {
+    super(`insufficient privileges to ${action}`, 403);
+  }
+}
+
 module.exports = {
   BadMethodErr,
+  DeniedErr,
   InvalidRequestErr,
   MissingDataErr,
   NotLoggedIn,
   NoSuchRecord,
   APIErr,
   NotImplYetErr,
-  RecordExistsErr,
-  TypoErr,
 };

@@ -1,149 +1,69 @@
-<section class="hero" style="margin-top: 20px;">
-  <div style="margin: 30px 12vw 0; padding-bottom: 15px;">
-    <h1 class="title has-text-centered is-1" style="margin-bottom: 10px;">
-      Modify Module
-      <a href="/module/{{module.id}}" class="button is-light is-small" style="position: relative; top: 11px;">
-        <i class="far fa-eye" style="margin-right: 7px;"></i>
-        View
-      </a>
-    </h1>
-    <a href="/user/edit?tab=created-modules" class="button is-small" style="margin-bottom: 10px;">
-      <i class="fas fa-arrow-left" style="margin-right: 7px;"></i>
-      Created Modules
-    </a>
-    <h2 class="title" style="margin-bottom: 10px;">
-      Name
-    </h2>
-    <div id="module-edit-name" contenteditable="true" style="max-width: 300px;">
-      {{module.name}}
-    </div>
-    <h3 class="subtitle" style="margin: 25px 0 0 0;">Topic</h3>
-    <div class="dropdown" style="border: 1px #bdbdbd dashed;" onmouseover="this.classList.add('is-active')"
-         onmouseout="this.classList.remove('is-active')">
-      <div class="dropdown-trigger">
-        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu" style="background: #d3d3d329;">
-          <span id="module-edit-topic" style="min-width: 150px;">{{module.topic}}</span>
-          <span class="icon is-small">
-              <i class="fas fa-angle-down" aria-hidden="true"></i>
-            </span>
-        </button>
-      </div>
-      <div class="dropdown-menu" id="dropdown-menu" role="menu">
-        <div class="dropdown-content">
-          {{#each module.topics}}
-            <a class="dropdown-item"
-               onclick="document.getElementById('module-edit-topic').innerText = this.innerText.trim()">
-              {{this}}
-            </a>
-          {{/each}}
-          <hr class="dropdown-divider">
-          <span class="dropdown-item" style="font-weight: bold;">
-              Other
-            </span>
-          <a class="dropdown-item" id="module-edit-topic-other" contenteditable="true"
-             style="margin: 5px 10px; max-width: 90%;">
-            {{module.topic}}
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<div style="margin: 0 12vw 50px;">
-  <section class="content" style="margin-top: 40px;">
-    <strong>Author</strong> <a href="/user/{{module.author.id}}">{{module.author.email}}</a>
-    <br>
-    <strong>Rating</strong> <span id="module-edit-rating">{{module.rating}}/5</span>
-  </section>
-  <section class="is-medium" style="margin-bottom: 30px;">
-    <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
-    <textarea id="module-edit-summary"
-              style="min-width: 100%; min-height: 90px; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">{{module.summary}}</textarea>
-  </section>
-  <section class="is-medium" style="margin-bottom: 30px;">
-    <h2 class="title is-medium">Lessons</h2>
-    {{#if module.lessons}}
-      <ol id="module-edit-lessons" class="list" style="min-width: 100%;">
-        {{#each module.lessons}}
-          <li class="list-item"
-              data-id="{{this.id}}"
-              data-name="{{this.name}}"
-              data-created-at="{{this.createdAt}}"
-              data-summary="{{summary}}"
-              data-updated-at="{{this.updatedAt}}"
-              style="margin-bottom: 2px; display: flex; flex-direction: row; justify-content: space-between;">
-            <a href="/module/{{../module.id}}/{{this.id}}/edit"
-               style="position: relative; top: 8px; left: 5px;">
-              {{this.name}}
-            </a>
-            <div style="display: flex; flex-direction: row; justify-content: space-between; width: 250px;">
-              <a href="/module/{{../module.id}}/{{this.id}}" class="button is-small is-link" style="padding: -4px;">
-                <i class="far fa-eye" style="margin-right: 7px;"></i>
-                View
-              </a>
-              <a href="/module/{{../module.id}}/{{this.id}}/edit" class="button is-small is-warning"
-                 style="padding: -4px;">
-                <i class="fas fa-edit" style="margin-right: 7px;"></i>
-                Edit
-              </a>
-              <button class="button is-small is-danger" style="padding: -4px;">
-                <i class="fas fa-times" style="margin-right: 7px;"></i>
-                Delete
-              </button>
-            </div>
-          </li>
-        {{/each}}
-      </ol>
-    {{else}}
-      <p class="has-text-centered">No lessons</p>
-    {{/if}}
-    <br>
-    <button id="module-edit-btn-lesson-create" class="button is-link" style="display: block; margin: auto;">
-      <i class="fas fa-plus"></i>
-      Add Lesson
-    </button>
-  </section>
-
-  <nav style="margin: 20px auto; max-width: 350px;">
-    <button id="module-edit-btn-reset" class="button is-warning"
-            onclick="if (confirm('Revert all changes?')) window.location.href = window.location.href"
-            style="float: right;">
-      <i class="fas fa-undo" style="margin-right: 7px;"></i>
-      Reset
-    </button>
-    <button id="module-edit-btn-delete" class="button is-danger" style="float: left;">
-      <i class="fas fa-times" style="margin-right: 7px;"></i>
-      Delete
-    </button>
-    <button id="module-edit-btn-save" class="button is-primary"
-            style="margin: 0 auto; display: block; min-width: 125px;">
-      <i class="fas fa-check"></i>
-      Save
-    </button>
-  </nav>
-
-  <section class="is-small">
-    <h2 class="title is-medium">Comments</h2>
-    {{#if module.ratings}}
-      {{#each module.ratings}}
-        <div class="box"
-             data-id="{{id}}"
-             data-rater-id="{{raterId}}"
-             data-module-id="{{moduleId}}"
-             data-updated-at="{{updatedAt}}"
-             data-created-at="{{createdAt}}"
-             style="margin: 20px auto 0;">
-          <div style="margin-bottom: 10px;">
-            <strong>{{stars}}/5</strong> by <em><a href="/user/{{rater.email}}">{{rater.email}}</a></em>
-          </div>
-          <p class="content">{{comment}}</p>
-        </div>
-      {{/each}}
-    {{else}}
-      <p class="has-text-centered">No comments</p>
-    {{/if}}
-  </section>
+<div class="has-background-white"
+     style="padding: 50px 0 20px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+  <a href="/user/home"
+     class="button is-light"
+     style="max-width: 100px; align-self: flex-start; margin-left: 10vw; position: relative; top: 11px;">
+    <i class="fas fa-arrow-left"></i>
+    Home
+  </a>
+  <h1 class="title is-1 has-text-centered" style="margin: 0 15px 0 0; position: relative; bottom: 30px;">
+    Modify
+  </h1>
 </div>
 
-<script src="/javascripts/module/edit.js" async></script>
+<!--3-column layout: list, list, editing -->
+<div class="columns is-centered is-multiline" style="margin-top: 30px;">
+
+  <div class="column is-narrow-desktop is-2-desktop is-5-tablet is-11-mobile"
+       style="margin-left: 30px; display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch;">
+
+    <h2 class="title has-text-centered" style="margin-bottom: 10px;">
+      Modules
+    </h2>
+    <!--list of modules-->
+    <ul id="module-edit-list-module" class="menu-list" style="margin-top: 20px; margin-bottom: 20px;"></ul>
+    <button id="module-edit-btn-module-create" class="button is-success" style="display: block; max-width: 150px; margin: 0 auto;">
+      <i class="fas fa-plus" style="position: relative; top: 3px;"></i>
+      Module
+    </button>
+  </div>
+
+  <div class="column is-narrow-desktop is-2-desktop is-5-tablet is-11-mobile" style="margin-left: 30px;">
+
+    <h2 class="title has-text-centered" style="margin-bottom: 20px;">
+      Lessons
+    </h2>
+
+    <!--list of lessons-->
+    <ol id="module-edit-list-lesson" class="menu-list" style="margin-bottom: 20px; list-style-type: none;"></ol>
+
+    <!--create lesson btn-->
+    <button id="module-edit-btn-lesson-create"
+            class="button is-success" style="margin: 0 auto; display: block; max-width: 150px;">
+      <i class="fas fa-plus" style="position: relative; top: 3px;"></i>
+      Lesson
+    </button>
+
+    <br>
+
+    <h2 class="title has-text-centered" style="margin: 35px 0 20px;">
+      Quiz
+    </h2>
+
+    <!--quiz edit (list of questions)-->
+    <ol id="module-edit-list-question" style="list-style-type: none;"></ol>
+
+    <!--add question btn-->
+    <button id="module-edit-btn-question-create" class="button is-success"
+            style="margin: 10px auto 0; display: block; max-width: 150px;">
+      <i class="fas fa-plus" style="position: relative; top: 3px;"></i>
+      Question
+    </button>
+  </div>
+
+  <!--right side of the screen-->
+  <!--only one of the divs inside can be visible-->
+  <div id="module-edit-pane" class="column is-7-desktop is-10-tablet is-11-mobile"></div>
+</div>
+
+<script async src="/javascripts/module/edit.js"></script>

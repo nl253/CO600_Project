@@ -1,25 +1,18 @@
 <div class="columns is-multiline" style="margin: 50px 10vw 100px 10vw;">
   <nav class="panel column is-2-desktop is-full-tablet is-full-mobile">
-    {{#if lesson.module.name}}
-      <h4 class="title">
-        <a class="button is-link" href="/module/{{lesson.module.id}}">{{lesson.module.name}}</a>
-      </h4>
-    {{else}}
-      <h4 class="panel-heading"
-          style="display: flex; flex-direction: row; justify-content: flex-start; align-items: center;">
-        <a href="/module/{{lesson.module.id}}" class="button is-light is-small" style="margin: 0; padding: 0 10px;">
-          <i class="fas fa-arrow-left" style="margin-right: 7px;"></i>
-          <span class="title is-5">Lessons</span>
-        </a>
-      </h4>
-    {{/if}}
+    <h2 class="title has-text-centered" style="margin-bottom: 20px;">
+      <a class="button is-link" href="/module/{{lesson.module.id}}" style="width: 100%;">
+        <i class="fas fa-arrow-left"></i>
+        Module
+      </a>
+    </h2>
     {{#each lesson.module.lessons}}
       <a href="/module/{{this.moduleId}}/{{this.id}}"
          class="panel-block has-text-link"
          data-id="{{this.id}}"
          data-created-at="{{this.createdAt}}"
          data-updated-at="{{this.updatedAt}}">
-          <span class="panel-icon" style="margin-right: 7px;">
+          <span class="panel-icon">
             <i class="fas fa-book" aria-hidden="true"></i>
           </span>
         {{this.name}}
@@ -28,7 +21,17 @@
   </nav>
   <div class="column is-10-desktop is-full-tablet is-full-mobile"
        style="display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start;">
-    <h2 class="title" style="margin-top: 10px;">{{lesson.name}}</h2>
+    <div style="display: flex; flex-direction: row; justify-content: flex-start; align-items: center; margin-bottom: 20px;">
+      <h2 class="title" style="margin: 0 10px 0 0;">{{lesson.name}}</h2>
+      {{#if lesson.isMine}}
+        <a href="/module/{{lesson.module.id}}/{{lesson.id}}/edit"
+           class="button is-warning is-small"
+           style="max-width: 100px; display: block;">
+          <i class="far fa-edit"></i>
+          Edit
+        </a>
+      {{/if}}
+    </div>
     {{#if lesson.content}}
       <main id="lesson-view-content">
         {{{lesson.content}}}

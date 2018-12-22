@@ -1,0 +1,55 @@
+<style>
+  footer {
+    position: relative;
+    bottom: 150px;
+  }
+  html > body {
+    height: unset !important;
+    min-height: unset !important;
+    max-height: unset !important;
+  }
+</style>
+
+<section style="margin: 100px 0 50px 0;">
+  <h1 class="title is-1 has-text-centered has-text-grey-dark has-text-weight-light fancy-font">
+    {{#if loggedIn.firstName}}
+      Hi {{loggedIn.firstName}}!
+    {{else}}
+      Hi <span class="greeting-email">{{loggedIn.email}}</span>!
+    {{/if}}
+  </h1>
+</section>
+
+<section style="display: flex; justify-content: space-around; align-items: flex-start; flex-direction: row;">
+</section>
+
+<div class="container is-widescreen" style="padding: 0 5vw;">
+  <div class="columns" style="max-height: 70vh;">
+    <div class="column is-one-third"></div>
+    <nav class="column is-one-third"
+         style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; flex-grow: 2;">
+      <a href="/module/learn" class="button is-medium is-link is-half-tablet"
+              style="margin-bottom: 20px; width: 240px;">
+        <i class="fas fa-book"></i>
+        Enrollments
+      </a>
+      <a href="/module/edit" class="button is-medium is-link"
+              style="margin-bottom: 20px; width: 240px;">
+        <i class="fas fa-university"></i>
+        My Content
+      </a>
+      <a href="/user/settings" class="button is-medium is-light"
+              style="width: 240px;">
+        <i class="fas fa-wrench" style="position: relative; right: 15px;"></i>
+        <span style="position: relative; right: 10px;">Settings</span>
+      </a>
+    </nav>
+    <div class="column is-hidden-tablet-only is-hidden-mobile">
+      <img style="max-height: 90vh; max-width: 600px; position: relative; bottom: 160px; z-index: 10;" src="/images/bigLogo.png"
+           alt="big smiling and waving robot">
+    </div>
+    <div class="column is-one-third"></div>
+  </div>
+</div>
+
+

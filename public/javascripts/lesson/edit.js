@@ -1,3 +1,8 @@
+// (function () {
+  // const textarea = document.querySelector("form[method=post] textarea");
+  // textarea.rows = Math.max(200, Math.min(500, (textarea.value.split("\n").length * 50))).toString() + 'px';
+// })();
+
 document.getElementById('lesson-edit-btn-more').onclick = function(event) {
   event.preventDefault();
   const number = eval(
@@ -20,7 +25,7 @@ document.getElementById('lesson-edit-btn-more').onclick = function(event) {
 
 for (const lesson of document.querySelectorAll('nav.panel a.panel-block[data-id]')) {
   if (lesson.innerText.trim() === '') {
-    lesson.innerHTML = `<i class="fas fa-book" aria-hidden="true" style="margin-right: 7px;"></i>
+    lesson.innerHTML = `<i class="fas fa-book" aria-hidden="true"></i>
                         unnamed #${lesson.getAttribute('data-id')}`;
   }
   const lessonId = /(\d+)(\/edit)?\/?$/.exec(location.pathname)[1];

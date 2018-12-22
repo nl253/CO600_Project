@@ -40,39 +40,37 @@ const express = require('express');
 const router = express.Router();
 
 const {suggestRoutes, log, errMsg} = require('./lib');
-const {TypoErr, NotImplYetErr} = require('./../errors');
+const {NotImplYetErr} = require('./../errors');
 
 const MODELS = [
-  'User',
+  'Enrollment',
+  'File',
+  'Lesson',
   'Module',
+  'Question',
+  'Rating',
+  'Session',
+  'User',
 ];
 
 for (const mod of MODELS.map(key => key.toLowerCase())) {
-
-  router.all(new RegExp(`/${mod}s`, 'i'),
-    (req, res, next) => next(new TypoErr(mod)));
-
-  if (existsSync(join(__dirname, `${mod}.js`)) ||
-    existsSync(join(__dirname, mod, 'index.js'))) {
+  if (existsSync(join(__dirname, `${mod}.js`)) || existsSync(join(__dirname, mod, 'index.js'))) {
     log.info(`mounting the ${mod} part of the api to /api/${mod}`);
     router.use(`/${mod}`, require(`./${mod}`));
-    continue;
-  }
-
-  router.all(`/${mod}`, (req, res, next) => next(new NotImplYetErr(`${mod} part of the REST API`)));
-
+  } else router.all(`/${mod}`, (req, res, next) => next(new NotImplYetErr(`${mod} part of the REST API`)));
 }
+
+router.use((err, req, res, next) => {
+  console.error(err);
+  const msg = err.message || err.msg || err.toString();
+  log.error(msg);
+  return res.status(err.code || 500).json(errMsg(msg));
+});
 
 suggestRoutes(router, /.*/, {
   user: 'user-related operations e.g.: register, lookup, delete',
   lesson: 'lesson-related operations e.g.: create, lookup, delete',
   module: 'module-related operations e.g.: create, lookup, delete',
-});
-
-router.use((err, req, res, next) => {
-  const msg = err.message || err.msg || err.toString();
-  log.error(msg);
-  return res.status(err.code || 500).json(errMsg(msg));
 });
 
 module.exports = router;

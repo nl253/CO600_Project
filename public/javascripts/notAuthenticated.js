@@ -1,5 +1,6 @@
-if (location.pathname.match(/user\/register\/?$/)) {
-  document.getElementById('layout-btn-register-redirect').remove();
+if (location.pathname.includes('/user/register')) {
+  const btn = document.getElementById('layout-btn-register-redirect');
+  if (btn) btn.remove();
 }
 
 document.getElementById('layout-btn-log-in').onclick = async (event) => {
@@ -30,9 +31,9 @@ document.getElementById('layout-btn-log-in').onclick = async (event) => {
   }
 
   const json = await logInRes.json();
-  const token = json.result;
-  setCookie('token', token);
-  location.href = location.pathname.match(/\/register\/?$/)
-    ? '/user/edit'
+  sessionStorage.setItem('loggedIn', JSON.stringify(json.result));
+  setCookie('token', json.result.token);
+  location.href = location.pathname.includes('/register')
+    ? '/user/home'
     : location.href;
 };

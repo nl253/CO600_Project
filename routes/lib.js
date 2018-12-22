@@ -11,19 +11,18 @@ const {
   createDecipher,
 } = require('crypto');
 
-
 // Project
-const {Session} = require('./database');
 const {createLogger} = require('../lib');
 const {
-  SessionExpiredErr,
-  RecordExistsErr,
-  NoSuchRecord,
+  NotLoggedIn,
   MissingDataErr,
   InvalidRequestErr,
 } = require('./errors');
 
-const log = createLogger({label: 'ROUTING', lvl: process.env.LOGGING_ROUTING || 'warn'});
+const log = createLogger({
+  label: 'ROUTING',
+  lvl: process.env.LOGGING_ROUTING || 'warn',
+});
 
 /**
  * Validation middleware that says that the next middleware will need a certain `what` in `req[where]`.
@@ -84,138 +83,36 @@ function encrypt(s) {
 function genToken(tokenLen = 18) {
   return randomBytes(tokenLen).toString('base64');
 }
-
-/**
- * Validation middleware that says that the next middleware will need a certain record in model not to exist.
- *
- * @param {Model} model
- * @param {Function} attrSupplier function of Request that returns Object with column names as keys
- * @return {Function} Express middleware
- */
-function notExists(model, attrSupplier) {
-  return (req, res, next) => model
-    .findOne({where: attrSupplier(req)})
-    .then((result) => result === null
-      ? next()
-      : next(new RecordExistsErr(model.tableName, attrSupplier(req))));
-}
-
-/**
- * Validation middleware that says that the next middleware will need a certain record in model to exist.
- *
- * @param {Model} model
- * @param {Function} attrSupplier function of Request that returns Object with keys matching columns
- * @return {Function} Express middleware
- */
-function exists(model, attrSupplier) {
-  return (req, res, next) => model
-    .findOne({where: attrSupplier(req)})
-    .then((result) => result !== null
-      ? next()
-      : next(new NoSuchRecord(model.tableName, attrSupplier(req))));
-}
-
-/**
- * Validation middleware.
- *
- * @param {Model} model
- * @param {Function} columnNameSupplier function of Request that returns String
- * @return {Function} Express middleware
- */
-function validColumn(model, columnNameSupplier) {
-  return (req, res, next) =>
-    model.attributes[columnNameSupplier(req)] === undefined
-      ? next(new InvalidRequestErr('User', columnNameSupplier(req)))
-      : next();
-}
-
-/**
- * Validation middleware.
- *
- * @param {Model} model
- * @param {Function} columnsNamesSupplier
- * @return {Function} Express middleware
- */
-function validColumns(model, columnsNamesSupplier) {
-  return (req, res, next) => {
-    try {
-      for (let col of columnsNamesSupplier(req)) {
-        if (model.attributes[col] === undefined) {
-          return next(new InvalidRequestErr('User', col));
-        }
-      }
-    } catch (e) {}
-    return next();
+function isLoggedIn() {
+  return async (req, res, next) => {
+    if (res.locals.loggedIn) return next();
+    else return next(new NotLoggedIn());
   };
 }
 
-/**
- * Validation middleware.
- *
- * @param columnNameSupplier
- * @param {Array<String>} forbidden banned columns
- * @return {Function} Express middleware
- */
-function notRestrictedColumn(columnNameSupplier, forbidden = ['updatedAt', 'createdAt']) {
+function neededCols(where, needed) {
   return (req, res, next) => {
-    try {
-      if (new Set(forbidden).has(columnNameSupplier(req))) {
-        return next(new InvalidRequestErr('User', columnNameSupplier(req)));
-      }
-    } catch (e) {}
-    return next();
-  }
-}
 
-/**
- * Validation middleware.
- *
- * @param {Function} columnsNamesSupplier function of Request that returns Array of Strings
- * @param {Array<String>} forbidden banned columns
- * @return {Function} Express middleware
- */
-function notRestrictedColumns(columnsNamesSupplier = (request) => [], forbidden = ['updatedAt', 'createdAt']) {
-  return (req, res, next) => {
-    const bannedCols = new Set(forbidden);
-    try {
-      for (const c of columnsNamesSupplier(req)) {
-        if (bannedCols.has(c)) {
-          return next(new InvalidRequestErr('User', c));
-        }
-      }
-    } catch (e) {}
-    return next();
   };
 }
 
-/**
- * Validation middleware.
- *
- * @param {Function} tokenSupplier function of Request that returns String (the token)
- * @return {Function} Express middleware
- */
-function hasFreshSess(tokenSupplier) {
-  return (req, res, next) =>
-    Session.findOne({where: {token: tokenSupplier(req)}})
-      .then(token => (Date.now() - token.dataValues.updatedAt) >=
-      process.env.SESSION_TIME
-        ? next(new SessionExpiredErr())
-        : next());
+function validCols(model, where = 'body', bannedCols = ['createdAt', 'updatedAt']) {
+  return (req, res, next) => {
+    const badCol = Object.keys(req[where])
+      .find(col => model.attributes[col] === undefined || bannedCols.includes(col));
+    return badCol === undefined
+      ? next()
+      : next(new InvalidRequestErr(model.getTableName(), badCol));
+  };
 }
-
 
 module.exports = {
   decrypt,
   encrypt,
-  exists,
   genToken,
-  hasFreshSess,
+  isLoggedIn,
+  validCols,
   log,
   needs,
-  notExists,
-  notRestrictedColumn,
-  notRestrictedColumns,
   sha256,
-  validColumn,
-  validColumns,
 };

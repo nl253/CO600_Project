@@ -21,40 +21,59 @@
     enrollment.querySelector('.button.is-danger').onclick = async function(e) {
       e.preventDefault();
       if (!confirm('Unenroll from module?')) return;
-      const response = await fetch(`/api/module/${moduleId}/unenroll`, {
-        redirect: 'follow',
-        cache: 'no-cache',
-        mode: 'cors',
-        credentials: 'include',
-        headers: {
-          Accept: 'application/json',
-        },
-      });
-      if (response.status >= 400) {
-        const json = await response.json();
-        const msg = json.msg || json.message || json.toString();
-        console.error(msg);
-        return alert(msg);
-      }
-      return enrollment.remove();
+      try {
+        const response = await fetch(`/api/module/${moduleId}/unenroll`, {
+          redirect: 'follow',
+          cache: 'no-cache',
+          mode: 'cors',
+          credentials: 'include',
+          headers: {
+            Accept: 'application/json',
+          },
+        });
+        if (response.status >= 400) throw (await response.json());
+        enrollment.remove();
+        const list = enrollment.parentElement;
+        if (list.querySelectorAll('li[data-id]').length === 0) {
+          list.outerHTML = `
+            <br>
+            <p class="has-text-centered">You haven't enrolled in any modules.</p>`;
+        }
+      } catch(err) {
+          const msg = json.msg || json.message || json.toString();
+          console.error(msg);
+          return alert(msg);
+      } 
     }
   }
 
   for (const module of document.querySelectorAll(
     '#user-created-modules li[data-id]')) {
-    const deleteBtn = module.querySelector('.button.is-danger');
-    deleteBtn.onclick = async function(e) {
+    module.querySelector('.button.is-danger').onclick = async function(e) {
       e.preventDefault();
       if (!confirm('Delete module?')) return;
       const moduleId = module.getAttribute('data-id');
-      const response = await fetch(`/api/module/${moduleId}/delete`);
-      if (response.status >= 400) {
-        const err = await response.json();
-        const msg = err.msg || err.message || err.toString();
-        console.error(msg);
-        return alert(msg);
-      }
-      return module.remove();
+      try {
+        const response = await fetch(`/api/module/${moduleId}/delete`, {
+          redirect: 'follow',
+          cache: 'no-cache',
+          mode: 'cors',
+          credentials: 'include',
+          headers: {Accept: 'application/json'},
+        });
+        if (response.status >= 400) throw (await response.json());
+        const list = module.parentElement;
+        module.remove();
+        if (list.querySelectorAll('li[data-id]').length === 0) {
+          list.outerHTML = `
+          <br>
+          <p class="has-text-centered">You haven't created any modules.</p>`;
+        }
+      } catch(err) {
+          const msg = err.msg || err.message || err.toString();
+          console.error(msg);
+          return alert(msg);
+      } 
     };
   }
 
