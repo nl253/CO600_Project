@@ -75,10 +75,6 @@ async function get(model, query = {}, force = false, doSave = true) {
     }
   }
 
-  if (model.toLowerCase() === 'file') {
-    return tryFetch(false);
-  }
-
   function tryCache() {
     const memory = sessionStorage.getItem(
       `${location.pathname}/${model.toLowerCase()}s?${Object.entries(query)
@@ -98,7 +94,7 @@ async function get(model, query = {}, force = false, doSave = true) {
  * Create a new object in the database.
  *
  * @param {'User', 'Module', 'Lesson', 'Question', 'Rating'} model
- * @param {!FormData|!String} postData
+ * @param {!Blob|!BufferSource|!FormData|!URLSearchParams|!ReadableStream|!String} postData
  * @return {Promise<void|{id: !Number, createdAt: !Date, updatedAt: !Date}>} created object
  */
 async function create(model, postData = '') {
@@ -113,9 +109,8 @@ async function create(model, postData = '') {
       cache: 'no-cache',
     }).then(res => res.json()).then(json => json.result);
   } catch (e) {
-    const msg = e.msg || e.message || e.toString();
-    console.error(msg);
-    return alert(msg);
+    console.error(e);
+    return alert(e.msg || e.message || e.toString());
   }
 }
 
@@ -124,26 +119,26 @@ async function create(model, postData = '') {
  *
  * @param {'User', 'Module', 'Lesson', 'Question', 'Rating'} model
  * @param {!Number} id
- * @param {!String|!FormData} postData
+ * @param {!Blob|!BufferSource|!FormData|!URLSearchParams|!ReadableStream|!String} postData
  * @param {?String} contentType
- * @return {Promise<void|{id: !Number createdAt: !Date, updatedAt: !Date}>} promise of updated object
+ * @return {Promise<Response>} promise of updated object
  */
-async function update(model, id, postData, contentType = 'application/json') {
-  try {
-    return await fetch(`/api/${model.toLowerCase()}/${id}`, {
-      method: 'post',
-      headers: contentType ? {Accept: 'application/json', 'Content-Type': contentType} : {Accept: 'application/json'},
-      mode: 'cors',
-      credentials: 'include',
-      redirect: 'follow',
-      body: postData,
-      cache: 'no-cache',
-    }).then(res => res.json()).then(json => json.result);
-  } catch (e) {
-    const msg = e.msg || e.message || e.toString();
-    console.error(msg);
-    return alert(msg);
-  }
+function update(model, id, postData, contentType = 'application/json') {
+  const headers = {
+    Accept: ['application/json', 'text/html', 'application/xhtml+xml', 'text/plain', '*'].join(', '),
+  };
+  if (contentType) headers['Content-Type'] = contentType;
+  return fetch(`/api/${model.toLowerCase()}/${id}`, {
+    method: 'post',
+    headers,
+    mode: 'cors',
+    credentials: 'include',
+    redirect: 'follow',
+    body: postData,
+    cache: 'no-cache',
+  }).then(res => res.status >= 400
+    ? res.json().then(json => json.msg).then(msg => Promise.reject(msg))
+    : res.json().then(json => json.result ? json.result : json.msg ));
 }
 
 /**
@@ -165,8 +160,7 @@ async function destroy(model, id) {
     });
     return await response.json().then(json => json.msg);
   } catch (e) {
-    const msg = e.msg || e.message || e.toString();
-    console.error(msg);
-    return alert(msg);
+    console.error(e);
+    return alert(e.msg || e.message || e.toString());
   }
 }

@@ -1,3 +1,7 @@
+/**
+ * TODO deleting attachments in module/lesson edit
+ */
+
 require('./env')();
 
 const {User, Session} = require('./database');
@@ -121,6 +125,7 @@ app.use(async (req, res, next) => {
 });
 
 app.use('/user', require('./routes/user'));
+app.use('/file', require('./routes/file'));
 app.use('/module', require('./routes/module'));
 app.use('/lesson', require('./routes/lesson'));
 app.use('/api', require('./routes/api'));

@@ -132,7 +132,7 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
           <i class="fas fa-undo"></i>
           <span>Reset</span>
         </button>
-        <button type="submit" onclick="updateMod().then(() => alert('Updated module.'))" class="button is-success" style="margin: 7px">
+        <button type="submit" onclick="updateMod()" class="button is-success" style="margin: 7px">
           <i class="fas fa-check"></i>
           <span>Save</span>
         </button>
@@ -152,13 +152,13 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
  * Shows the lesson edit pane.
  *
  * @param {{id: !Number, moduleId: !Number, name: ?String, content: ?Boolean, summary: ?String}} lesson
- * @param {Array<{id: !Number, name: !String}>} attachments
+ * @param {Array<{id: ?Number, name: !String}>} attachments
  */
 function showLessEditPane(lesson, attachments = []) {
   document.getElementById('module-edit-pane').innerHTML = `
-    <form method="post" action="/api/lesson/${lesson.id}/"
-          enctype="multipart/form-data"
+    <form enctype="multipart/form-data"
           id="module-edit-form-lesson"
+          disabled="true"
           class="lesson-edit-form column is-10-desktop is-full-tablet is-full-mobile"
           style="display: flex; flex-direction: column; justify-content: space-around; align-items: flex-start; margin-top: -15px;">
       <h2 class="title is-3">Name</h2>
@@ -167,7 +167,7 @@ function showLessEditPane(lesson, attachments = []) {
              style="background: #d3d3d329; padding: 5px; border: 1px #c9c3c3 dashed; min-width: 60%;">
       <h2 class="title is-3" style="margin-top: 20px;">Summary</h2>
       <textarea name="summary" autocomplete="on"
-                style="padding: 5px; min-width: 650px; min-height: 50px; max-height: 800px; border: 1px #c9c3c3 dashed;">${lesson.summary ? lesson.summary : ''}</textarea>
+                style="padding: 5px; min-width: 650px; min-height: 50px; max-height: 400px; border: 1px #c9c3c3 dashed;">${lesson.summary ? lesson.summary : ''}</textarea>
       <h2 class="title is-3" style="margin-top: 20px;">Content</h2>
       <p style="margin-bottom: 10px;">Upload HTML file with the lesson content</p>
       <div id="module-edit-lesson-content"></div>
@@ -181,39 +181,39 @@ function showLessEditPane(lesson, attachments = []) {
         <li>Video (.mp4, .mpg)</li>
       </ul>
       <br>
-      <input type="file" multiple style="display: block">
+      <input type="file" name="attachments" multiple style="display: block">
       <div style="display: flex; flex-direction: column; justify-content: space-around; align-items: flex-start; margin-top: 20px;">
         <h3 id="lesson-edit-h-uploaded-files title is-5" style="margin-bottom: 8px;">
           Uploaded Files
         </h3>
-        <ul id="lesson-edit-list-uploaded-files" style="display: flex; flex-direction: column; justify-content: space-around; align-items: center;"></ul>
+        <ul id="module-edit-list-attachments" style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; min-width: 300px;"></ul>
       </div>
       <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 20px; min-width: 380px; max-width: 500px;">
         <button onclick="alert('Not Implemented Yet.')" type="reset" class="button is-warning" style="min-width: 100px;">
           <i class="fas fa-undo"></i>
           <span>Reset</span>
         </button>
-        <button type="submit" onclick="updateLess().then(() => alert('Updated lesson.'))" class="button is-success" form="module-edit-form-lesson" style="min-width: 100px;">
+        <button onclick="event.preventDefault(); updateLess()" class="button is-success" style="min-width: 100px;">
           <i class="fas fa-check"></i>
           <span>Save</span>
         </button>
-        <button onclick="if (confirm('Delete lesson?')) destroyLess(${lesson.id})" class="button is-danger" style="min-width: 100px;">
+        <button onclick="event.preventDefault(); if (confirm('Delete lesson?')) destroyLess(${lesson.id})" class="button is-danger" style="min-width: 100px;">
           <i class="fas fa-times"></i>
           <span>Delete</span>
         </button>
       </div>
     </form>
     `;
-  document.querySelector('#module-edit-pane form').querySelector('.button[type=submit]').onclick = function (e) {
-    e.preventDefault();
-    return updateLess();
-  };
 
-  if (lesson.content) setLessContent(lesson.id);
-  else unsetLessContent(lesson.id);
+  // document.querySelector("form[enctype='multipart/form-data']").onsubmit = function(e) {
+  //   return e.preventDefault();
+  // };
+
+  if (lesson.content) setLessContent();
+  else unsetLessContent();
 
   for (const f of attachments) {
-    appendAttachment({lessonId: lesson.id, name: f.name});
+    appendAttachment({id: f.id, lessonId: lesson.id, name: f.name});
   }
 }
 
@@ -268,7 +268,7 @@ function showQuestEditPane(question) {
     <br>
 
     <div class="field is-grouped">
-      <button type="submit" onclick="updateQuest().then(() => alert('Updated question.'))" class="button is-success" style="margin: 7px">
+      <button type="submit" onclick="updateQuest()" class="button is-success" style="margin: 7px">
         <i class="fas fa-check"></i>
         <span>Save</span>
       </button>
@@ -452,21 +452,34 @@ function appendQuestion(question) {
 /**
  * Adds attachment to a list of attachments in a lesson.
  *
- * @param {!{lessonId: !Number, name: !String}} file
+ * @param {!{id: ?Number, lessonId: !Number, name: !String}} file
+ * @return {void}
  */
-function appendAttachment(file) {
-  document.querySelector(`#lesson-edit-list-uploaded-files`).innerHTML += `
+async function appendAttachment(file) {
+  try {
+    // after sending you don't have the ids (assigned by the DBMS)
+    if (file.id === undefined) {
+      file.id = await get('File', {lessonId: file.lessonId,  name: file.name}).then(fs => fs[0].id);
+    }
+    const list = document.getElementById('module-edit-list-attachments');
+    list.innerHTML += `
     <li class="has-text-black"
         data-name="${file.name}"
+        data-id="${file.id}"
         style="background: #e5e5e5d4; padding: 8px 12px; display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-      <div class="module-file-name" style="margin-right: 10px;">${file.name}</div>
-      <a href="/lesson/${file.lessonId}/${file.name}" class="button is-link is-small" download style="margin-right: 10px; float: left;"><i class="fas fa-download" style="margin-left: 10px;"></i></a>
-      <button class="button is-small is-danger"><i class="fas fa-times" style="margin: 0; float: left;"></i></button>
+      <div style="margin-right: 10px;">${file.name}</div>
+      <a href="/file/${file.id}" class="button is-link is-small" download="${file.name}" style="margin-right: 10px; float: left;"><i class="fas fa-download" style="margin-left: 10px;"></i></a>
+      <a onclick="destroyAttach(${file.id}, ${file.lessonId})" class="button is-small is-danger"><i class="fas fa-times" style="margin: 0; float: left;"></i></a>
     </li>
       `;
+  } catch (e) {
+    console.error(e);
+    return alert(e.message || e.toString());
+  }
 }
 
-function setLessContent(lessonId) {
+function setLessContent() {
+  const lessonId = getSelId('Lesson');
   document.querySelector(
     `form #module-edit-lesson-content`).innerHTML = `
     <p class="lesson-edit-msg-has-lesson">
@@ -484,19 +497,18 @@ function setLessContent(lessonId) {
       <i class="fas fa-download icon"></i>
       <span>Download</span>
     </a>
-    <button class="button is-danger is-small">
+    <!--<button class="button is-danger is-small" onclick="destroyLess(${lessonId}).then(() => unsetLessContent())">
       <i class="fas fa-times icon"></i>
       <span>Delete</span>
     </button>
+    -->
   `;
 }
 
 /**
  * Remove the HTML content file from a lesson.
- *
- * @param {!Number} lessonId
  */
-function unsetLessContent(lessonId) {
+function unsetLessContent() {
   document.querySelector(`form #module-edit-lesson-content`).innerHTML = `
     <ul style="display: flex; flex-direction: column; justify-content: space-around;">
       <li>
@@ -535,17 +547,20 @@ async function updateMod() {
     return alert(msg);
   }
   document.querySelector(`#module-edit-list-module li[data-id='${moduleId}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${moduleId}`;
+  return alert('Updated module.');
 }
 
 /**
- * TODO Modifies a lesson and updates UI.
+ * Modifies a lesson and updates UI.
+ *
+ * TODO ensure file names are unique.
  *
  * @return {Promise<void>}
  */
 async function updateLess() {
-  const form = document.querySelector('#module-edit-pane form');
-  const id = getSelId('Lesson');
   try {
+    const form = document.querySelector('#module-edit-pane form');
+    const id = getSelId('Lesson');
     const formData = new FormData();
     const lessonInput  = form.querySelector('input[type=file]:not([multiple])');
     const hasLessCont = lessonInput.files.length > 0;
@@ -554,34 +569,36 @@ async function updateLess() {
         return alert('Lesson must be an HTML file.');
       } else formData.append('lesson', lessonInput.files[0], 'lesson.html');
     }
-    const mediaRegex = /\.((pn|jp)g|gif|mp[34g])$/i;
     const attachments = form.querySelector('input[type=file][multiple]').files;
     for (const f of attachments) {
-      if (!f.name.match(mediaRegex)) {
+      if (!f.name.match(/\.((pn|jp)g|gif|mp[34g])$/i)) {
         return alert(`Invalid attachment file type ${f.name}.`);
       } else formData.append(f.name, f);
     }
-    const maybeName = form.querySelector('input[name=name]').value.trim();
-    const maybeSummary = form.querySelector('textarea[name=summary]').value.trim();
-    formData.append('name', maybeName ? maybeName : null);
-    formData.append('summary', maybeSummary ? maybeSummary : null);
+    let maybeName = form.querySelector('input[name=name]').value.trim();
+    formData.append('name', maybeName);
+    formData.append('summary', form.querySelector('textarea[name=summary]')
+      .value
+      .trim());
     // DO NOT SET CONTENT-TYPE
+    console.debug([...formData.entries()]);
     await update('Lesson', id, formData, null);
     if (hasLessCont) setLessContent(id);
     for (const f of attachments) {
-      appendAttachment({name: f.name, lessonId: id});
+      appendAttachment({id: f.id, name: f.name, lessonId: id});
     }
     const moduleId = getSelId('Module');
     sessionStorage.removeItem(`${location.pathname}/lessons?id=${id}&moduleId=${moduleId}`);
     sessionStorage.removeItem(`${location.pathname}/lessons?id=${id}`);
     sessionStorage.removeItem(`${location.pathname}/lessons?moduleId=${moduleId}`);
+    sessionStorage.removeItem(`${location.pathname}/files?lessonId=${id}`);
+    maybeName = form.querySelector('input[name=name]').value.trim();
+    document.querySelector(`#module-edit-list-lesson li[data-id='${id}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${id}`;
+    return alert('Updated lesson.');
   } catch (e) {
-    const msg = e.msg || e.message || e.toString();
     console.error(e);
-    return alert(msg);
+    return alert(e.msg || e.message || e.toString());
   }
-  const maybeName = form.querySelector('input[name=name]').value;
-  document.querySelector(`#module-edit-list-lesson li[data-id='${id}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${id}`;
 }
 
 /**
@@ -610,6 +627,7 @@ async function updateQuest() {
     correctAnswer: maybeA ? maybeA : null,
   }));
   document.querySelector(`#module-edit-list-question li[data-id='${id}'] > a > span`).innerText = maybeName ? maybeName : `unnamed #${id}`;
+  return alert('Updated question.');
 }
 
 /**
@@ -653,6 +671,19 @@ function destroyQuest(id) {
   sessionStorage.removeItem(`${location.pathname}/questions?moduleId=${getSelId('Module')}`);
   if (getSelId('Question') === id) clearPane();
   return document.querySelector(`#module-edit-list-question li[data-id='${id}']`).remove();
+}
+
+/**
+ * Destroys an attachment (file).
+ *
+ * @param {{id: !Number, lessonId: !Number}} file
+ * @return {Promise<void|!String>}
+ */
+function destroyAttach(id, lessonId) {
+  sessionStorage.removeItem(`${location.pathname}/files?lessonId=${lessonId}`);
+  document.querySelector(`#module-edit-list-attachments li[data-id='${id}']`).remove();
+  // clear cache
+  return destroy('File', id);
 }
 
 /**

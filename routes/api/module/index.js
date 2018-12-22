@@ -63,7 +63,7 @@ router.post(['/:id', '/:id/update', '/:id/modify'],
       if (Object.keys(req.body).length === 0) {
         return next(new MissingDataErr('data to modify', 'request body'));
       }
-      return res.json(msg('successfully updated the module', await module.update(req.body).then(m => m.dataValues)));
+      return res.json(msg('updated module', await module.update(req.body).then(m => m.dataValues)));
     } catch (e) {
       return next(e);
     }

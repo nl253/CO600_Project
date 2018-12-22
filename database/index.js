@@ -214,6 +214,7 @@ const File = sequelize.define('File', {
   },
   name: {
     type: STRING,
+    allowNull: false,
     validate: {
       is: {
         args: [/\.((pn|jp)g|gif|mp[34g])$/i],
