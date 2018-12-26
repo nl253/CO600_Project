@@ -144,6 +144,7 @@
     if (!searchBtn) return;
 
     searchBtn.onclick = (event) => {
+      document.getElementById('module-searchResults').innerHTML = "";
       // don't send the HTML form
       event.preventDefault();
       const searchTerm = document.getElementById('module-searchBar').value;
