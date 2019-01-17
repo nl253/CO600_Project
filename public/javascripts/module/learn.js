@@ -477,7 +477,7 @@ function unsetLessContent() {
 (async function() {
   try {
 
-    for (const m of await get('Module', {authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id})) {
+    for (const m of await get('Enrollment', {authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id})) {
       appendModule(m);
     }
 
