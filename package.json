@@ -4,6 +4,8 @@
     "url": "https://github.com/nl253/CO600_Project/issues"
   },
   "dependencies": {
+    "faker": "^4.1.0",
+    "cors": "^2.8.5",
     "body-parser": "latest",
     "cookie-parser": "^1.4.3",
     "debug": "~2.6.9",
@@ -13,7 +15,6 @@
     "morgan": "~1.9.0",
     "multer": "^1.4.1",
     "node-sass-middleware": "0.11.0",
-    "nodemon": "^1.18.9",
     "sequelize": "^4.42.0",
     "sqlite3": "^4.0.4",
     "winston": "^3.1.0"
@@ -21,7 +22,6 @@
   "description": "CO600 final year group project.",
   "devDependencies": {
     "axios": "^0.18.0",
-    "cors": "^2.8.5",
     "eslint": "^5.10.0",
     "eslint-config-google": "^0.11.0",
     "eslint-plugin-compat": "^2.6.3",
@@ -32,7 +32,6 @@
     "eslint-plugin-optimize-regex": "^1.1.6",
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-security": "^1.4.0",
-    "faker": "^4.1.0",
     "jest": "^23.6.0",
     "jsdoc": "^3.5.5"
   },

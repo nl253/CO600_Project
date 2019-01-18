@@ -37,3 +37,11 @@ document.getElementById('layout-btn-log-in').onclick = async (event) => {
     ? '/user/home'
     : location.href;
 };
+
+document.querySelector(".navbar-burger.burger").onclick = () => {
+  const menu = document.querySelector('.navbar-menu');
+
+  return menu.classList.contains('is-active')
+    ? menu.classList.remove( 'is-active')
+    : menu.classList.add('is-active');
+};
