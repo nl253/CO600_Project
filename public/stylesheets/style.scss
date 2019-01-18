@@ -20,9 +20,9 @@ a {
   border: 1px $grey dashed;
 }
 
-input[type=text], input[type=password], input[type=email], textarea, div[contentEditable], span[contenteditable], p[contenteditable] {
-  background: $grey-lighter;
-}
+//input[type=text], input[type=password], input[type=email], textarea, div[contentEditable], span[contenteditable], p[contenteditable] {
+  //background: $grey-lighter;
+//}
 
 input[type=file] {
   max-width: 200px;
@@ -77,10 +77,10 @@ input[type=submit] {
   color: $grey-darker;
 }
 
-.button:not(.is-danger):not(.is-warning):not(.is-active) {
-  border: $grey solid 1px;
-  color: inherit;
-}
+//.button:not(.is-danger):not(.is-warning):not(.is-active) {
+//  border: $grey solid 1px;
+//  color: inherit;
+//}
 
 .button.is-primary {
   color: $white !important;
@@ -102,4 +102,13 @@ input[type=submit] {
   color: $white !important;
   //font-weight: bold;
 }
+
+.navbar.has-background-dark {
+  .navbar-item:hover, .has-dropdown:hover {
+    background: $grey;
+    color: $white;
+  }
+}
+
+
 /*# sourceMappingURL=style.css.map */
