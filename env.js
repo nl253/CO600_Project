@@ -11,7 +11,7 @@ const APP_ENV = {
   PORT: '3000',
   ENCRYPTION_ALGORITHM: 'aes192',
   TEST_RUNS: '20',
-  LOGGING_ROUTING: 'info',
+  LOGGING_ROUTING: 'debug',
   LOGGING_DB: 'warn',
   NO_MOCKS: 10,
   LOGGING_TESTS: 'info',
@@ -33,15 +33,15 @@ function setEnv(env = APP_ENV) {
 }
 
 function printEnv(env = process.env) {
-    const padStartLen = Object.keys(env)
-    .reduce((prev, curr) => curr.length >= prev ? curr.length : prev, 0);
+  const padStartLen = Object.keys(env)
+      .reduce((prev, curr) => curr.length >= prev ? curr.length : prev, 0);
   const padEndLen = Object.values(env)
-    .reduce((prev, curr) => curr.length >= prev ? curr.length : prev, 0);
+      .reduce((prev, curr) => curr.length >= prev ? curr.length : prev, 0);
   console.info(
-    `APPLICATION ENVIRONMENT\n${'-'.repeat(Math.min(80, padStartLen + padEndLen + 3))}`);
-  for (const pair of Object.entries(env).filter(pair => pair[0].match(/^[-_A-Z0-9]+$/))) {
+      `APPLICATION ENVIRONMENT\n${'-'.repeat(Math.min(80, padStartLen + padEndLen + 3))}`);
+  for (const pair of Object.entries(env).filter((pair) => pair[0].match(/^[-_A-Z0-9]+$/))) {
     const [k, v] = pair;
-    console.info(`${k.padEnd(padStartLen)} ${v.length > 60 ? v.slice(0, 60) + ' ...' : v}`);
+    console.info(`${k.padEnd(padStartLen)} ${v.length > 60 ? `${v.slice(0, 60) } ...` : v}`);
   }
 }
 

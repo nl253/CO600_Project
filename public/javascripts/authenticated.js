@@ -20,12 +20,17 @@ document.getElementById('navbar-auth-btn-log-out').onclick = async (event) => {
 };
 
 (function() {
-  for (const btn of document.querySelectorAll('nav:first-of-type a.button[href]')) {
+  for (const btn of document.querySelectorAll('nav:first-of-type a[href]')) {
     if (location.pathname === btn.getAttribute('href')) {
       btn.classList.add('has-background-grey-dark');
       btn.classList.add('has-text-white');
       break;
     }
+  }
+  if (location.pathname.match('/search')) {
+    const el = document.querySelector("nav:first-of-type .navbar-item.has-dropdown.is-hoverable").querySelector('.navbar-link');
+    el.classList.add('has-background-grey-dark');
+    el.classList.add('has-text-white');
   }
 })();
 
