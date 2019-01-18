@@ -1,6 +1,8 @@
 <div class="has-background-white columns is-multiline" style="margin: 30px auto auto auto;">
   <div class="column is-3-fullhd is-3-desktop is-2-tablet is-12-mobile">
-    <a href="/user/home" class="button is-light has-text-centered is-block" style="max-width: 200px; margin: auto !important;">
+    <a href="/user/home"
+       class="button is-light has-text-centered is-block"
+       style="max-width: 200px; margin: auto !important;">
       <i class="fas fa-arrow-left" style="position: relative; top: 3px;"></i>
       <span class="has-text-centered">Home</span>
     </a>
@@ -12,63 +14,66 @@
 </div>
 
 <!--3-column layout: list, list, editing -->
-<div class="columns is-centered is-multiline" style="margin-top: 30px;">
+<div class="columns" style="margin: 30px 50px;">
+  <div class="columns column is-offset-1 is-5-fullhd is-5-desktop is-12-tablet is-12-mobile is-marginless">
+    <div class="column is-6-fullhd is-6-desktop is-6-tablet is-12-mobile"
+         style="display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch;">
 
-  <div class="column is-narrow-desktop is-2-desktop is-5-tablet is-11-mobile"
-       style="margin-left: 30px; display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch;">
+      <h2 class="title has-text-centered" style="margin-bottom: 10px;">
+        Modules
+      </h2>
+      <!--list of modules-->
+      <ul id="module-edit-list-module" class="menu-list" style="margin-top: 20px"></ul>
+      <button id="module-edit-btn-module-create"
+              class="button is-link has-text-white"
+              style="display: block; max-width: 150px; margin: 0 auto;">
+        <i class="fas fa-plus" style="position: relative; top: 3px;"></i>
+        Module
+      </button>
+    </div>
+    <div class="column is-6-fullhd is-6-desktop is-6-tablet is-12-mobile">
 
-    <h2 class="title has-text-centered" style="margin-bottom: 10px;">
-      Modules
-    </h2>
-    <!--list of modules-->
-    <ul id="module-edit-list-module" class="menu-list" style="margin-top: 20px; margin-bottom: 20px;"></ul>
-    <button id="module-edit-btn-module-create" class="button is-link has-text-white" style="display: block; max-width: 150px; margin: 0 auto;">
-      <i class="fas fa-plus" style="position: relative; top: 3px;"></i>
-      Module
-    </button>
+      <h2 class="title has-text-centered" style="margin-bottom: 20px; margin-top: 20px;">
+        Lessons
+      </h2>
+
+      <!--list of lessons-->
+      <ol id="module-edit-list-lesson" class="menu-list" style="margin-bottom: 20px; list-style-type: none;">
+        <li><p class="has-text-centered">Click on a module.</p></li>
+      </ol>
+
+      <!--create lesson btn-->
+      <button id="module-edit-btn-lesson-create"
+              class="button is-link has-text-white"
+              style="margin: 0 auto; display: block; max-width: 150px;">
+        <i class="fas fa-plus" style="position: relative; top: 3px;"></i>
+        Lesson
+      </button>
+
+      <br>
+
+      <h2 class="title has-text-centered" style="margin: 35px 0 20px;">
+        Quiz
+      </h2>
+
+      <!--quiz edit (list of questions)-->
+      <ol id="module-edit-list-question" style="list-style-type: none;">
+        <li><p class="has-text-centered">Click on a module.</p></li>
+      </ol>
+
+      <!--add question btn-->
+      <button id="module-edit-btn-question-create"
+              class="button is-link has-text-white"
+              style="margin: 10px auto 0; display: block; max-width: 150px;">
+        <i class="fas fa-plus" style="position: relative; top: 3px;"></i>
+        Question
+      </button>
+    </div>
   </div>
-
-  <div class="column is-narrow-desktop is-2-desktop is-5-tablet is-11-mobile" style="margin-left: 30px;">
-
-    <h2 class="title has-text-centered" style="margin-bottom: 20px;">
-      Lessons
-    </h2>
-
-    <!--list of lessons-->
-    <ol id="module-edit-list-lesson" class="menu-list" style="margin-bottom: 20px; list-style-type: none;">
-      <li><p class="has-text-centered">Click on a module.</p></li>
-    </ol>
-
-    <!--create lesson btn-->
-    <button id="module-edit-btn-lesson-create"
-            class="button is-link has-text-white" style="margin: 0 auto; display: block; max-width: 150px;">
-      <i class="fas fa-plus" style="position: relative; top: 3px;"></i>
-      Lesson
-    </button>
-
-    <br>
-
-    <h2 class="title has-text-centered" style="margin: 35px 0 20px;">
-      Quiz
-    </h2>
-
-    <!--quiz edit (list of questions)-->
-    <ol id="module-edit-list-question" style="list-style-type: none;">
-      <li><p class="has-text-centered">Click on a module.</p></li>
-    </ol>
-
-    <!--add question btn-->
-    <button id="module-edit-btn-question-create" class="button is-link has-text-white"
-            style="margin: 10px auto 0; display: block; max-width: 150px;">
-      <i class="fas fa-plus" style="position: relative; top: 3px;"></i>
-      Question
-    </button>
-  </div>
-
   <!--right side of the screen-->
   <!--only one of the divs inside can be visible-->
-  <div id="module-edit-pane" class="column is-7-desktop is-10-tablet is-11-mobile">
-    <p class="has-text-centered">Click on a lesson or a module.</p>
+  <div id="module-edit-pane" class="column is-offset-1 is-7-fullhd is-7-desktop is-12-tablet is-12-mobile container">
+    <p class="has-text-centered" style="margin-top: 50px;">Click on a lesson or a module.</p>
   </div>
 </div>
 

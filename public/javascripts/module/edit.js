@@ -125,7 +125,7 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
       <section class="is-medium" style="margin-bottom: 30px;">
         <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
         <textarea id="module-edit-summary"
-                  style="min-width: 100%; min-height: 90px; word-wrap: break-word; padding: 10px; border: none; border-radius: 8px;" 
+                  style="min-width: 50%; min-height: 90px; word-wrap: break-word; padding: 10px; border: none; border-radius: 8px;" 
                   class="has-background-light">${module.summary ? module.summary : ''}</textarea>
       </section>
       <div class="field is-grouped">
