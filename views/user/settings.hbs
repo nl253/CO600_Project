@@ -1,75 +1,84 @@
-<section id="user-personal-details" style="margin: 3vw 23vw;">
-  <h2 class="title">User</h2>
-  <br>
-  <h3 class="subtitle">Modify Personal Details</h3>
-  <br>
-  <form>
-    <div class="field">
-      <label class="label">First name</label>
-      <div class="control has-icons-left">
-        <input id="user-first-name" class="input"
-               value="{{loggedIn.firstName}}"
-               type="text" placeholder="e.g.: John">
-        <span class="icon is-left"><i class="fas fa-user"></i></span>
+<section id="user-personal-details" class="columns container-fluid" style="margin-top: 3vw;">
+  <div class="column is-3-fullhd is-3-desktop is-1-tablet is-1-mobile"></div>
+  <div class="column is-6-fullhd is-6-desktop is-10-tablet is-10-mobile">
+    <h2 class="title">User</h2>
+    <br>
+    <h3 class="subtitle">Modify Personal Details</h3>
+    <br>
+    <form>
+      <div class="field">
+        <label class="label">First name</label>
+        <div class="control has-icons-left">
+          <input id="user-first-name" class="input"
+                 value="{{loggedIn.firstName}}"
+                 type="text" placeholder="e.g.: John">
+          <span class="icon is-left"><i class="fas fa-user"></i></span>
+        </div>
       </div>
-    </div>
-    <div class="field">
-      <label class="label">Last name</label>
-      <div class="control has-icons-left">
-        <input id="user-last-name" class="input" value="{{loggedIn.lastName}}" type="text" placeholder="e.g.: Smith">
-        <span class="icon is-left"><i class="fas fa-user"></i></span>
+      <div class="field">
+        <label class="label">Last name</label>
+        <div class="control has-icons-left">
+          <input id="user-last-name" class="input" value="{{loggedIn.lastName}}" type="text" placeholder="e.g.: Smith">
+          <span class="icon is-left"><i class="fas fa-user"></i></span>
+        </div>
       </div>
-    </div>
-    <div class="field">
-      <label class="label">Info</label>
-      <div class="control">
+      <div class="field">
+        <label class="label">Info</label>
+        <div class="control">
             <textarea class="textarea" maxlength="255" id="user-info"
                       style="background: #d3d3d329;"
                       placeholder="Summary of who you are and what you are interested in">{{loggedIn.info}}</textarea>
+        </div>
       </div>
-    </div>
-    <div class="field">
-      <label class="label">Email</label>
-      <div class="control has-icons-left">
-        <input id="user-input-email" class="input"
-               type="email" value="{{loggedIn.email}}"
-               minlength="2" pattern=".{2,}@.{2,}\..{2,}">
-        <span class="icon is-left"><i class="fas fa-user"></i></span>
+      <div class="field">
+        <label class="label">Email</label>
+        <div class="control has-icons-left">
+          <input id="user-input-email" class="input"
+                 type="email" value="{{loggedIn.email}}"
+                 minlength="2" pattern=".{2,}@.{2,}\..{2,}">
+          <span class="icon is-left"><i class="fas fa-user"></i></span>
+        </div>
       </div>
-    </div>
-    <div class="field">
-      <label class="label">Current password</label>
-      <div class="control has-icons-left">
-        <input title="Password Old" id="user-password-old" class="input" type="password">
-        <span class="icon is-left"><i class="fas fa-lock"></i></span>
+      <div class="field">
+        <label class="label">Current password</label>
+        <div class="control has-icons-left">
+          <input title="Password Old" id="user-password-old" class="input" type="password">
+          <span class="icon is-left"><i class="fas fa-lock"></i></span>
+        </div>
       </div>
-    </div>
-    <div class="field">
-      <label class="label">New password</label>
-      <div class="control has-icons-left">
-        <input title="Password New" class="input" minlength="6" pattern=".{6,}" id="user-password-new" type="password">
-        <span class="icon is-left"><i class="fas fa-lock"></i></span>
+      <div class="field">
+        <label class="label">New password</label>
+        <div class="control has-icons-left">
+          <input title="Password New"
+                 class="input"
+                 minlength="6"
+                 pattern=".{6,}"
+                 id="user-password-new"
+                 type="password">
+          <span class="icon is-left"><i class="fas fa-lock"></i></span>
+        </div>
       </div>
-    </div>
-    <div class="field">
-      <label class="label">Re-enter new password</label>
-      <div class="control has-icons-left">
-        <input title="Password New 2" class="input" minlength="6" id="user-password-new-2" type="password">
-        <span class="icon is-left"><i class="fas fa-lock"></i></span>
+      <div class="field">
+        <label class="label">Re-enter new password</label>
+        <div class="control has-icons-left">
+          <input title="Password New 2" class="input" minlength="6" id="user-password-new-2" type="password">
+          <span class="icon is-left"><i class="fas fa-lock"></i></span>
+        </div>
       </div>
-    </div>
-    <div class="field is-grouped is-grouped-centered" style="padding: 20px;">
-      <p class="control">
-        <input id="user-btn-modify-details" class="button is-primary" type="submit" value="Save"
-               style="min-width: 100px;">
-      </p>
-      <button class="button is-warning" onclick="if (confirm('Lose all changes?')) location.href = location.href"
-              style="min-width: 100px;">
-        <i class="fas fa-undo" style="margin-right: 7px;"></i>
-        Undo
-      </button>
-    </div>
-  </form>
+      <div class="field is-grouped is-grouped-centered" style="padding: 20px;">
+        <p class="control">
+          <input id="user-btn-modify-details" class="button is-primary" type="submit" value="Save"
+                 style="min-width: 100px;">
+        </p>
+        <button class="button is-warning" onclick="if (confirm('Lose all changes?')) location.href = location.href"
+                style="min-width: 100px;">
+          <i class="fas fa-undo" style="margin-right: 7px;"></i>
+          Undo
+        </button>
+      </div>
+    </form>
+  </div>
+  <div class="column is-3-fullhd is-3-desktop is-1-tablet is-1-mobile"></div>
 </section>
 
 <script src="/javascripts/user/settings.js" async></script>

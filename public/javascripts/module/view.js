@@ -115,3 +115,5 @@ for (const lesson of document.querySelectorAll('#module-lessons li a')) {
   };
 }
 
+document.querySelector('pre').innerHTML = document.querySelector('pre').innerHTML.trim();
+
