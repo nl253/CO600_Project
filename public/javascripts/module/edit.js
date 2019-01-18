@@ -70,7 +70,7 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
         Name
       </h2>
       
-      <div id="module-edit-name" contenteditable="true" style="max-width: 300px;">
+      <div id="module-edit-name" contenteditable="true" style="max-width: 300px; border-radius: 8px; border: none; padding-left: 10px;" class="has-background-light">
         ${module.name ? module.name : ''}
       </div>
       <h3 class="subtitle" style="margin: 25px 0 0 0;">
@@ -78,10 +78,9 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
       </h3>
       <div class="dropdown" 
            onmouseover="this.classList.add('is-active')"
-           onmouseout="this.classList.remove('is-active')"
-           style="border: 1px #bdbdbd dashed;">
+           onmouseout="this.classList.remove('is-active')">
         <div class="dropdown-trigger">
-          <button class="button" aria-haspopup="true" aria-controls="dropdown-menu" style="background: #d3d3d329;">
+          <button class="button has-background-light" aria-haspopup="true" aria-controls="dropdown-menu" style="border: none;">
             <span id="module-edit-topic" style="min-width: 150px;">${module.topic ?
       module.topic :
       ''}</span>
@@ -99,7 +98,10 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
             <span class="dropdown-item" style="font-weight: bold;">
               Other
             </span>
-            <a class="dropdown-item" onmouseout="document.getElementById('module-edit-topic').innerText = this.innerText.trim()" id="module-edit-topic-other" contenteditable="true"
+            <a class="dropdown-item" 
+               onmouseout="document.getElementById('module-edit-topic').innerText = this.innerText.trim()" 
+               id="module-edit-topic-other" 
+               contenteditable="true"
                style="margin: 5px 10px; max-width: 90%;">
               ${module.topic ? module.topic : ''}
             </a>
@@ -123,9 +125,8 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
       <section class="is-medium" style="margin-bottom: 30px;">
         <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
         <textarea id="module-edit-summary"
-                  style="min-width: 100%; min-height: 90px; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">${module.summary ?
-      module.summary :
-      ''}</textarea>
+                  style="min-width: 100%; min-height: 90px; word-wrap: break-word; padding: 10px; border: none; border-radius: 8px;" 
+                  class="has-background-light">${module.summary ? module.summary : ''}</textarea>
       </section>
       <div class="field is-grouped">
         <button type="reset" onclick="alert('Not Implemented Yet.')" class="button is-warning" style="margin: 7px">
@@ -163,11 +164,13 @@ function showLessEditPane(lesson, attachments = []) {
           style="display: flex; flex-direction: column; justify-content: space-around; align-items: flex-start; margin-top: -15px;">
       <h2 class="title is-3">Name</h2>
       <input name="name" value="${lesson.name ? lesson.name : ''}" 
+             class="has-background-light"
              autocomplete="on" placeholder="e.g. Introduction to AI"
-             style="padding: 5px; border: 1px #c9c3c3 dashed; min-width: 60%;">
+             style="padding: 5px 10px; border: none; min-width: 60%; border-radius: 8px;">
       <h2 class="title is-3" style="margin-top: 20px;">Summary</h2>
       <textarea name="summary" autocomplete="on"
-                style="padding: 5px; min-width: 650px; min-height: 50px; max-height: 400px; border: 1px #c9c3c3 dashed;">${lesson.summary ? lesson.summary : ''}</textarea>
+                class="has-background-light"
+                style="padding: 5px; min-width: 650px; min-height: 50px; max-height: 400px; border: none; border-radius: 8px;">${lesson.summary ? lesson.summary : ''}</textarea>
       <h2 class="title is-3" style="margin-top: 20px;">Content</h2>
       <p style="margin-bottom: 10px;">Upload HTML file with the lesson content</p>
       <div id="module-edit-lesson-content"></div>
@@ -227,18 +230,18 @@ function showQuestEditPane(question) {
     <h1 class="title is-3" style="margin-bottom: 10px;">Question</h1>
     <p><strong>Note:</strong> Save the current question before editing another one</p>
     <br>
-    <div class="field">
-      <a id="module-edit-question-name" class="button is-medium is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin: auto;">${question.name ?
-    question.name :
-    ''}</a>
+    <div class="field" style="max-width: 600px;">
+      <a id="module-edit-question-name" class="button is-light has-background-light is-block" contenteditable="true" style="padding: 5px; border: 1px; border-radius: 8px;">
+        ${question.name ? question.name : ''}
+      </a>
     </div>
     <br>
 
-    <div class="field">
+    <div class="field" style="max-width: 600px;">
       <h2 class="title is-3" style="margin-bottom: 10px;">Correct Answer</h2>
-      <a id="module-edit-question-answer" class="button is-medium is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin: auto;">${question.correctAnswer ?
-    question.correctAnswer :
-    ''}</a>
+      <a id="module-edit-question-answer" class="button is-light is-block" contenteditable="true" style="padding: 5px; border: 1px;">
+        ${question.correctAnswer ? question.correctAnswer : ''}
+      </a>
     </div>
     <br>
     
@@ -248,20 +251,20 @@ function showQuestEditPane(question) {
 
     <br>
 
-    <div class="field is-horizontal">
-      <a id="module-edit-question-bad-answer-1" class="button is-medium is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer1 ?
+    <div class="field is-horizontal" style="max-width: 600px">
+      <a id="module-edit-question-bad-answer-1" class="button is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer1 ?
     question.badAnswer1 :
     ''}</a>
     </div>
 
-    <div class="field is-horizontal">
-      <a id="module-edit-question-bad-answer-2" class="button is-medium is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer2 ?
+    <div class="field is-horizontal" style="max-width: 600px">
+      <a id="module-edit-question-bad-answer-2" class="button is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer2 ?
     question.badAnswer2 :
     ''}</a>
     </div>
     
-    <div class="field is-horizontal">
-      <a id="module-edit-question-bad-answer-3" class="button is-medium is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer3 ?
+    <div class="field is-horizontal" style="max-width: 600px">
+      <a id="module-edit-question-bad-answer-3" class="button is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer3 ?
     question.badAnswer3 :
     ''}</a>
     </div>
@@ -334,6 +337,8 @@ async function toggleModule(id) {
     // re-select *the same* module - do nothing
     return;
   } // else
+
+  document.getElementById('module-edit-pane').innerHTML = `<p class="has-text-centered">Loading ...</p>`;
   unSelect('Lesson');
   unSelect('Question');
 
@@ -364,6 +369,7 @@ async function toggleModule(id) {
 async function toggleLesson(id) {
   const focusedLessId = getSelId('Lesson');
   if (id === focusedLessId) return;
+  document.getElementById('module-edit-pane').innerHTML = `<p class="has-text-centered">Loading ...</p>`;
   saveClick('Lesson', id);
   saveProgress();
   unSelect(focusedLessId === null ? 'Question' : 'Lesson');
@@ -380,6 +386,7 @@ async function toggleLesson(id) {
  */
 async function toggleQuestion(id) {
   if (id === getSelId('Question')) return;
+  document.getElementById('module-edit-pane').innerHTML = `<p class="has-text-centered">Loading ...</p>`;
   saveClick('Question', id);
   saveProgress();
   unSelect('Question');

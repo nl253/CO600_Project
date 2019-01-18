@@ -1,7 +1,7 @@
 <div class="has-background-white columns is-multiline" style="margin: 30px auto auto auto;">
   <div class="column is-3-fullhd is-3-desktop is-2-tablet is-12-mobile">
     <a href="/user/home" class="button is-light has-text-centered is-block" style="max-width: 200px; margin: auto !important;">
-      <i class="fas fa-arrow-left"></i>
+      <i class="fas fa-arrow-left" style="position: relative; top: 3px;"></i>
       <span class="has-text-centered">Home</span>
     </a>
   </div>
@@ -35,7 +35,9 @@
     </h2>
 
     <!--list of lessons-->
-    <ol id="module-edit-list-lesson" class="menu-list" style="margin-bottom: 20px; list-style-type: none;"></ol>
+    <ol id="module-edit-list-lesson" class="menu-list" style="margin-bottom: 20px; list-style-type: none;">
+      <li><p class="has-text-centered">Click on a module.</p></li>
+    </ol>
 
     <!--create lesson btn-->
     <button id="module-edit-btn-lesson-create"
@@ -51,7 +53,9 @@
     </h2>
 
     <!--quiz edit (list of questions)-->
-    <ol id="module-edit-list-question" style="list-style-type: none;"></ol>
+    <ol id="module-edit-list-question" style="list-style-type: none;">
+      <li><p class="has-text-centered">Click on a module.</p></li>
+    </ol>
 
     <!--add question btn-->
     <button id="module-edit-btn-question-create" class="button is-link has-text-white"
@@ -63,7 +67,9 @@
 
   <!--right side of the screen-->
   <!--only one of the divs inside can be visible-->
-  <div id="module-edit-pane" class="column is-7-desktop is-10-tablet is-11-mobile"></div>
+  <div id="module-edit-pane" class="column is-7-desktop is-10-tablet is-11-mobile">
+    <p class="has-text-centered">Click on a lesson or a module.</p>
+  </div>
 </div>
 
 <script async src="/javascripts/module/edit.js"></script>
