@@ -164,7 +164,7 @@ function showLessEditPane(lesson, attachments = []) {
       <h2 class="title is-3">Name</h2>
       <input name="name" value="${lesson.name ? lesson.name : ''}" 
              autocomplete="on" placeholder="e.g. Introduction to AI"
-             style="background: #d3d3d329; padding: 5px; border: 1px #c9c3c3 dashed; min-width: 60%;">
+             style="padding: 5px; border: 1px #c9c3c3 dashed; min-width: 60%;">
       <h2 class="title is-3" style="margin-top: 20px;">Summary</h2>
       <textarea name="summary" autocomplete="on"
                 style="padding: 5px; min-width: 650px; min-height: 50px; max-height: 400px; border: 1px #c9c3c3 dashed;">${lesson.summary ? lesson.summary : ''}</textarea>
@@ -463,13 +463,21 @@ async function appendAttachment(file) {
     }
     const list = document.getElementById('module-edit-list-attachments');
     list.innerHTML += `
-    <li class="has-text-black"
+    <li class="has-text-black has-background-light"
         data-name="${file.name}"
         data-id="${file.id}"
-        style="background: #e5e5e5d4; padding: 8px 12px; display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-      <div style="margin-right: 10px;">${file.name}</div>
-      <a href="/file/${file.id}" class="button is-link is-small" download="${file.name}" style="margin-right: 10px; float: left;"><i class="fas fa-download" style="margin-left: 10px;"></i></a>
-      <a onclick="destroyAttach(${file.id}, ${file.lessonId})" class="button is-small is-danger"><i class="fas fa-times" style="margin: 0; float: left;"></i></a>
+        style="padding: 10px; margin-bottom: 10px; width: 100%;">
+      <p style="margin-bottom: auto; margin-top: auto; float: left;">${file.name}</p>
+      <div style="margin-bottom: auto; margin-top: auto; float: right;">
+        <a href="/file/${file.id}" class="button is-link is-small has-text-white" download="${file.name}" style="">
+          Download
+          <!--<i class="fas fa-download is-block"></i>-->
+        </a>
+        <a onclick="destroyAttach(${file.id}, ${file.lessonId})" class="button is-small is-danger" style="">
+          Delete
+          <!--<i class="fas fa-times is-block"></i>-->
+        </a>
+      </div>
     </li>
       `;
   } catch (e) {
@@ -492,7 +500,7 @@ function setLessContent() {
     </p>
     <br>
     <a href="/api/lesson/${lessonId}/download"
-       class="button is-link is-small has-text-centered"
+       class="button is-link is-small has-text-centered has-text-white"
        download="lesson.html">
       <i class="fas fa-download icon"></i>
       <span>Download</span>
