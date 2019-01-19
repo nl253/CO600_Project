@@ -336,6 +336,8 @@ async function toggleModule(id) {
     return;
   } // else
 
+  document.querySelectorAll(`module-edit-list-module > li[data-id]`).forEach(li => li.setAttribute('disabled'));
+
   document.getElementById('module-edit-pane').innerHTML = `
     <p class="has-text-centered" style="margin: 20px auto;">
       <span style="margin-bottom: 15px;">Loading</span>
@@ -363,6 +365,8 @@ async function toggleModule(id) {
     document.getElementById('module-edit-spinner-list-lesson').classList.add('is-hidden');
     document.getElementById('module-edit-spinner-list-question').classList.add('is-hidden');
   }
+
+  document.querySelectorAll(`module-edit-list-module > li`).forEach(li => li.removeAttribute('disabled'));
   return showModEditPane(await get('Module', {id}).then(ms => ms[0]));
 }
 
@@ -375,6 +379,7 @@ async function toggleModule(id) {
 async function toggleLesson(id) {
   const focusedLessId = getSelId('Lesson');
   if (id === focusedLessId) return;
+  document.querySelectorAll('module-edit-list-lesson > li[data-id]').forEach(li => li.setAttribute('disabled'));
   document.getElementById('module-edit-pane').innerHTML = `
     <p class="has-text-centered" style="margin: 20px auto;">
       <span style="margin-bottom: 15px;">Loading</span>
@@ -386,6 +391,7 @@ async function toggleLesson(id) {
   unSelect(focusedLessId === null ? 'Question' : 'Lesson');
   select('Lesson', id);
   const lesson = (await get('Lesson', {id, moduleId: getSelId('Module')}))[0];
+  document.querySelectorAll('module-edit-list-lesson > li[data-id]').forEach(li => li.removeAttribute('disabled'));
   return await showLessEditPane(lesson, await get('File', {lessonId: lesson.id}));
 }
 
@@ -397,6 +403,7 @@ async function toggleLesson(id) {
  */
 async function toggleQuestion(id) {
   if (id === getSelId('Question')) return;
+  document.querySelectorAll('module-edit-list-question > li[data-id]').forEach(li => li.setAttribute('disabled'));
   document.getElementById('module-edit-pane').innerHTML = `
     <p class="has-text-centered" style="margin: 20px auto;">
       <span style="margin-bottom: 15px;">Loading</span>
@@ -408,6 +415,7 @@ async function toggleQuestion(id) {
   unSelect('Question');
   unSelect('Lesson');
   select('Question', id);
+  document.querySelectorAll('module-edit-list-question > li[data-id]').forEach(li => li.removeAttribute('disabled'));
   return await showQuestEditPane((await get('Question', {id, moduleId: getSelId('Module')}))[0]);
 }
 
