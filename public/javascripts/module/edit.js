@@ -154,7 +154,7 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
  * @param {{id: !Number, moduleId: !Number, name: ?String, content: ?Boolean, summary: ?String}} lesson
  * @param {Array<{id: ?Number, name: !String}>} attachments
  */
-function showLessEditPane(lesson, attachments = []) {
+async function showLessEditPane(lesson, attachments = []) {
   document.getElementById('module-edit-pane').innerHTML = `
     <form enctype="multipart/form-data"
           id="module-edit-form-lesson"
@@ -212,9 +212,7 @@ function showLessEditPane(lesson, attachments = []) {
   if (lesson.content) setLessContent();
   else unsetLessContent();
 
-  for (const f of attachments) {
-    appendAttachment({id: f.id, lessonId: lesson.id, name: f.name});
-  }
+  return await Promise.all(attachments.map(f => appendAttachment({id: f.id, lessonId: lesson.id, name: f.name})));
 }
 
 /**
@@ -344,12 +342,12 @@ async function toggleModule(id) {
     select('Module', id);
     clearList('Lesson');
     clearList('Question');
-    get('Lesson', {moduleId: id}).then(ls => {
-      for (const l of ls) appendLesson(l);
-    });
-    get('Question', {moduleId: id}).then(qs => {
-      for (const q of qs) appendQuestion(q);
-    });
+    const lessP = Promise.all(get('Lesson', {moduleId: id})
+      .then(ls => ls.map(l => appendLesson(l))));
+    const QuestP = Promise.all(get('Question', {moduleId: id})
+      .then(qs => qs.map(q => appendQuestion(q))));
+    await lessP;
+    await QuestP;
   }
   return showModEditPane(await get('Module', {id}).then(ms => ms[0]));
 }
@@ -584,9 +582,7 @@ async function updateLess() {
     console.debug([...formData.entries()]);
     await update('Lesson', id, formData, null);
     if (hasLessCont) setLessContent(id);
-    for (const f of attachments) {
-      appendAttachment({id: f.id, name: f.name, lessonId: id});
-    }
+    await Promise.all(attachments.map(f => appendAttachment({id: f.id, name: f.name, lessonId: id})));
     const moduleId = getSelId('Module');
     sessionStorage.removeItem(`${location.pathname}/lessons?id=${id}&moduleId=${moduleId}`);
     sessionStorage.removeItem(`${location.pathname}/lessons?id=${id}`);
@@ -725,16 +721,15 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
   return appendQuestion(await question);
 };
 
-<!--Populate the page using AJAX-->
 /**
+ * Populate the page using AJAX.
+ *
  * Try to recall last click.
  */
 (async function() {
   try {
 
-    for (const m of await get('Module', {authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id})) {
-      appendModule(m);
-    }
+    await Promise.all(get('Module', {authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id}).then(ms => ms.map(m => appendModule(m))));
 
     const memory = sessionStorage.getItem(`${location.pathname}?click`);
     if (!memory) return false;
