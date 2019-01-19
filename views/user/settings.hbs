@@ -8,59 +8,72 @@
       <div class="field">
         <label class="label">First name</label>
         <div class="control has-icons-left">
-          <input id="user-first-name" class="input"
+          <input id="user-first-name" class="input is-rounded has-background-light"
+                 style="box-shadow: none; border: none; padding-left: 48px;"
                  value="{{loggedIn.firstName}}"
                  type="text" placeholder="e.g.: John">
-          <span class="icon is-left"><i class="fas fa-user"></i></span>
+          <span class="icon is-left" style="left: 10px;"><i class="fas fa-user"></i></span>
         </div>
       </div>
       <div class="field">
         <label class="label">Last name</label>
         <div class="control has-icons-left">
-          <input id="user-last-name" class="input" value="{{loggedIn.lastName}}" type="text" placeholder="e.g.: Smith">
-          <span class="icon is-left"><i class="fas fa-user"></i></span>
+          <input id="user-last-name"
+                 style="box-shadow: none; border: none; padding-left: 48px;"
+                 class="input is-rounded has-background-light" value="{{loggedIn.lastName}}" type="text" placeholder="e.g.: Smith">
+          <span class="icon is-left" style="left: 10px;"><i class="fas fa-user"></i></span>
         </div>
       </div>
       <div class="field">
         <label class="label">Info</label>
         <div class="control">
-            <textarea class="textarea" maxlength="255" id="user-info"
+            <textarea class="textarea has-background-light"
+                      maxlength="255"
+                      id="user-info"
+                      style="border-radius: 15px; box-shadow: none; border: none;"
                       placeholder="Summary of who you are and what you are interested in">{{loggedIn.info}}</textarea>
         </div>
       </div>
       <div class="field">
         <label class="label">Email</label>
         <div class="control has-icons-left">
-          <input id="user-input-email" class="input"
+          <input id="user-input-email" class="input is-rounded has-background-light"
+                 style="box-shadow: none; border: none; padding-left: 48px;"
                  type="email" value="{{loggedIn.email}}"
                  minlength="2" pattern=".{2,}@.{2,}\..{2,}">
-          <span class="icon is-left"><i class="fas fa-user"></i></span>
+          <span class="icon is-left" style="left: 10px;"><i class="fas fa-user"></i></span>
         </div>
       </div>
       <div class="field">
         <label class="label">Current password</label>
         <div class="control has-icons-left">
-          <input title="Password Old" id="user-password-old" class="input" type="password">
-          <span class="icon is-left"><i class="fas fa-lock"></i></span>
+          <input title="Password Old"
+                 id="user-password-old"
+                 style="box-shadow: none; border: none; padding-left: 48px;"
+                 class="input is-rounded has-background-light" type="password">
+          <span class="icon is-left" style="left: 10px;"><i class="fas fa-lock"></i></span>
         </div>
       </div>
       <div class="field">
         <label class="label">New password</label>
         <div class="control has-icons-left">
           <input title="Password New"
-                 class="input"
+                 style="box-shadow: none; border: none; padding-left: 48px;"
+                 class="input is-rounded has-background-light"
                  minlength="6"
                  pattern=".{6,}"
                  id="user-password-new"
                  type="password">
-          <span class="icon is-left"><i class="fas fa-lock"></i></span>
+          <span class="icon is-left" style="left: 10px;"><i class="fas fa-lock"></i></span>
         </div>
       </div>
       <div class="field">
         <label class="label">Re-enter new password</label>
         <div class="control has-icons-left">
-          <input title="Password New 2" class="input" minlength="6" id="user-password-new-2" type="password">
-          <span class="icon is-left"><i class="fas fa-lock"></i></span>
+          <input title="Password New 2"
+                 style="box-shadow: none; border: none; padding-left: 48px;"
+                 class="input is-rounded has-background-light" minlength="6" id="user-password-new-2" type="password">
+          <span class="icon is-left" style="left: 10px;"><i class="fas fa-lock"></i></span>
         </div>
       </div>
       <div class="field is-grouped is-grouped-centered" style="padding: 20px;">

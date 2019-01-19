@@ -55,7 +55,7 @@ async function get(model, query = {}, force = true, doSave = false) {
   async function tryFetch(doSaveFetch = doSave) {
     try {
       console.debug(`using AJAX for ${model} with ${Object.keys(query).join(', ')}`);
-      const results = await fetch(`/api/${model.toLowerCase()}/search?${Object.entries(query)
+      const response = await fetch(`/api/${model.toLowerCase()}/search?${Object.entries(query)
         .map(pair => pair.join('='))
         .join('&')}`, {
         headers: {Accept: 'application/json'},
@@ -63,11 +63,12 @@ async function get(model, query = {}, force = true, doSave = false) {
         credentials: 'include',
         redirect: 'follow',
         cache: 'no-cache',
-      }).then(res => res.json()).then(json => json.result);
+      });
+      const json = await response.json();
       if (doSaveFetch) {
-        sessionStorage.setItem(`${location.pathname}/${model.toLowerCase()}s?${Object.entries(query).map(pair => pair.join('=')).join('&')}`, JSON.stringify(results));
+        sessionStorage.setItem(`${location.pathname}/${model.toLowerCase()}s?${Object.entries(query).map(pair => pair.join('=')).join('&')}`, JSON.stringify(json.result));
       }
-      return results;
+      return json.result;
     } catch (e) {
       const msg = e.msg || e.message || e.toString();
       console.error(msg);
@@ -99,7 +100,7 @@ async function get(model, query = {}, force = true, doSave = false) {
  */
 async function create(model, postData = '') {
   try {
-    return await fetch(`/api/${model.toLowerCase()}/create`, {
+    const response = await fetch(`/api/${model.toLowerCase()}/create`, {
       method: 'post',
       headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
       mode: 'cors',
@@ -107,7 +108,9 @@ async function create(model, postData = '') {
       redirect: 'follow',
       body: postData,
       cache: 'no-cache',
-    }).then(res => res.json()).then(json => json.result);
+    });
+    const json = await response.json();
+    return json.result;
   } catch (e) {
     console.error(e);
     return alert(e.msg || e.message || e.toString());
@@ -123,23 +126,34 @@ async function create(model, postData = '') {
  * @param {?String} contentType
  * @return {Promise<Response>} promise of updated object
  */
-function update(model, id, postData, contentType = 'application/json') {
+async function update(model, id, postData, contentType = 'application/json') {
   const headers = {
-    Accept: ['application/json', 'text/html', 'application/xhtml+xml', 'text/plain', '*'].join(', '),
+    Accept: [
+      'application/json',
+      'text/html',
+      'application/xhtml+xml',
+      'text/plain',
+      '*'].join(', '),
   };
   if (contentType) headers['Content-Type'] = contentType;
-  return fetch(`/api/${model.toLowerCase()}/${id}`, {
-    method: 'post',
-    headers,
-    mode: 'cors',
-    credentials: 'include',
-    redirect: 'follow',
-    body: postData,
-    cache: 'no-cache',
-  }).then(res => res.status >= 400
-    ? res.json().then(json => json.msg).then(msg => Promise.reject(msg))
-    : res.json().then(json => json.result ? json.result : json.msg ));
+  try {
+    const response = await fetch(`/api/${model.toLowerCase()}/${id}`, {
+      method: 'post',
+      headers,
+      mode: 'cors',
+      credentials: 'include',
+      redirect: 'follow',
+      body: postData,
+      cache: 'no-cache',
+    });
+    const json = await response.json();
+    return response.status >= 400 ? Promise.reject(json.msg) : json.msg;
+  } catch (e) {
+    console.error(e);
+    return alert(e.msg || e.message || e.toString());
+  }
 }
+
 
 /**
  * Destroy an object from the database.
@@ -158,7 +172,8 @@ async function destroy(model, id) {
       redirect: 'follow',
       cache: 'no-cache',
     });
-    return await response.json().then(json => json.msg);
+    const json = await response.json();
+    return json.msg;
   } catch (e) {
     console.error(e);
     return alert(e.msg || e.message || e.toString());
