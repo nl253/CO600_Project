@@ -18,7 +18,6 @@ function unSelect(what) {
   if (maybe) maybe.classList.remove('has-background-light');
 }
 
-
 /**
  * Saves the last click. (this is recalled later)
  *
@@ -252,21 +251,21 @@ function showQuestEditPane(question) {
     <br>
 
     <div class="field is-horizontal" style="max-width: 600px">
-      <a id="module-edit-question-bad-answer-1" class="button is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer1 ?
-    question.badAnswer1 :
-    ''}</a>
+      <a id="module-edit-question-bad-answer-1" class="button is-light" contenteditable="true" style="width: 100%; padding: 3px 10px; border: 1px; margin-right: 10px;">
+        ${question.badAnswer1 ? question.badAnswer1 : ''}
+      </a>
     </div>
 
     <div class="field is-horizontal" style="max-width: 600px">
-      <a id="module-edit-question-bad-answer-2" class="button is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer2 ?
-    question.badAnswer2 :
-    ''}</a>
+      <a id="module-edit-question-bad-answer-2" class="button is-light" contenteditable="true" style="width: 100%; padding: 3px 10px; border: 1px; margin-right: 10px;">
+        ${question.badAnswer2 ? question.badAnswer2 : ''}
+      </a>
     </div>
     
     <div class="field is-horizontal" style="max-width: 600px">
-      <a id="module-edit-question-bad-answer-3" class="button is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer3 ?
-    question.badAnswer3 :
-    ''}</a>
+      <a id="module-edit-question-bad-answer-3" class="button is-light" contenteditable="true" style="width: 100%; padding: 3px 10px; border: 1px; margin-right: 10px;">
+        ${question.badAnswer3 ? question.badAnswer3 : ''}
+      </a>
     </div>
     <br>
 
@@ -321,7 +320,6 @@ function saveProgress() {
   }
 }
 
-
 /**
  * Toggle module. Run when a module is pressed. Shows the module-edit pane.
  *
@@ -354,16 +352,19 @@ async function toggleModule(id) {
     select('Module', id);
     clearList('Lesson');
     clearList('Question');
-    const lessP = Promise.all(get('Lesson', {moduleId: id})
-      .then(ls => ls.map(l => appendLesson(l))));
-    const QuestP = Promise.all(get('Question', {moduleId: id})
-      .then(qs => qs.map(q => appendQuestion(q))));
+    document.getElementById('module-edit-spinner-list-lesson').classList.remove('is-hidden');
+    document.getElementById('module-edit-spinner-list-question').classList.remove('is-hidden');
+    const lessP = get('Lesson', {moduleId: id})
+      .then(ls => Promise.all(ls.map(l => appendLesson(l))));
+    const QuestP = get('Question', {moduleId: id})
+      .then(qs => Promise.all(qs.map(q => appendQuestion(q))));
     await lessP;
     await QuestP;
+    document.getElementById('module-edit-spinner-list-lesson').classList.add('is-hidden');
+    document.getElementById('module-edit-spinner-list-question').classList.add('is-hidden');
   }
   return showModEditPane(await get('Module', {id}).then(ms => ms[0]));
 }
-
 
 /**
  * Toggle module. Run when a module is pressed. Shows the module-edit pane.
@@ -781,7 +782,11 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
 (async function() {
   try {
 
-    await Promise.all(get('Module', {authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id}).then(ms => ms.map(m => appendModule(m))));
+    document.getElementById('module-edit-spinner-list-module').classList.remove('is-hidden');
+
+    await get('Module', {authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id}).then(ms => Promise.all(ms.map(m => appendModule(m))));
+
+    document.getElementById('module-edit-spinner-list-module').classList.add('is-hidden');
 
     const memory = sessionStorage.getItem(`${location.pathname}?click`);
     if (!memory) return false;
@@ -845,4 +850,8 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
     console.error(e);
     return alert(msg)
   }
+  // document.querySelectorAll("li[data-id]:not([class*='has-background-light'])").forEach(el => {
+  //   el.onmouseover = () => el.classList.add('has-background-light');
+  //   el.onmouseout = () => el.classList.remove('has-background-light');
+  // });
 })();

@@ -22,6 +22,13 @@
       <h2 class="title has-text-centered" style="margin-bottom: 10px;">
         Modules
       </h2>
+
+      <p id="module-edit-spinner-list-module" class="has-text-centered is-hidden" style="margin: 20px auto;">
+        <span style="margin-bottom: 15px;">Loading</span>
+        <br>
+        <i class="fas fa-spinner spinner"></i>
+      </p>
+
       <!--list of modules-->
       <ul id="module-edit-list-module" class="menu-list" style="margin-top: 20px"></ul>
       <button id="module-edit-btn-module-create"
@@ -36,6 +43,12 @@
       <h2 class="title has-text-centered" style="margin-bottom: 20px; margin-top: 20px;">
         Lessons
       </h2>
+
+      <p id="module-edit-spinner-list-lesson" class="has-text-centered is-hidden" style="margin: 20px auto;">
+        <span style="margin-bottom: 15px;">Loading</span>
+        <br>
+        <i class="fas fa-spinner spinner"></i>
+      </p>
 
       <!--list of lessons-->
       <ol id="module-edit-list-lesson" class="menu-list" style="margin-bottom: 20px; list-style-type: none;">
@@ -53,11 +66,17 @@
       <br>
 
       <h2 class="title has-text-centered" style="margin: 35px 0 20px;">
-        Quiz
+        <span>Quiz</span>
       </h2>
 
+      <p id="module-edit-spinner-list-question" class="has-text-centered is-hidden" style="margin: 20px auto;">
+        <span style="margin-bottom: 15px;">Loading</span>
+        <br>
+        <i class="fas fa-spinner spinner"></i>
+      </p>
+
       <!--quiz edit (list of questions)-->
-      <ol id="module-edit-list-question" style="list-style-type: none;">
+      <ol id="module-edit-list-question" class="menu-list" style="list-style-type: none;">
         <li><p class="has-text-centered">Click on a module.</p></li>
       </ol>
 

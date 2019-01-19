@@ -90,7 +90,6 @@ async function get(model, query = {}, force = true, doSave = false) {
   return (force && await tryFetch()) || tryCache() || await tryFetch();
 }
 
-
 /**
  * Create a new object in the database.
  *
@@ -153,7 +152,6 @@ async function update(model, id, postData, contentType = 'application/json') {
     return alert(e.msg || e.message || e.toString());
   }
 }
-
 
 /**
  * Destroy an object from the database.
