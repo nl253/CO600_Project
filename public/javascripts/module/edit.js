@@ -18,7 +18,6 @@ function unSelect(what) {
   if (maybe) maybe.classList.remove('has-background-light');
 }
 
-
 /**
  * Saves the last click. (this is recalled later)
  *
@@ -70,7 +69,9 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
         Name
       </h2>
       
-      <div id="module-edit-name" contenteditable="true" style="max-width: 300px; border-radius: 8px; border: none; padding-left: 10px;" class="has-background-light">
+      <div id="module-edit-name" 
+           contenteditable="true" 
+           style="max-width: 300px; border-radius: 18px; border: none; padding-top: 5px; padding-bottom: 5px; padding-left: 10px; font-size: 1.2rem;" class="has-background-light">
         ${module.name ? module.name : ''}
       </div>
       <h3 class="subtitle" style="margin: 25px 0 0 0;">
@@ -125,7 +126,7 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
       <section class="is-medium" style="margin-bottom: 30px;">
         <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
         <textarea id="module-edit-summary"
-                  style="min-width: 100%; min-height: 90px; word-wrap: break-word; padding: 10px; border: none; border-radius: 8px;" 
+                  style="min-width: 50%; min-height: 90px; word-wrap: break-word; padding: 10px; border: none; border-radius: 18px;" 
                   class="has-background-light">${module.summary ? module.summary : ''}</textarea>
       </section>
       <div class="field is-grouped">
@@ -155,7 +156,7 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
  * @param {{id: !Number, moduleId: !Number, name: ?String, content: ?Boolean, summary: ?String}} lesson
  * @param {Array<{id: ?Number, name: !String}>} attachments
  */
-function showLessEditPane(lesson, attachments = []) {
+async function showLessEditPane(lesson, attachments = []) {
   document.getElementById('module-edit-pane').innerHTML = `
     <form enctype="multipart/form-data"
           id="module-edit-form-lesson"
@@ -166,11 +167,11 @@ function showLessEditPane(lesson, attachments = []) {
       <input name="name" value="${lesson.name ? lesson.name : ''}" 
              class="has-background-light"
              autocomplete="on" placeholder="e.g. Introduction to AI"
-             style="padding: 5px 10px; border: none; min-width: 60%; border-radius: 8px;">
+             style="padding: 5px 10px; border: none; min-width: 60%; border-radius: 18px; font-size: 1.2rem;">
       <h2 class="title is-3" style="margin-top: 20px;">Summary</h2>
       <textarea name="summary" autocomplete="on"
                 class="has-background-light"
-                style="padding: 5px; min-width: 650px; min-height: 50px; max-height: 400px; border: none; border-radius: 8px;">${lesson.summary ? lesson.summary : ''}</textarea>
+                style="padding: 5px; min-width: 650px; min-height: 50px; max-height: 400px; border: none; border-radius: 18px;">${lesson.summary ? lesson.summary : ''}</textarea>
       <h2 class="title is-3" style="margin-top: 20px;">Content</h2>
       <p style="margin-bottom: 10px;">Upload HTML file with the lesson content</p>
       <div id="module-edit-lesson-content"></div>
@@ -215,9 +216,7 @@ function showLessEditPane(lesson, attachments = []) {
   if (lesson.content) setLessContent();
   else unsetLessContent();
 
-  for (const f of attachments) {
-    appendAttachment({id: f.id, lessonId: lesson.id, name: f.name});
-  }
+  return await Promise.all(attachments.map(f => appendAttachment({id: f.id, lessonId: lesson.id, name: f.name})));
 }
 
 /**
@@ -231,7 +230,7 @@ function showQuestEditPane(question) {
     <p><strong>Note:</strong> Save the current question before editing another one</p>
     <br>
     <div class="field" style="max-width: 600px;">
-      <a id="module-edit-question-name" class="button is-light has-background-light is-block" contenteditable="true" style="padding: 5px; border: 1px; border-radius: 8px;">
+      <a id="module-edit-question-name" class="button is-light has-background-light is-block" contenteditable="true" style="padding: 5px; border: 1px; border-radius: 18px;">
         ${question.name ? question.name : ''}
       </a>
     </div>
@@ -252,21 +251,21 @@ function showQuestEditPane(question) {
     <br>
 
     <div class="field is-horizontal" style="max-width: 600px">
-      <a id="module-edit-question-bad-answer-1" class="button is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer1 ?
-    question.badAnswer1 :
-    ''}</a>
+      <a id="module-edit-question-bad-answer-1" class="button is-light" contenteditable="true" style="width: 100%; padding: 3px 10px; border: 1px; margin-right: 10px;">
+        ${question.badAnswer1 ? question.badAnswer1 : ''}
+      </a>
     </div>
 
     <div class="field is-horizontal" style="max-width: 600px">
-      <a id="module-edit-question-bad-answer-2" class="button is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer2 ?
-    question.badAnswer2 :
-    ''}</a>
+      <a id="module-edit-question-bad-answer-2" class="button is-light" contenteditable="true" style="width: 100%; padding: 3px 10px; border: 1px; margin-right: 10px;">
+        ${question.badAnswer2 ? question.badAnswer2 : ''}
+      </a>
     </div>
     
     <div class="field is-horizontal" style="max-width: 600px">
-      <a id="module-edit-question-bad-answer-3" class="button is-light" contenteditable="true" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer3 ?
-    question.badAnswer3 :
-    ''}</a>
+      <a id="module-edit-question-bad-answer-3" class="button is-light" contenteditable="true" style="width: 100%; padding: 3px 10px; border: 1px; margin-right: 10px;">
+        ${question.badAnswer3 ? question.badAnswer3 : ''}
+      </a>
     </div>
     <br>
 
@@ -321,7 +320,6 @@ function saveProgress() {
   }
 }
 
-
 /**
  * Toggle module. Run when a module is pressed. Shows the module-edit pane.
  *
@@ -338,7 +336,12 @@ async function toggleModule(id) {
     return;
   } // else
 
-  document.getElementById('module-edit-pane').innerHTML = `<p class="has-text-centered">Loading ...</p>`;
+  document.getElementById('module-edit-pane').innerHTML = `
+    <p class="has-text-centered" style="margin: 20px auto;">
+      <span style="margin-bottom: 15px;">Loading</span>
+      <br>
+      <i class="fas fa-spinner spinner"></i>
+    </p>`;
   unSelect('Lesson');
   unSelect('Question');
 
@@ -349,16 +352,19 @@ async function toggleModule(id) {
     select('Module', id);
     clearList('Lesson');
     clearList('Question');
-    get('Lesson', {moduleId: id}).then(ls => {
-      for (const l of ls) appendLesson(l);
-    });
-    get('Question', {moduleId: id}).then(qs => {
-      for (const q of qs) appendQuestion(q);
-    });
+    document.getElementById('module-edit-spinner-list-lesson').classList.remove('is-hidden');
+    document.getElementById('module-edit-spinner-list-question').classList.remove('is-hidden');
+    const lessP = get('Lesson', {moduleId: id})
+      .then(ls => Promise.all(ls.map(l => appendLesson(l))));
+    const QuestP = get('Question', {moduleId: id})
+      .then(qs => Promise.all(qs.map(q => appendQuestion(q))));
+    await lessP;
+    await QuestP;
+    document.getElementById('module-edit-spinner-list-lesson').classList.add('is-hidden');
+    document.getElementById('module-edit-spinner-list-question').classList.add('is-hidden');
   }
   return showModEditPane(await get('Module', {id}).then(ms => ms[0]));
 }
-
 
 /**
  * Toggle module. Run when a module is pressed. Shows the module-edit pane.
@@ -369,7 +375,12 @@ async function toggleModule(id) {
 async function toggleLesson(id) {
   const focusedLessId = getSelId('Lesson');
   if (id === focusedLessId) return;
-  document.getElementById('module-edit-pane').innerHTML = `<p class="has-text-centered">Loading ...</p>`;
+  document.getElementById('module-edit-pane').innerHTML = `
+    <p class="has-text-centered" style="margin: 20px auto;">
+      <span style="margin-bottom: 15px;">Loading</span>
+      <br>
+      <i class="fas fa-spinner spinner"></i>
+    </p>`;
   saveClick('Lesson', id);
   saveProgress();
   unSelect(focusedLessId === null ? 'Question' : 'Lesson');
@@ -386,7 +397,12 @@ async function toggleLesson(id) {
  */
 async function toggleQuestion(id) {
   if (id === getSelId('Question')) return;
-  document.getElementById('module-edit-pane').innerHTML = `<p class="has-text-centered">Loading ...</p>`;
+  document.getElementById('module-edit-pane').innerHTML = `
+    <p class="has-text-centered" style="margin: 20px auto;">
+      <span style="margin-bottom: 15px;">Loading</span>
+      <br>
+      <i class="fas fa-spinner spinner"></i>
+    </p>`;
   saveClick('Question', id);
   saveProgress();
   unSelect('Question');
@@ -599,9 +615,7 @@ async function updateLess() {
     console.debug([...formData.entries()]);
     await update('Lesson', id, formData, null);
     if (hasLessCont) setLessContent(id);
-    for (const f of attachments) {
-      appendAttachment({id: f.id, name: f.name, lessonId: id});
-    }
+    await Promise.all(attachments.map(f => appendAttachment({id: f.id, name: f.name, lessonId: id})));
     const moduleId = getSelId('Module');
     sessionStorage.removeItem(`${location.pathname}/lessons?id=${id}&moduleId=${moduleId}`);
     sessionStorage.removeItem(`${location.pathname}/lessons?id=${id}`);
@@ -709,9 +723,15 @@ function destroyAttach(id, lessonId) {
 document.getElementById('module-edit-btn-module-create').onclick = async function createMod(e) {
   e.preventDefault();
   const authorId = JSON.parse(sessionStorage.getItem('loggedIn')).id;
-  const module = create('Module', JSON.stringify({authorId} ));
-  sessionStorage.removeItem(`${location.pathname}/modules?authorId=${authorId}`);
-  return appendModule(await module);
+  try {
+    const module = create('Module', JSON.stringify({authorId} ));
+    sessionStorage.removeItem(`${location.pathname}/modules?authorId=${authorId}`);
+    return appendModule(await module);
+  } catch (e) {
+    console.error(e);
+    alert('Your session expired.');
+    location.pathname = '/';
+  }
 };
 
 /**
@@ -722,9 +742,16 @@ document.getElementById('module-edit-btn-module-create').onclick = async functio
 document.getElementById('module-edit-btn-lesson-create').onclick = async function createLess(e) {
   e.preventDefault();
   const moduleId = getSelId('Module');
-  const lesson = create('Lesson', JSON.stringify({moduleId} ));
-  sessionStorage.removeItem(`${location.pathname}/lessons?moduleId=${moduleId}`);
-  return appendLesson(await lesson);
+  if (!moduleId) return alert('Module must be selected.');
+  try {
+    const lesson = create('Lesson', JSON.stringify({moduleId} ));
+    sessionStorage.removeItem(`${location.pathname}/lessons?moduleId=${moduleId}`);
+    return appendLesson(await lesson);
+  } catch (e) {
+    console.error(e);
+    alert('Your session expired.');
+    location.pathname = '/';
+  }
 };
 
 /**
@@ -735,21 +762,31 @@ document.getElementById('module-edit-btn-lesson-create').onclick = async functio
 document.getElementById('module-edit-btn-question-create').onclick = async function createQuest(e) {
   e.preventDefault();
   const moduleId = getSelId('Module');
-  const question = create('Question', JSON.stringify({moduleId} ));
-  sessionStorage.removeItem(`${location.pathname}/questions?moduleId=${moduleId}`);
-  return appendQuestion(await question);
+  if (!moduleId) return alert('Module must be selected.');
+  try {
+    const question = create('Question', JSON.stringify({moduleId} ));
+    sessionStorage.removeItem(`${location.pathname}/questions?moduleId=${moduleId}`);
+    return appendQuestion(await question);
+  } catch (e) {
+    console.error(e);
+    alert('Your session expired.');
+    location.pathname = '/';
+  }
 };
 
-<!--Populate the page using AJAX-->
 /**
+ * Populate the page using AJAX.
+ *
  * Try to recall last click.
  */
 (async function() {
   try {
 
-    for (const m of await get('Module', {authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id})) {
-      appendModule(m);
-    }
+    document.getElementById('module-edit-spinner-list-module').classList.remove('is-hidden');
+
+    await get('Module', {authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id}).then(ms => Promise.all(ms.map(m => appendModule(m))));
+
+    document.getElementById('module-edit-spinner-list-module').classList.add('is-hidden');
 
     const memory = sessionStorage.getItem(`${location.pathname}?click`);
     if (!memory) return false;
@@ -813,4 +850,8 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
     console.error(e);
     return alert(msg)
   }
+  // document.querySelectorAll("li[data-id]:not([class*='has-background-light'])").forEach(el => {
+  //   el.onmouseover = () => el.classList.add('has-background-light');
+  //   el.onmouseout = () => el.classList.remove('has-background-light');
+  // });
 })();
