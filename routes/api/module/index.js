@@ -78,7 +78,7 @@ router.get(['/', '/search'],
         req.query.name = {[Sequelize.Op.like]: `%${req.query.name}%`};
       }
       if (req.query.topic) {
-        req.query.name = {[Sequelize.Op.like]: `%${req.query.topic}%`};
+        req.query.topic = {[Sequelize.Op.like]: `%${req.query.topic}%`};
       }
       const modules = await Module.findAll({
         limit: process.env.MAX_RESULTS || 100,
