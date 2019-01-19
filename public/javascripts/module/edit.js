@@ -126,8 +126,7 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
       <section class="is-medium" style="margin-bottom: 30px;">
         <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
         <textarea id="module-edit-summary"
-                  style="min-width: 50%; min-height: 90px; word-wrap: break-word; padding: 10px; border: none; border-radius: 18px;" 
-                  class="has-background-light">${module.summary ? module.summary : ''}</textarea>
+                  style="word-wrap: break-word; max-width: 80%;">${module.summary ? module.summary : ''}</textarea>
       </section>
       <div class="field is-grouped">
         <button type="reset" onclick="alert('Not Implemented Yet.')" class="button is-warning" style="margin: 7px">
@@ -167,15 +166,15 @@ async function showLessEditPane(lesson, attachments = []) {
       <input name="name" value="${lesson.name ? lesson.name : ''}" 
              class="has-background-light"
              autocomplete="on" placeholder="e.g. Introduction to AI"
-             style="padding: 5px 10px; border: none; min-width: 60%; border-radius: 18px; font-size: 1.2rem;">
+             style="padding: 5px 10px; border: none; border-radius: 18px; font-size: 1.2rem;">
       <h2 class="title is-3" style="margin-top: 20px;">Summary</h2>
       <textarea name="summary" autocomplete="on"
                 class="has-background-light"
-                style="padding: 5px; min-width: 650px; min-height: 50px; max-height: 400px; border: none; border-radius: 18px;">${lesson.summary ? lesson.summary : ''}</textarea>
+                style="padding: 5px; min-height: 50px; max-height: 400px; border: none; border-radius: 18px;">${lesson.summary ? lesson.summary : ''}</textarea>
       <h2 class="title is-3" style="margin-top: 20px;">Content</h2>
       <p style="margin-bottom: 10px;">Upload HTML file with the lesson content</p>
       <div id="module-edit-lesson-content"></div>
-      <input type="file" name="lesson" style="display: block; max-width: 200px; margin-top: 20px;">
+      <input type="file" name="lesson" class="is-paddingless" style="max-width: 200px; margin-top: 20px;">
       <h2 class="title is-3" style="margin-top: 20px;">Attachments (optional)</h2>
       <p><strong>Select a file:</strong></p>
       <br>
@@ -185,23 +184,23 @@ async function showLessEditPane(lesson, attachments = []) {
         <li>Video (.mp4, .mpg)</li>
       </ul>
       <br>
-      <input type="file" name="attachments" multiple style="display: block">
-      <div style="display: flex; flex-direction: column; justify-content: space-around; align-items: flex-start; margin-top: 20px;">
+      <input type="file" name="attachments" class="is-paddingless" multiple style="display: block">
+      <div style="display: flex; flex-direction: column; justify-content: space-around; align-items: flex-start; margin-top: 20px; width: 100%;">
         <h3 id="lesson-edit-h-uploaded-files title is-5" style="margin-bottom: 8px;">
           Uploaded Files
         </h3>
-        <ul id="module-edit-list-attachments" style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; min-width: 300px;"></ul>
+        <ul id="module-edit-list-attachments" style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; width: 100%;"></ul>
       </div>
-      <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 20px; min-width: 380px; max-width: 500px;">
-        <button onclick="alert('Not Implemented Yet.')" type="reset" class="button is-warning" style="min-width: 100px;">
+      <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; margin-top: 20px; margin-left: auto; margin-right: auto;">
+        <button onclick="alert('Not Implemented Yet.')" type="reset" class="button is-warning" style="margin-right: 20px;">
           <i class="fas fa-undo"></i>
           <span>Reset</span>
         </button>
-        <button onclick="event.preventDefault(); updateLess()" class="button is-success" style="min-width: 100px;">
+        <button onclick="event.preventDefault(); updateLess()" class="button is-success">
           <i class="fas fa-check"></i>
           <span>Save</span>
         </button>
-        <button onclick="event.preventDefault(); if (confirm('Delete lesson?')) destroyLess(${lesson.id})" class="button is-danger" style="min-width: 100px;">
+        <button onclick="event.preventDefault(); if (confirm('Delete lesson?')) destroyLess(${lesson.id})" class="button is-danger" style="margin-left: 20px;">
           <i class="fas fa-times"></i>
           <span>Delete</span>
         </button>
@@ -229,47 +228,35 @@ function showQuestEditPane(question) {
     <h1 class="title is-3" style="margin-bottom: 10px;">Question</h1>
     <p><strong>Note:</strong> Save the current question before editing another one</p>
     <br>
-    <div class="field" style="max-width: 600px;">
-      <a id="module-edit-question-name" class="button is-light has-background-light is-block" contenteditable="true" style="padding: 5px; border: 1px; border-radius: 18px;">
-        ${question.name ? question.name : ''}
-      </a>
-    </div>
+    <a id="module-edit-question-name" class="button is-light has-background-light is-block has-text-left" contenteditable="true" style="padding: 3px 15px">
+      ${question.name ? question.name : ''}
+    </a>
     <br>
 
-    <div class="field" style="max-width: 600px;">
-      <h2 class="title is-3" style="margin-bottom: 10px;">Correct Answer</h2>
-      <a id="module-edit-question-answer" class="button is-light is-block" contenteditable="true" style="padding: 5px; border: 1px;">
-        ${question.correctAnswer ? question.correctAnswer : ''}
-      </a>
-    </div>
-    <br>
+    <h2 class="title is-3" style="margin-bottom: 10px;">Correct Answer</h2>
+    <a id="module-edit-question-answer" class="button is-light is-block has-text-left" contenteditable="true" style="padding: 3px 15px;">
+      ${question.correctAnswer ? question.correctAnswer : ''}
+    </a>
     
-    <h3 class="title is-3" style="margin-bottom: 10px;">Other Answers</h3>
+    <h3 class="title is-3" style="margin: 30px 0 10px 0;">Other Answers</h3>
 
     <p><strong>Note:</strong> Include other answers which are wrong</p>
 
     <br>
 
-    <div class="field is-horizontal" style="max-width: 600px">
-      <a id="module-edit-question-bad-answer-1" class="button is-light" contenteditable="true" style="width: 100%; padding: 3px 10px; border: 1px; margin-right: 10px;">
-        ${question.badAnswer1 ? question.badAnswer1 : ''}
-      </a>
-    </div>
+    <a id="module-edit-question-bad-answer-1" class="button is-light has-text-left" contenteditable="true" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;">
+      ${question.badAnswer1 ? question.badAnswer1 : ''}
+    </a>
 
-    <div class="field is-horizontal" style="max-width: 600px">
-      <a id="module-edit-question-bad-answer-2" class="button is-light" contenteditable="true" style="width: 100%; padding: 3px 10px; border: 1px; margin-right: 10px;">
-        ${question.badAnswer2 ? question.badAnswer2 : ''}
-      </a>
-    </div>
+    <a id="module-edit-question-bad-answer-2" class="button is-light has-text-left" contenteditable="true" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;">
+      ${question.badAnswer2 ? question.badAnswer2 : ''}
+    </a>
     
-    <div class="field is-horizontal" style="max-width: 600px">
-      <a id="module-edit-question-bad-answer-3" class="button is-light" contenteditable="true" style="width: 100%; padding: 3px 10px; border: 1px; margin-right: 10px;">
-        ${question.badAnswer3 ? question.badAnswer3 : ''}
-      </a>
-    </div>
-    <br>
+    <a id="module-edit-question-bad-answer-3" class="button is-light has-text-left" contenteditable="true" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;">
+      ${question.badAnswer3 ? question.badAnswer3 : ''}
+    </a>
 
-    <div class="field is-grouped">
+    <div style="margin-left: auto; margin-right: auto; align-items: center; justify-content: space-around; max-width: 370px; display: flex;">
       <button type="submit" onclick="updateQuest()" class="button is-success" style="margin: 7px">
         <i class="fas fa-check"></i>
         <span>Save</span>
@@ -498,7 +485,7 @@ async function appendAttachment(file) {
         data-name="${file.name}"
         data-id="${file.id}"
         style="padding: 10px; margin-bottom: 10px; width: 100%;">
-      <p style="margin-bottom: auto; margin-top: auto; float: left;">${file.name}</p>
+      <p style="margin-bottom: auto; margin-top: auto; float: left; position: relative; top: 4px;">${file.name}</p>
       <div style="margin-bottom: auto; margin-top: auto; float: right;">
         <a href="/file/${file.id}" class="button is-link is-small has-text-white" download="${file.name}" style="">
           Download
@@ -623,13 +610,17 @@ async function updateLess() {
     console.debug([...formData.entries()]);
     await update('Lesson', id, formData, null);
     if (hasLessCont) setLessContent(id);
-    await Promise.all(attachments.map(f => appendAttachment({id: f.id, name: f.name, lessonId: id})));
+    await Promise.all(Array.from(attachments).map(f => appendAttachment({id: f.id, name: f.name, lessonId: id})));
     const moduleId = getSelId('Module');
     sessionStorage.removeItem(`${location.pathname}/lessons?id=${id}&moduleId=${moduleId}`);
     sessionStorage.removeItem(`${location.pathname}/lessons?id=${id}`);
     sessionStorage.removeItem(`${location.pathname}/lessons?moduleId=${moduleId}`);
     sessionStorage.removeItem(`${location.pathname}/files?lessonId=${id}`);
     maybeName = form.querySelector('input[name=name]').value.trim();
+    // a way to clear files
+    form.querySelector('input[type=file][multiple]').outerHTML = `
+      <input type="file" name="attachments" class="is-paddingless" multiple style="display: block">
+    `;
     document.querySelector(`#module-edit-list-lesson li[data-id='${id}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${id}`;
     return alert('Updated lesson.');
   } catch (e) {
