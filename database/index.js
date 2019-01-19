@@ -19,10 +19,12 @@ const {createLogger} = require('../lib');
 // const log = createLogger({label: 'DATABASE', lvl: process.env.js.LOGGING_DB});
 const log = createLogger({label: 'DATABASE', lvl: process.env.LOGGING_DB || 'warn'});
 
-if (process.env.NODE_ENV !== 'development') {
-  log.error(`database not configured for ${process.env.NODE_ENV}, see ${resolve( join(__dirname, __filename))}`);
-  process.exit(1);
-}
+// if (process.env.NODE_ENV !== 'development') {
+//
+//   log.error(`database not configured for ${process.env.NODE_ENV}, see ${resolve( join(__dirname, __filename))}`);
+//   process.exit(1);
+//
+// }
 
 // 3rd Party
 const Sequelize = require('sequelize');

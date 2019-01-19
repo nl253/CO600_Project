@@ -1,15 +1,16 @@
-<section class="hero has-background-grey is-bold">
+<section class="hero has-background-grey">
   <div class="hero-body">
     <div class="columns">
       <div class="column is-one-fifth">
-        <h1 class="title is-3 has-text-centered has-text-white" style="position: relative; top: 10px;">
+        <h1 class="title is-3 has-text-centered has-text-white">
           Module Search
         </h1>
       </div>
-      <div class="column is-half ">
+      <div class="column is-1"></div>
+      <div class="column is-4">
         <div class="field">
           <div class="control has-icons-left">
-            <input class="input is-large has-background-white" id="module-searchBar" type="text">
+            <input class="input has-background-white" id="module-searchBar" type="search">
             <span class="icon is-left">
                 <i class="fas fa-search"></i>
               </span>
@@ -17,15 +18,15 @@
         </div>
       </div>
       <div class="column">
-        <button class="button is-large is-success" id="module-searchBtn">Search</button>
+        <button class="button is-link has-text-white" id="module-searchBtn">Search</button>
       </div>
     </div>
   </div>
 </section>
 
 <section class="section">
-  <div class="columns">
-    <div class="column is-2">
+  <div class="columns is-multiline">
+    <div class="column is-2-fullhd is-2-desktop is-3-tablet is-12-mobile">
       <nav class="panel" style="margin-right: 1vw;">
         <p class="panel-heading">Filter by Date</p>
         <p class="panel-tabs">
@@ -92,7 +93,7 @@
         </div>
       </nav>
     </div>
-    <div class="column is-10">
+    <div class="column is-10-fullhd is-7-desktop is-3-tablet is-12-mobile">
       <div id="module-searchResults"></div>
     </div>
   </div>

@@ -1,5 +1,11 @@
 @import "./bulma.scss";
 
+@keyframes spin { 100% { transform:rotate(360deg); } }
+
+.spinner {
+  animation:spin 3s linear infinite;
+}
+
 $fancy-font: Roboto, Arial, sans;
 
 body {

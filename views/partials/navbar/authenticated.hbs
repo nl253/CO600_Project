@@ -1,14 +1,17 @@
 <header>
-  <nav class="navbar has-background-dark" role="navigation" aria-label="main navigation">
+  <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
     <div class="navbar-brand">
-      <a class="navbar-item" href="/">
-        <span class="has-text-weight-bold has-text-white" style="margin-right: 10px;">{{title}}</span>
+      <a class="navbar-item is-paddingless" style="padding-left: 10px !important; padding-right: 10px !important;" href="/">
+        <span class="has-text-weight-bold" style="font-size: 2rem !important; margin-right: 15px;">{{title}}</span>
         <img src="/images/logo.png" width="30" height="30" alt="Logo">
       </a>
-      <a role="button" class="navbar-burger burger has-background-grey" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample" onclick="document.querySelector(`.navbar-menu[class*='is-active']`) ? hideMenu() : showMenu()">
-        <span aria-hidden="true" class="has-background-grey-lighter"></span>
-        <span aria-hidden="true" class="has-background-grey-lighter"></span>
-        <span aria-hidden="true" class="has-background-grey-lighter"></span>
+      <a role="button"
+         class="navbar-burger burger has-background-grey"
+         aria-label="menu"
+         aria-expanded="false">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
       </a>
     </div>
 
@@ -49,6 +52,7 @@
               <span>Help</span>
             </a>
             <a id="navbar-auth-btn-log-out" class="button">
+              <i class="fas fa-sign-out-alt"></i>
               Log Out
             </a>
           </div>
@@ -57,32 +61,5 @@
     </div>
   </nav>
 </header>
-
-<!--<style>-->
-  <!--.has-background-dark .button, .has-background-dark .navbar-item, .has-background-dark .navbar-link {-->
-    <!--color: white;-->
-  <!--}-->
-<!--</style>-->
-
-<script>
-  document.querySelectorAll('.navbar-item, .navbar-link').forEach(el => el.classList.add('has-text-white'));
-  document.querySelectorAll('.navbar .has-dropdown .navbar-item').forEach(el => el.classList.add('has-background-light'));
-  document.querySelectorAll('.navbar .has-dropdown .navbar-item').forEach(el => el.classList.add('has-text-black'));
-  function showMenu() {
-    const menu = document.querySelector('.navbar-menu');
-    menu.classList.add('is-active');
-    menu.classList.add('has-text-white');
-    document.querySelectorAll('.navbar-item, .navbar-link').forEach(el => el.classList.remove('has-text-white'));
-    document.querySelectorAll('.navbar-item, .navbar-link').forEach(el => el.classList.add('has-text-black'));
-  }
-  function hideMenu() {
-    const menu = document.querySelector('.navbar-menu');
-    menu.classList.remove('is-active');
-    menu.classList.remove('has-text-white');
-    menu.classList.add('has-text-black');
-    document.querySelectorAll('.navbar-item, .navbar-link').forEach(el => el.classList.add('has-text-white'));
-    document.querySelectorAll('.navbar-item, .navbar-link').forEach(el => el.classList.remove('has-text-black'));
-  }
-</script>
 
 <script src="/javascripts/authenticated.js" async></script>
