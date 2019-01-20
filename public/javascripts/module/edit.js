@@ -801,8 +801,11 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
 
     document.getElementById('module-edit-spinner-list-module').classList.remove('is-hidden');
 
-    await get('Module', {authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id}).then(ms => Promise.all(ms.map(m => appendModule(m))));
+    const loggedIn = sessionStorage.getItem('loggedIn');
 
+    if (!loggedIn) return logOut();
+
+    await get('Module', {authorId: JSON.parse(loggedIn).id}).then(ms => Promise.all(ms.map(m => appendModule(m))));
     document.getElementById('module-edit-spinner-list-module').classList.add('is-hidden');
 
     const memory = sessionStorage.getItem(`${location.pathname}?click`);

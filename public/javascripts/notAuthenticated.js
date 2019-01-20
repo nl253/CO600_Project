@@ -30,7 +30,16 @@ document.getElementById('layout-btn-log-in').onclick = async (event) => {
     return alert(msg);
   }
 
-  const json = await logInRes.json();
+  let json;
+
+  try {
+    json = await logInRes.json();
+  } catch (e) {
+    console.error(e);
+    sessionStorage.clear();
+    return document.getElementById('layout-btn-log-in').dispatchEvent(new Event('click'));
+  }
+
   sessionStorage.setItem('loggedIn', JSON.stringify(json.result));
   setCookie('token', json.result.token);
   location.href = location.pathname.includes('/register')

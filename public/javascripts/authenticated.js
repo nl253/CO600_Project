@@ -1,3 +1,31 @@
+/**
+ * Logs the user out by sending a logout request.
+ *
+ * @returns {Promise<void>}
+ */
+async function logOut() {
+    try {
+      const response = await fetch('/api/user/logout', {
+        redirect: 'follow',
+        cache: 'no-cache',
+        mode: 'cors',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
+      sessionStorage.clear();
+      if (response.status >= 400) throw new (await response.json());
+    } catch (e) {
+      console.error(e);
+    }
+}
+
+if (sessionStorage.getItem('loggedIn') === null) {
+  logOut().then(ok => location.pathname = '/').catch(err => alert(err));
+}
+
 document.querySelector(".navbar-burger.burger").onclick = () => {
   const menu = document.querySelector('.navbar-menu');
 
@@ -9,22 +37,11 @@ document.querySelector(".navbar-burger.burger").onclick = () => {
 document.getElementById('navbar-auth-btn-log-out').onclick = async (event) => {
   event.preventDefault();
   try {
-    const response = await fetch('/api/user/logout', {
-      redirect: 'follow',
-      cache: 'no-cache',
-      mode: 'cors',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    });
-    sessionStorage.clear();
-    if (response.status >= 400) throw new (await response.json());
+    await logOut()
   } catch (e) {
     console.error(e);
   }
-  location.href = '/';
+  location.pathname = '/';
 };
 
 (function() {

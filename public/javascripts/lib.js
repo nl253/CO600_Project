@@ -44,6 +44,15 @@ function setCookie(name, value, opts = {}) {
 }
 
 /**
+ * Clears a cookie.
+ *
+ * @param {!String} name
+ */
+function clearCookie(name) {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
+}
+
+/**
  * Query the database for objects.
  *
  * @param {'User', 'Module', 'Lesson', 'Question', 'Rating'} model
