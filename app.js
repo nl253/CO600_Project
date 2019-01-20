@@ -82,11 +82,19 @@ app.use(async (req, res, next) => {
   }
   try {
     log.debug(`token sent in cookies`);
-    const sess = await Session.findOne({
-      where: {
-        token: decrypt(decodeURIComponent(req.cookies.token)),
-      },
-    });
+    let token;
+    try {
+      token = decrypt(decodeURIComponent(req.cookies.token));
+    } catch (e) {
+      log.debug(`token sent could not be decrypted`);
+      res.clearCookie('token', {
+        SameSite: 'Strict',
+        httpOnly: false,
+        Path: '/',
+      });
+      return next();
+    }
+    const sess = await Session.findOne({where: {token}});
     if (sess === null && !req.originalUrl.includes('/api/')) {
       log.debug(`token sent is does not correspond to a session`);
       res.clearCookie('token', {
