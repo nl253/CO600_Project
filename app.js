@@ -61,6 +61,8 @@ app.use(require('morgan')(':method :url :status :req[cookie]'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
+app.use(require('compression')());
+
 app.use(
   require('node-sass-middleware')({
     src: process.env.PUBLIC_PATH,
