@@ -68,7 +68,6 @@ async function get(model, query = {}, force = true, doSave = false) {
         .map(pair => pair.join('='))
         .join('&')}`, {
         headers: {Accept: 'application/json'},
-        mode: 'cors',
         credentials: 'include',
         redirect: 'follow',
         cache: 'no-cache',
@@ -111,7 +110,6 @@ async function create(model, postData = '') {
     const response = await fetch(`/api/${model.toLowerCase()}/create`, {
       method: 'post',
       headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
-      mode: 'cors',
       credentials: 'include',
       redirect: 'follow',
       body: postData,
@@ -148,7 +146,6 @@ async function update(model, id, postData, contentType = 'application/json') {
     const response = await fetch(`/api/${model.toLowerCase()}/${id}`, {
       method: 'post',
       headers,
-      mode: 'cors',
       credentials: 'include',
       redirect: 'follow',
       body: postData,
@@ -174,7 +171,6 @@ async function destroy(model, id) {
     const response = await fetch(`/api/${model.toLowerCase()}/${id}`, {
       method: 'delete',
       headers: {Accept: 'application/json'},
-      mode: 'cors',
       credentials: 'include',
       redirect: 'follow',
       cache: 'no-cache',

@@ -18,7 +18,6 @@ function unSelect(what) {
   if (maybe) maybe.classList.remove('has-background-light');
 }
 
-
 /**
  * Saves the last click. (this is recalled later)
  *

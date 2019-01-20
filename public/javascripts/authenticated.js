@@ -8,7 +8,6 @@ async function logOut() {
       const response = await fetch('/api/user/logout', {
         redirect: 'follow',
         cache: 'no-cache',
-        mode: 'cors',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
