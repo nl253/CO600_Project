@@ -65,6 +65,9 @@ input:not([type]), input[type=text], input[type=email], input[type=password], in
 
 input, [contenteditable] {
   padding: 3px 18px;
+  &[type=file] {
+    max-width: 200px;
+  }
 }
 
 textarea {
@@ -85,16 +88,16 @@ textarea {
     box-shadow: $grey-darker 0px 0px 2px;
   }
   &.is-link, &.is-info {
-    color: $grey-darker ;
+    color: $white !important;
   }
   &.is-primary {
-    color: $white;
+    color: $white !important;
   }
   &.is-success {
-    color: $white;
+    color: $white !important;
   }
   &.is-warning {
-    color: $black;
+    color: $black !important;
   }
 }
 
