@@ -101,6 +101,11 @@ textarea {
   }
 }
 
+li[disabled] {
+  pointer-events: none;
+  color: $grey;
+}
+
 .message {
   box-shadow: #000000bd 2px 1px 8px;
 }
