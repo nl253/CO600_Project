@@ -71,7 +71,7 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
       
       <div id="module-edit-name" 
            contenteditable="true" 
-           style="max-width: 300px; border-radius: 18px; border: none; padding-top: 5px; padding-bottom: 5px; padding-left: 10px; font-size: 1.2rem;" class="has-background-light">
+           style="border-radius: 18px; border: none; padding-top: 5px; padding-bottom: 5px; padding-left: 10px; font-size: 1.2rem;" class="has-background-light">
         ${module.name ? module.name : ''}
       </div>
       <h3 class="subtitle" style="margin: 25px 0 0 0;">
@@ -90,7 +90,7 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
             </span>
           </button>
         </div>
-        <div class="dropdown-menu" id="dropdown-menu" role="menu">
+        <div class="dropdown-menu" id="dropdown-menu" role="menu" style="margin-bottom: 30px;">
           <div class="dropdown-content">
             ${topics.map(
       t => "<a class='dropdown-item' onclick='document.getElementById(\"module-edit-topic\").innerText = this.innerText.trim()'>" +
@@ -126,21 +126,27 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
       <section class="is-medium" style="margin-bottom: 30px;">
         <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
         <textarea id="module-edit-summary"
-                  style="word-wrap: break-word; max-width: 80%;">${module.summary ? module.summary : ''}</textarea>
+                  style="word-wrap: break-word;">${module.summary ? module.summary : ''}</textarea>
       </section>
-      <div class="field is-grouped">
-        <button type="reset" onclick="alert('Not Implemented Yet.')" class="button is-warning" style="margin: 7px">
-          <i class="fas fa-undo"></i>
-          <span>Reset</span>
-        </button>
-        <button type="submit" onclick="updateMod()" class="button is-success" style="margin: 7px">
-          <i class="fas fa-check"></i>
-          <span>Save</span>
-        </button>
-        <button onclick="if (confirm('Delete module?')) destroyMod(${module.id})" class="button is-danger" style="margin: 7px">
-          <i class="fas fa-times"></i>
-          <span>Delete</span>
-        </button>
+      <div class="columns is-center is-multiline is-narrow" style="max-width: 400px; margin-left: auto; margin-right: auto;">
+        <div class="is-block column is-4-fullhd is-4-desktop is-4-tablet is-12-mobile">
+          <button type="reset" onclick="alert('Not Implemented Yet.')" class="button is-warning is-block" style="margin: 7px auto; width: 100%;">
+            <i class="fas fa-undo" style="position: relative; top: 4px; left: 2px;"></i>
+            <span>Reset</span>
+          </button>
+        </div>
+        <div class="is-block column is-4-fullhd is-4-desktop is-4-tablet is-12-mobile">
+          <button type="submit" onclick="updateMod()" class="button is-success is-block" style="margin: 7px auto; width: 100%;">
+            <i class="fas fa-check" style="position: relative; top: 4px; left: 2px;"></i>
+            <span>Save</span>
+          </button>
+        </div>
+        <div class="is-block column is-4-fullhd is-4-desktop is-4-tablet is-12-mobile">
+          <button onclick="if (confirm('Delete module?')) destroyMod(${module.id})" class="button is-danger is-block" style="margin: 7px auto; width: 100%;">
+            <i class="fas fa-times" style="position: relative; top: 4px; left: 2px;"></i>
+            <span>Delete</span>
+          </button>
+        </div>
       </div>
     `;
   } catch (e) {
@@ -174,7 +180,7 @@ async function showLessEditPane(lesson, attachments = []) {
       <h2 class="title is-3" style="margin-top: 20px;">Content</h2>
       <p style="margin-bottom: 10px;">Upload HTML file with the lesson content</p>
       <div id="module-edit-lesson-content"></div>
-      <input type="file" name="lesson" class="is-paddingless" style="max-width: 200px; margin-top: 20px;">
+      <input type="file" name="lesson" class="is-paddingless" style="margin-top: 20px;">
       <h2 class="title is-3" style="margin-top: 20px;">Attachments (optional)</h2>
       <p><strong>Select a file:</strong></p>
       <br>
@@ -191,19 +197,25 @@ async function showLessEditPane(lesson, attachments = []) {
         </h3>
         <ul id="module-edit-list-attachments" style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; width: 100%;"></ul>
       </div>
-      <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; margin-top: 20px; margin-left: auto; margin-right: auto;">
-        <button onclick="alert('Not Implemented Yet.')" type="reset" class="button is-warning" style="margin-right: 20px;">
-          <i class="fas fa-undo"></i>
-          <span>Reset</span>
-        </button>
-        <button onclick="event.preventDefault(); updateLess()" class="button is-success">
-          <i class="fas fa-check"></i>
-          <span>Save</span>
-        </button>
-        <button onclick="event.preventDefault(); if (confirm('Delete lesson?')) destroyLess(${lesson.id})" class="button is-danger" style="margin-left: 20px;">
-          <i class="fas fa-times"></i>
-          <span>Delete</span>
-        </button>
+      <div class="columns is-center is-multiline is-narrow" style="max-width: 400px; margin-left: auto; margin-right: auto;">
+        <div class="is-block column is-4-fullhd is-4-desktop is-4-tablet is-12-mobile">
+          <button onclick="alert('Not Implemented Yet.')" type="reset" class="button is-block is-warning" style="margin: 7px auto; width: 100%;">
+            <i class="fas fa-undo" style="position: relative; top: 4px; left: 2px;"></i>
+            <span>Reset</span>
+          </button>
+        </div>
+        <div class="is-block column is-4-fullhd is-4-desktop is-4-tablet is-12-mobile">
+          <button onclick="event.preventDefault(); updateLess()" class="button is-block is-success" style="margin: 7px auto; width: 100%;">
+            <i class="fas fa-check" style="position: relative; top: 4px; left: 2px;"></i>
+            <span>Save</span>
+          </button>
+        </div>
+        <div class="is-block column is-4-fullhd is-4-desktop is-4-tablet is-12-mobile">
+          <button onclick="event.preventDefault(); if (confirm('Delete lesson?')) destroyLess(${lesson.id})" class="button is-block is-danger" style="margin: 7px auto; width: 100%;">
+            <i class="fas fa-times" style="position: relative; top: 4px; left: 2px;"></i>
+            <span>Delete</span>
+          </button>
+        </div>
       </div>
     </form>
     `;
@@ -255,20 +267,26 @@ function showQuestEditPane(question) {
     <a id="module-edit-question-bad-answer-3" class="button is-light has-text-left" contenteditable="true" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;">
       ${question.badAnswer3 ? question.badAnswer3 : ''}
     </a>
-
-    <div style="margin-left: auto; margin-right: auto; align-items: center; justify-content: space-around; max-width: 370px; display: flex;">
-      <button type="submit" onclick="updateQuest()" class="button is-success" style="margin: 7px">
-        <i class="fas fa-check"></i>
-        <span>Save</span>
-      </button>
-      <button type="reset" onclick="alert('Not Implemented Yet.')" class="button is-warning" style="margin: 7px">
-        <i class="fas fa-undo"></i>
-        <span>Reset</span>
-      </button>
-      <button onclick="if (confirm('Delete question?')) destroyQuest(${question.id}) " class="button is-danger" style="margin: 7px">
-        <i class="fas fa-check"></i>
-        <span>Delete</span>
-      </button>
+    
+    <div class="columns is-center is-multiline is-narrow" style="max-width: 400px; margin-left: auto; margin-right: auto;">
+      <div class="is-block column is-4-fullhd is-4-desktop is-4-tablet is-12-mobile">
+        <button type="reset" onclick="alert('Not Implemented Yet.')" class="button is-block is-warning" style="margin: 7px auto; width: 100%;">
+          <i class="fas fa-undo" style="position: relative; top: 4px; left: 2px;"></i>
+          <span>Reset</span>
+        </button>
+      </div>
+      <div class="is-block column is-4-fullhd is-4-desktop is-4-tablet is-12-mobile">
+        <button type="submit" onclick="updateQuest()" class="button is-block is-success" style="margin: 7px auto; width: 100%;">
+          <i class="fas fa-check" style="position: relative; top: 4px; left: 2px;"></i>
+          <span>Save</span>
+        </button>
+      </div>
+      <div class="is-block column is-4-fullhd is-4-desktop is-4-tablet is-12-mobile">
+        <button onclick="if (confirm('Delete question?')) destroyQuest(${question.id})" class="button is-block is-danger" style="margin: 7px auto; width: 100%;">
+          <i class="fas fa-times" style="position: relative; top: 4px; left: 2px;"></i>
+          <span>Delete</span>
+        </button>
+      </div>
     </div>
   `;
 }
@@ -323,7 +341,7 @@ async function toggleModule(id) {
     return;
   } // else
 
-  document.querySelectorAll(`module-edit-list-module > li[data-id]`).forEach(li => li.setAttribute('disabled'));
+  document.querySelectorAll(`#module-edit-list-module > li[data-id]`).forEach(li => li.setAttribute('disabled', 'true'));
 
   document.getElementById('module-edit-pane').innerHTML = `
     <p class="has-text-centered" style="margin: 20px auto;">
@@ -353,7 +371,7 @@ async function toggleModule(id) {
     document.getElementById('module-edit-spinner-list-question').classList.add('is-hidden');
   }
 
-  document.querySelectorAll(`module-edit-list-module > li`).forEach(li => li.removeAttribute('disabled'));
+  document.querySelectorAll(`#module-edit-list-module > li`).forEach(li => li.removeAttribute('disabled'));
   return showModEditPane(await get('Module', {id}).then(ms => ms[0]));
 }
 
@@ -366,7 +384,7 @@ async function toggleModule(id) {
 async function toggleLesson(id) {
   const focusedLessId = getSelId('Lesson');
   if (id === focusedLessId) return;
-  document.querySelectorAll('module-edit-list-lesson > li[data-id]').forEach(li => li.setAttribute('disabled'));
+  document.querySelectorAll('#module-edit-list-lesson > li[data-id]').forEach(li => li.setAttribute('disabled', 'true'));
   document.getElementById('module-edit-pane').innerHTML = `
     <p class="has-text-centered" style="margin: 20px auto;">
       <span style="margin-bottom: 15px;">Loading</span>
@@ -378,7 +396,7 @@ async function toggleLesson(id) {
   unSelect(focusedLessId === null ? 'Question' : 'Lesson');
   select('Lesson', id);
   const lesson = (await get('Lesson', {id, moduleId: getSelId('Module')}))[0];
-  document.querySelectorAll('module-edit-list-lesson > li[data-id]').forEach(li => li.removeAttribute('disabled'));
+  document.querySelectorAll('#module-edit-list-lesson > li[data-id]').forEach(li => li.removeAttribute('disabled'));
   return await showLessEditPane(lesson, await get('File', {lessonId: lesson.id}));
 }
 
@@ -390,7 +408,7 @@ async function toggleLesson(id) {
  */
 async function toggleQuestion(id) {
   if (id === getSelId('Question')) return;
-  document.querySelectorAll('module-edit-list-question > li[data-id]').forEach(li => li.setAttribute('disabled'));
+  document.querySelectorAll('#module-edit-list-question > li[data-id]').forEach(li => li.setAttribute('disabled', 'true'));
   document.getElementById('module-edit-pane').innerHTML = `
     <p class="has-text-centered" style="margin: 20px auto;">
       <span style="margin-bottom: 15px;">Loading</span>
@@ -402,7 +420,7 @@ async function toggleQuestion(id) {
   unSelect('Question');
   unSelect('Lesson');
   select('Question', id);
-  document.querySelectorAll('module-edit-list-question > li[data-id]').forEach(li => li.removeAttribute('disabled'));
+  document.querySelectorAll('#module-edit-list-question > li[data-id]').forEach(li => li.removeAttribute('disabled'));
   return await showQuestEditPane((await get('Question', {id, moduleId: getSelId('Module')}))[0]);
 }
 
@@ -783,8 +801,11 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
 
     document.getElementById('module-edit-spinner-list-module').classList.remove('is-hidden');
 
-    await get('Module', {authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id}).then(ms => Promise.all(ms.map(m => appendModule(m))));
+    const loggedIn = sessionStorage.getItem('loggedIn');
 
+    if (!loggedIn) return logOut();
+
+    await get('Module', {authorId: JSON.parse(loggedIn).id}).then(ms => Promise.all(ms.map(m => appendModule(m))));
     document.getElementById('module-edit-spinner-list-module').classList.add('is-hidden');
 
     const memory = sessionStorage.getItem(`${location.pathname}?click`);
