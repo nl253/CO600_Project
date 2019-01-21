@@ -477,9 +477,25 @@ function unsetLessContent() {
 (async function() {
   try {
 
-    for (const m of await get('Enrollment', {authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id})) {
-      appendModule(m);
-    }
+    const cfg = {
+      redirect: 'follow',
+      cache: 'no-cache',
+      mode: 'cors',
+      credentials: 'include',
+      headers: {Accept: 'application/json'},
+    };
+    const userId = JSON.parse(sessionStorage.getItem("loggedIn")).id;
+    fetch(`/api/enrollment/search?userId=${userId}`,cfg)
+      .then(response => response.status >= 400
+        // if it goes wrong force it to jump to reject
+        ? response.json().then(errMsg => Promise.reject(errMsg))
+        // the JSON object is guaranteed to have a "msg" property
+        : response.json())
+    .then(json => {
+      for (const m of json) {
+        appendModule(m);
+      }
+    });
 
     const memory = sessionStorage.getItem(`${location.pathname}?click`);
     if (!memory) return false;
