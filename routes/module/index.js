@@ -6,12 +6,11 @@ const {join} = require('path');
 const {NoSuchRecord} = require('../errors');
 const {Enrollment, Module, Lesson, Rating, sequelize, User} = require('../../database');
 
+router.get('/edit', isLoggedIn(), (req, res) => res.render(join('module', 'edit')));
 
-router.get('/edit', isLoggedIn(),
-  (req, res) => res.render(join('module', 'edit')));
+router.get('/search', (req, res) => res.render(join('module', 'search')));
 
-router.get('/search',
-  (req, res) => res.render(join('module', 'search')));
+router.get(['/view', '/learn'], (req, res) => res.render(join('module', 'learn')));
 
 router.get('/:id', async (req, res, next) => {
   let moduleId = req.params.id, id = req.params.id, rating = Promise.resolve(0), ratings = Promise.resolve([]);

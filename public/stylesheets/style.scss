@@ -1,13 +1,16 @@
 @import "./bulma.scss";
 
+@keyframes spin { 100% { transform:rotate(360deg); } }
+
+$link: #00B7FF;
 $fancy-font: Roboto, Arial, sans;
 
-body {
-  font: 14px $fancy-font, 'Lucida Grande', Helvetica, Arial, sans-serif;
+.fancy-font {
+  font-family: $fancy-font;
 }
 
-a {
-  color: #00B7FF;
+.spinner {
+  animation:spin 3s linear infinite;
 }
 
 .subtitle {
@@ -15,78 +18,98 @@ a {
   margin-bottom: 12px !important;
 }
 
-[contenteditable] {
-  padding: 3px;
-  border: 1px $grey dashed;
+body {
+  font: 14px $fancy-font, 'Lucida Grande', Helvetica, Arial, sans-serif;
 }
 
-//input[type=text], input[type=password], input[type=email], textarea, div[contentEditable], span[contenteditable], p[contenteditable] {
-  //background: $grey-lighter;
-//}
-
-input[type=file] {
-  max-width: 200px;
+a {
+  color: $link;
 }
 
-input, textarea {
-  display: block;
+input:not([type]), input[type=text], input[type=email], input[type=password], input[type=date], input[type=search], [contenteditable], textarea {
+  width: 100%;
+  //min-width: 50%;
+  //max-width: 85%;
+  border: none;
+  border-radius: $radius-rounded;
+  @extend .is-block;
+  @extend .has-background-light;
+
+  .has-background-light &, .message-body & {
+    //@extend .has-background-white;
+    background: $white !important;
+    border: 1px solid $border;
+  }
+
+  &:focus {
+    outline: initial;
+    border: 1px solid $border-hover !important;
+    box-shadow: $box-shadow;
+  }
+
+  &:hover {
+    border: 1px solid $border-hover !important;
+    box-shadow: $box-shadow;
+  }
+
+  &[type=file] {
+    max-width: 200px;
+  }
+
+  &[type=submit] {
+    border-radius: 22px !important;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
 }
 
-.tabs li.is-active, .tabs li.is-active span {
-  color: black !important;
+input, [contenteditable] {
+  padding: 3px 18px;
+  &[type=file] {
+    max-width: 200px;
+  }
 }
 
-section#user-personal-details form .field {
-  margin-bottom: 40px;
-}
-
-section#user-personal-details .title + p {
-  margin-bottom: 20px;
-}
-
-section#user-personal-details .title {
-  margin-bottom: 5px;
-}
-
-.fancy-font {
-  font-family: $fancy-font;
+textarea {
+  border-radius: 10px !important;
+  padding: 18px;
+  min-height: 90px;
 }
 
 .button {
   border-radius: 22px !important;
+  &.is-large {
+    border-radius: 28px !important;
+  }
+  &:not(.is-small):not(.is-large) {
+    min-width: 100px;
+  }
+  &:hover {
+    box-shadow: $grey-darker 0px 0px 2px;
+  }
+  &.is-link, &.is-info {
+    color: $white !important;
+  }
+  &.is-primary {
+    color: $white !important;
+  }
+  &.is-success {
+    color: $white !important;
+  }
+  &.is-warning {
+    color: $black !important;
+  }
 }
 
-.button.is-large {
-  border-radius: 28px !important;
+li[disabled] {
+  pointer-events: none;
+  color: $grey-lighter;
 }
 
-input[type=submit] {
-  border-radius: 22px !important;
-  padding-left: 15px;
-  padding-right: 15px;
-}
 .message {
   box-shadow: #000000bd 2px 1px 8px;
 }
 
-.button:hover {
-  box-shadow: $grey-darker 0px 0px 2px;
-}
-
-.button.is-link, .button.is-info {
-  color: $grey-darker;
-}
-
-//.button:not(.is-danger):not(.is-warning):not(.is-active) {
-//  border: $grey solid 1px;
-//  color: inherit;
-//}
-
-.button.is-primary {
-  color: $white !important;
-}
-
-// buttons with icons need some margin
 .button > i, .panel-block > i, .navbar-item > i {
   float: left;
   margin-right: 7px;
@@ -97,18 +120,10 @@ input[type=submit] {
   margin-right: 10px;
 }
 
-.button.is-success {
-  //color: $grey-darker !important;
-  color: $white !important;
-  //font-weight: bold;
-}
-
 .navbar.has-background-dark {
   .navbar-item:hover, .has-dropdown:hover {
     background: $grey;
     color: $white;
   }
 }
-
-
 /*# sourceMappingURL=style.css.map */
