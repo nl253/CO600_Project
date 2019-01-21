@@ -19,7 +19,7 @@
  * @author Norbert
  */
 
-const NoSuchRecord = require('../../errors').NoSuchRecord;
+const NoSuchRecord = require('../../errors').NoSuchRecordErr;
 const validCols = require('../../lib').validCols;
 const isLoggedIn = require('../../lib').isLoggedIn;
 const {MissingDataErr} = require('../../errors');

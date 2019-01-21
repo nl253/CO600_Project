@@ -94,7 +94,7 @@ const User = sequelize.define('User', {
     type: STRING,
     validate: {
       is: {
-        args: [/.{2,}/],
+        args: [/\S{4,}/],
         msg: 'password is too short',
       },
     },
