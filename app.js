@@ -79,9 +79,9 @@ app.use(/\/javascripts\/.*\.js$/, async (req, res, next) => {
   const jsPathMap = `${jsPath}.map`;
   const jsPathMin = jsPath.replace(/\.js$/, '.min.js');
   if (process.env.NODE_ENV === 'development' || !fs.existsSync(jsPathMin)) {
-    const {map, code} = await babel.transformFileAsync(jsPath);
+    const {code, map} = await babel.transformFileAsync(jsPath);
     fs.writeFileSync(jsPathMin, code);
-    fs.writeFileSync(jsPathMap, map);
+    fs.writeFileSync(jsPathMap, JSON.stringify(map));
   }
   return res.send(fs.readFileSync(jsPathMin));
 });
