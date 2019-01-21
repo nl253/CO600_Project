@@ -3,7 +3,7 @@ const router = require('express').Router();
 
 // Project
 const {isLoggedIn} = require('../lib');
-const {NoSuchRecord} = require('../errors');
+const {NoSuchRecordErr} = require('../errors');
 const {File} = require('../../database');
 
 router.get('/:id', isLoggedIn(),
@@ -12,7 +12,7 @@ router.get('/:id', isLoggedIn(),
     try {
       const file = await File.findOne({where: {id}});
       if (file === null) {
-        return next(new NoSuchRecord('File', {id}));
+        return next(new NoSuchRecordErr('File', {id}));
       } else if (file.name.match('\.png$')) {
         res.set('Content-Type', 'image/png');
       } else if (file.name.match('\.jpe?g$')) {

@@ -1,6 +1,6 @@
 // 3rd Party
 const {suggestRoutes, msg} = require('../lib');
-const {NoSuchRecord} = require('../../errors');
+const {NoSuchRecordErr} = require('../../errors');
 const router = require('express').Router();
 
 // Project
@@ -46,7 +46,7 @@ router.delete('/:id', async (req, res, next) => {
     const question = await Question.findOne({where: {id: req.params.id}});
     if (question === null) {
       return next(
-        new NoSuchRecord('Question', {id: req.query.id}));
+        new NoSuchRecordErr('Question', {id: req.query.id}));
     }
     await question.destroy();
     return res.json(msg('deleted question'));

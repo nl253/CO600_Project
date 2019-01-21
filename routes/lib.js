@@ -14,7 +14,7 @@ const {
 // Project
 const {createLogger} = require('../lib');
 const {
-  NotLoggedIn,
+  NotLoggedInErr,
   MissingDataErr,
   InvalidRequestErr,
 } = require('./errors');
@@ -86,7 +86,7 @@ function genToken(tokenLen = 18) {
 function isLoggedIn() {
   return async (req, res, next) => {
     if (res.locals.loggedIn) return next();
-    else return next(new NotLoggedIn());
+    else return next(new NotLoggedInErr());
   };
 }
 

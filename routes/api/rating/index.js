@@ -2,9 +2,9 @@
 const validCols = require('../../lib').validCols;
 const isLoggedIn = require('../../lib').isLoggedIn;
 const APIErr = require('../../errors').APIErr;
-const NotLoggedIn = require('../../errors').NotLoggedIn;
+const NotLoggedIn = require('../../errors').NotLoggedInErr;
 const {suggestRoutes, msg} = require('../lib');
-const {NoSuchRecord, BadMethodErr} = require('../../errors');
+const {NoSuchRecordErr, BadMethodErr} = require('../../errors');
 const router = require('express').Router();
 
 // Project
@@ -32,7 +32,7 @@ router.delete(['/:id', '/:id/remove', '/:id/delete'],
   isLoggedIn(),
   async (req, res, next) => {
     const rating = await Rating.findOne({where: {raterId: res.locals.loggedIn.id, id: req.params.id}});
-    if (rating === null) return next(new NoSuchRecord('Rating', {id: req.params.id, raterId: res.locals.loggedIn.id}));
+    if (rating === null) return next(new NoSuchRecordErr('Rating', {id: req.params.id, raterId: res.locals.loggedIn.id}));
     await rating.destroy();
     return res.json(msg('deleted rating'));
   });

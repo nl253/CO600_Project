@@ -1,6 +1,8 @@
 // 3rd Party
+
+
 const {suggestRoutes, msg} = require('../lib');
-const {NoSuchRecord} = require('../../errors');
+const {NoSuchRecordErr, RecordExists, ValidationErr} = require('../../errors');
 const router = require('express').Router();
 
 // Project
@@ -31,15 +33,14 @@ router.post(['/login', '/authenticate'],
           email: req.body.email,
           password: sha256(req.body.password),
         }});
-      if (user === null) return next(new NoSuchRecord('User', {email: req.body.email}));
+      if (user === null) return next(new NoSuchRecordErr('User', {email: req.body.email}));
       let sess = await Session.findOrCreate({
         where: {email: req.body.email},
         defaults: {email: req.body.email, token: genToken()}
       }).spread((s, created) => created ? s : s.update({updatedAt: Date.now()}));
       delete user.dataValues.password;
-      return res.json(
-        msg(`successfully authenticated ${req.body.email}`,
-          Object.assign(user.dataValues, {token: encodeURIComponent(encrypt(sess.token))})));
+      return res.json(msg(`successfully authenticated ${req.body.email}`,
+        Object.assign(user.dataValues, {token: encodeURIComponent(encrypt(sess.token))})));
     } catch (e) {
       return next(e);
     }
@@ -69,15 +70,19 @@ router.post(['/register', '/create'],
   needs('password', 'body'),
   validCols(User),
   (req, res, next) => {
+    if (!req.body.password.match(/\S{6,}/)) {
+      return next(new ValidationErr('password', 'too short or includes spaces'));
+    }
     req.body.password = sha256(req.body.password);
     return User.findOrCreate({
       where: {email: req.body.email},
       defaults: req.body,
     }).spread((u, created) => {
+      if (!created) return next(new RecordExists('User'));
       u = u.dataValues;
-      console.log(u);
+      console.log(`created { ${Object.entries(u).map(pair => pair.map(el => el ? el.toLocaleString() : '')).join(', ')} }`);
       delete u.password;
-      return res.json(msg(created ? `created user ${req.body.email}` : `${req.body.email} already has an account`, u));
+      return res.json(msg(`created user ${req.body.email}`));
     }).catch(err => next(err));
   });
 
@@ -104,12 +109,18 @@ router.delete(['/', '/unregister', '/delete', '/remove'],
  * Requires credentials (BOTH email AND password) to be sent in POST request body.
  */
 router.post('/password',
+  isLoggedIn(),
   needs('email', 'body'),
   needs('password', 'body'),
   needs('value', 'body'),
   (req, res, next) => User
     .findOne({where: {email: req.body.email}})
-    .then(user => user.update({password: sha256(req.body.value)}))
+    .then(user => {
+      if (!req.body.value.match(/\S{6,}/)) {
+        return next(new ValidationErr('password', 'too short or includes spaces'));
+      }
+      return user.update({password: sha256(req.body.value)});
+    })
     .then(() => res.json(msg(`updated password in user ${req.body.email}`)))
     .catch((err) => next(err)));
 
@@ -147,9 +158,11 @@ router.post(['/', '/update', '/modify'],
   isLoggedIn(),
   validCols(User, 'body', ['password', 'isAdmin', 'updatedAt', 'createdAt']),
   (req, res, next) => User.findOne({where: {id: res.locals.loggedIn.id}})
-    .then((user) => user === null
-      ? Promise.reject(new NoSuchRecord('User'))
-      : user.update(req.body))
+    .then((user) => {
+      return user === null
+        ? Promise.reject(new NoSuchRecordErr('User'))
+        : user.update(req.body);
+    })
     .then(() => res.json(msg(`updated ${Object.keys(req.body).join(', ')}`)))
     .catch((err) => next(err)));
 

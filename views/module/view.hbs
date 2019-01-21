@@ -59,7 +59,7 @@
   <section class="is-medium" style="margin-bottom: 30px;">
     <h2 class="title is-medium">Lessons</h2>
     {{#if module.lessons}}
-      <ol id="module-lessons" class="list" style="min-width: 100%;">
+      <ol id="module-lessons" class="" style="min-width: 100%;">
         {{#if loggedIn}}
           {{#each module.lessons}}
             <li class="list-item"
@@ -67,6 +67,7 @@
                 data-name="{{name}}"
                 data-created-at="{{createdAt}}"
                 data-summary="{{summary}}"
+                style="border: none; padding-left: 0;"
                 data-updated-at="{{updatedAt}}">
               <a data-id="{{id}}">{{name}}</a>
             </li>

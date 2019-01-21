@@ -23,28 +23,14 @@ require('./locals')(app);
 app.use((req, res, next) => {
   // res.header('Access-Control-Allow-Origin', '127.0.0.1');
   res.header('Access-Control-Allow-Credentials', true);
-  res.header('Access-Control-Allow-Headers',
-    ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'].join(', '));
+  res.header('Access-Control-Allow-Headers', ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'].join(', '));
   res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
   res.header('Expires', '-1');
   res.header('Pragma', 'no-cache');
   return next();
 });
 
-app.use(/\/javascripts\/.*\.js$/, async (req, res, next) => {
-  if (req.originalUrl.match(/\.min\.js$/)) return next();
-  console.log(`path is: ${req.originalUrl}`);
-  const jsPath = path.join(process.env.ROOT, 'public', req.originalUrl.slice(1));
-  console.log(`js path is: ${jsPath}`);
-  const jsPathMin = jsPath.replace(/\.js$/, '.min.js');
-  console.log(`js path min is: ${jsPathMin}`);
-  if (!fs.existsSync(jsPathMin)) {
-    fs.writeFileSync(jsPathMin, (await babel.transformFileAsync(jsPath)).code)
-  }
-  return res.send(fs.readFileSync(jsPathMin));
-});
-
-app.use(express.static(process.env.PUBLIC_PATH));
+app.use(require('compression')());
 
 const hbs = require('hbs');
 
@@ -69,23 +55,15 @@ app.use(require('cookie-parser')({
   },
 }));
 
-// app.use(require('cors')({
-//   origin: ['http://localhost:3000'],
-//   methods: ['GET', 'POST'],
-//   // enable set cookie
-//   credentials: true,
-// }));
-
 app.use(require('morgan')(':method :url :status :req[cookie]'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
-
-app.use(require('compression')());
 
 app.use(
   require('node-sass-middleware')({
     src: process.env.PUBLIC_PATH,
     dest: process.env.PUBLIC_PATH,
+    force: process.env.NODE_ENV === 'development',
     debug: false,
     outputStyle: 'compressed',
     // true = .sass and false = .scss
@@ -93,6 +71,22 @@ app.use(
     sourceMap: true,
   }),
 );
+
+app.use(/\/javascripts\/.*\.js$/, async (req, res, next) => {
+  res.header('X-SourceMap', `${req.originalUrl}.map`);
+  if (req.originalUrl.match(/\.min\.js$/)) return next();
+  const jsPath = path.join(process.env.ROOT, 'public', req.originalUrl.slice(1));
+  const jsPathMap = `${jsPath}.map`;
+  const jsPathMin = jsPath.replace(/\.js$/, '.min.js');
+  if (process.env.NODE_ENV === 'development' || !fs.existsSync(jsPathMin)) {
+    const {map, code} = await babel.transformFileAsync(jsPath);
+    fs.writeFileSync(jsPathMin, code);
+    fs.writeFileSync(jsPathMap, map);
+  }
+  return res.send(fs.readFileSync(jsPathMin));
+});
+
+app.use(express.static(process.env.PUBLIC_PATH));
 
 app.use(async (req, res, next) => {
   if (req.cookies.token === undefined) {

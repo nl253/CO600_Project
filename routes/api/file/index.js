@@ -1,7 +1,7 @@
 // 3rd Party
 const {isLoggedIn} = require('../../lib');
 const {suggestRoutes, msg} = require('../lib');
-const {NoSuchRecord} = require('../../errors');
+const {NoSuchRecordErr} = require('../../errors');
 const router = require('express').Router();
 
 // Project
@@ -13,7 +13,7 @@ router.delete(['/:id', '/:id/delete', '/:id/remove'], isLoggedIn(),
     try {
       const {id} = req.params;
       const file = await File.findOne({where: {id}});
-      if (file === null) return next(new NoSuchRecord('File', {id}));
+      if (file === null) return next(new NoSuchRecordErr('File', {id}));
       const fileName = file.name;
       await file.destroy();
       return res.json(msg(`deleted ${fileName} from lesson`));

@@ -13,7 +13,7 @@ const upload = multer({
 // Project
 const {validCols, needs, isLoggedIn} = require('../../lib');
 const {suggestRoutes, msg, log} = require('../lib');
-const {APIErr, NoSuchRecord, NotLoggedIn, DeniedErr, InvalidRequestErr} = require('../../errors');
+const {APIErr, NoSuchRecordErr, NotLoggedInErr, DeniedErr, InvalidRequestErr} = require('../../errors');
 const {Lesson, Module, User, sequelize, File} = require('../../../database');
 
 
@@ -31,11 +31,11 @@ router.get(['/:id/download', '/:id/content'], isLoggedIn(),
 
 router.delete('/:id', isLoggedIn(),
   async (req, res, next) => {
-    if (!res.locals.loggedIn) return new NotLoggedIn();
+    if (!res.locals.loggedIn) return new NotLoggedInErr();
     try {
       const lesson = await Lesson.findOne({where: {id: req.params.id}});
       if (lesson === null) {
-        return new NoSuchRecord('Lesson',
+        return new NoSuchRecordErr('Lesson',
           {id: req.params.id});
       }
       const module = await Module.findOne({where: {id: lesson.moduleId}});
@@ -80,7 +80,7 @@ router.post(['/:id', '/:id/update', '/:id/modify'],
     try {
       let lesson = await Lesson.findOne({where: {id: req.params.id}});
       if (lesson === null) {
-        return next(new NoSuchRecord('Lesson', {id: req.params.id}));
+        return next(new NoSuchRecordErr('Lesson', {id: req.params.id}));
       }
       const module = await Module.findOne({where: {id: lesson.moduleId}});
       const author = await User.findOne({where: {id: module.authorId}});
