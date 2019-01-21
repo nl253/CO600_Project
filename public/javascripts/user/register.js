@@ -98,4 +98,10 @@ document.getElementById('reg-btn').onclick = async (event) => {
         return alert(msg);
       }
     }
+
+    document.getElementById('register-noCookies-btn').onclick = (event) => {
+      event.preventDefault();
+      modal.classList.remove('is-active');
+      html.classList.remove('is-clipped');
+    }
 };
