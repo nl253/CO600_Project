@@ -78,9 +78,9 @@ router.post(['/register', '/create'],
       where: {email: req.body.email},
       defaults: req.body,
     }).spread((u, created) => {
-      if (created) throw new RecordExists('User');
+      if (!created) return next(new RecordExists('User'));
       u = u.dataValues;
-      console.log(`created { ${Object.entries(u).map(pair => pair.map(el => el.toLocaleString())).join(', ')} }`);
+      console.log(`created { ${Object.entries(u).map(pair => pair.map(el => el ? el.toLocaleString() : '')).join(', ')} }`);
       delete u.password;
       return res.json(msg(`created user ${req.body.email}`));
     }).catch(err => next(err));

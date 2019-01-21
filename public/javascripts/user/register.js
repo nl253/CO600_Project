@@ -28,7 +28,7 @@ document.getElementById('reg-btn').onclick = async (event) => {
     document.getElementById('register-allowCookies-btn').onclick = async (event) => {
       const vars = {
         email: document.getElementById('reg-email').value.trim(),
-        password: document.getElementById('reg-password').value.trim(),
+        password: document.getElementById('reg-password').value,
       };
 
       if (document.getElementById('reg-password-2').value !== vars.password) {
@@ -46,7 +46,6 @@ document.getElementById('reg-btn').onclick = async (event) => {
           method: 'post',
           redirect: 'follow',
           cache: 'no-cache',
-          mode: 'cors',
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
@@ -60,6 +59,8 @@ document.getElementById('reg-btn').onclick = async (event) => {
           const err = await regRes.json();
           const msg = err.msg || err.message || err.toString();
           console.error(msg);
+          document.querySelector('.modal.is-active').classList.add('is-clipped');
+          document.querySelector('.modal.is-active').classList.remove('is-active');
           return alert(msg);
         }
 
@@ -97,7 +98,7 @@ document.getElementById('reg-btn').onclick = async (event) => {
         console.error(err);
         return alert(msg);
       }
-    }
+    };
 
     document.getElementById('register-noCookies-btn').onclick = (event) => {
       event.preventDefault();
