@@ -80,6 +80,17 @@ router.get(['/', '/search'],
       if (req.query.topic) {
         req.query.topic = {[Sequelize.Op.like]: `%${req.query.topic}%`};
       }
+      if (req.query.summary) {
+        req.query.summary = {[Sequelize.Op.like]: `%${req.query.summary}%`};
+      }
+      if (req.query.createdAt) {
+        req.query.createdAt = new Date(Date.parse(req.query.createdAt));
+        req.query.createdAt = {[Sequelize.Op.gte]: req.query.createdAt};
+      }
+      if (req.query.updatedAt) {
+        req.query.updatedAt = new Date(Date.parse(req.query.updatedAt));
+        req.query.updatedAt = {[Sequelize.Op.gte]: req.query.updatedAt};
+      }
       const modules = await Module.findAll({
         limit: process.env.MAX_RESULTS || 100,
         where: req.query,
