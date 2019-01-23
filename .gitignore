@@ -64,7 +64,7 @@ typings/
 public/stylesheets/**/*.css
 
 # Source maps
-public/stylesheets/**/*.map
+**/*.map
 
 # Test results
 tests-*.json
