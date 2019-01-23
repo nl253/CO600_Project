@@ -17,7 +17,7 @@ const {
 
 const {sha256} = require('../../lib');
 
-const {User, Session} = require('../../../database');
+const {User, Session, Sequelize} = require('../../../database');
 
 /**
  * Logs a user in.
@@ -179,6 +179,11 @@ router.get(['/', '/search'],
   validCols(User, 'query', ['password']),
   async (req, res, next) => {
     try {
+      for (const attr of ['lastName', 'email']) {
+        if (req.query[attr]) {
+          req.query[attr] = {[Sequelize.Op.like]: `%${req.query[attr]}%`};
+        }
+      }
       const users = await User.findAll({
         limit: process.env.MAX_RESULTS || 100,
         where: req.query,
