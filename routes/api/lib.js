@@ -6,20 +6,6 @@ const log = createLogger({
 });
 
 /**
- * Suggest routes when an API user types something like `/`, `/module` or `/content`.
- *
- * @param {express.Router} router
- * @param {String|RegExp|Array<String>|Array<RegExp>} path
- * @param {String|Object<String, *>|Number|Array} routes
- * @return {undefined}
- */
-function suggestRoutes(router, path, routes) {
-  return router.all(path, (req, res) => res
-    .status(400)
-    .json({status: 'CONFUSED', msg: 'nothing here, see the routes', routes}));
-}
-
-/**
  * Format response message when it's OK.
  *
  * @param {String} msg
@@ -76,10 +62,8 @@ function errMsg(err) {
   return {status, msg: err.toString()};
 }
 
-
 module.exports = {
   errMsg,
   log,
   msg,
-  suggestRoutes,
 };

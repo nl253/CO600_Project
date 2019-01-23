@@ -14,11 +14,10 @@ if (location.pathname.includes('/user/register')) {
 
     const email = document.getElementById('layout-input-email').value;
     const password = document.getElementById('layout-input-password').value;
-    const logInRes = await fetch(`/api/user/login`, {
+    const logInRes = await fetch('/api/user/login', {
       method: 'POST',
       redirect: 'follow',
       cache: 'no-cache',
-      mode: 'cors',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
@@ -28,10 +27,15 @@ if (location.pathname.includes('/user/register')) {
     });
 
     if (logInRes.status >= 400) {
-      const err = await logInRes.json();
-      const msg = err.msg || err.message || err.toString();
-      console.error(msg);
-      return alert(msg);
+      try {
+        const err = await logInRes.json();
+        const msg = err.msg || err.message || err.toString();
+        console.error(msg);
+        return alert(msg);
+      } catch (e) {
+        console.error(e);
+        return alert(e);
+      }
     }
 
     let json;

@@ -27,16 +27,6 @@ class APIErr extends Error {
   }
 }
 
-class BadMethodErr extends APIErr {
-  /**
-   * @param {String} action
-   * @param {String} suggestedMethod
-   */
-  constructor(action, suggestedMethod) {
-    super(`to ${action} use ${suggestedMethod.toUpperCase()}`, 405);
-  }
-}
-
 class NoSuchRecordErr extends APIErr {
   /**
    *
@@ -123,7 +113,6 @@ class ValidationErr extends APIErr {
 }
 
 module.exports = {
-  BadMethodErr,
   DeniedErr,
   ValidationErr,
   InvalidRequestErr,

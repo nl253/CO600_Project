@@ -177,19 +177,19 @@
               const moduleName = json.result[module].name;
               const moduleSummary = json.result[module].summary;
               document.getElementById('module-searchResults').innerHTML +=
-                  `<div class="box" onclick="location.href = "/module">
-              <div class="media-content">
-                <div class="content">
-                  <p class="is-size-5">
-                    <a href="module/"><strong>${moduleName}</strong></a>
-                    <br>
-                    ${moduleSummary}
-                  </p>
-                </div>
-              </div>
-              <br>
-              <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
-            </div>`;
+                `<div class="box" onclick="location.href = "/module/${json.result[module].id}">
+                  <div class="media-content">
+                    <div class="content">
+                      <p class="is-size-5">
+                        <a href="/module/${json.result[module].id}"><strong>${moduleName}</strong></a>
+                        <br>
+                        ${moduleSummary}
+                      </p>
+                    </div>
+                  </div>
+                  <br>
+                  <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                </div>`;
             }
           } else if (time == null) {
             for (module in json.result) {
@@ -197,19 +197,19 @@
                 const moduleName = json.result[module].name;
                 const moduleSummary = json.result[module].summary;
                 document.getElementById('module-searchResults').innerHTML +=
-                    `<div class="box" onclick="location.href = "/module">
-                <div class="media-content">
-                  <div class="content">
-                    <p class="is-size-5">
-                      <a href="module/"><strong>${moduleName}</strong></a>
-                      <br>
-                      ${moduleSummary}
-                    </p>
-                  </div>
-                </div>
-                <br>
-                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
-              </div>`;
+                  `<div class="box" onclick="location.pathname = "/module/${json.result[module].id}">
+                    <div class="media-content">
+                      <div class="content">
+                        <p class="is-size-5">
+                          <a href="/module/${json.result[module].id}"><strong>${moduleName}</strong></a>
+                          <br>
+                          ${moduleSummary}
+                        </p>
+                      </div>
+                    </div>
+                    <br>
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                  </div>`;
               }
             }
           }

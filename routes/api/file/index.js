@@ -1,36 +1,42 @@
 // 3rd Party
 const {isLoggedIn} = require('../../lib');
-const {suggestRoutes, msg} = require('../lib');
-const {NoSuchRecordErr} = require('../../errors');
+const {msg} = require('../lib');
+const {NoSuchRecordErr, DeniedErr} = require('../../errors');
 const router = require('express').Router();
 
 // Project
 const {validCols} = require('../../lib');
-const {File} = require('../../../database');
+const {File, Lesson, Module} = require('../../../database');
 
 router.delete(['/:id', '/:id/delete', '/:id/remove'], isLoggedIn(),
   async (req, res, next) => {
     try {
       const {id} = req.params;
       const file = await File.findOne({where: {id}});
-      if (file === null) return next(new NoSuchRecordErr('File', {id}));
-      const fileName = file.name;
+      if (file === null) {
+        throw new new NoSuchRecordErr('File', {id});
+      }
+      const lesson = await Lesson.findOne({where: {id: file.lessonId}});
+      const mod = await Module.findOne({where: {id: lesson.moduleId}});
+      if (mod.authorId !== res.locals.loggedIn.id) {
+        throw new DeniedErr(`delete file from lesson ${lesson.id} in module ${mod.id}`);
+      }
       await file.destroy();
-      return res.json(msg(`deleted ${fileName} from lesson`));
+      return res.json(msg(`deleted ${file.name} from lesson`));
     } catch (e) {
       return next(e);
     }
   });
 
-router.get(['/', '/search'], isLoggedIn(),
+router.get(['/', '/search'],
   validCols(File, 'query'),
   async (req, res, next) => {
     try {
       const files = await File
         .findAll({where: req.query, limit: process.env.MAX_RESULTS || 100})
         .then(fs => fs.map(f_ => {
-          f = f_.dataValues;
-          f.data = f.data ? true : false;
+          const f = f_.dataValues;
+          f.data = !!f.data;
           return f;
       }));
       let s = `found ${files.length} files`;
@@ -42,8 +48,5 @@ router.get(['/', '/search'], isLoggedIn(),
       return next(e);
     }
   });
-
-
-suggestRoutes(router, {});
 
 module.exports = router;
