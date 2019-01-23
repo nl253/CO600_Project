@@ -35,37 +35,37 @@
           <a class="tabLinks" id="module-dateUpdated"
              onclick="selectDateFilter(event, 'module-dateUpdated', 'tabLinks')">Date updated</a>
         </p>
-        <a class="panel-block time filter" id="module-1Week" onclick="selectDateFilter(event, '1Week', 'time')">
+        <a class="panel-block time module-date-filter" id="module-1week" onclick="selectDateFilter(event, '1Week', 'time')">
           <span class="panel-icon">
             <i class="fas fa-check-square" aria-hidden="true"></i>
           </span>
           1 Week
         </a>
-        <a class="panel-block time filter" id="module-1Month" onclick="selectDateFilter(event, '1Month', 'time')">
+        <a class="panel-block time module-date-filter" id="module-1month" onclick="selectDateFilter(event, '1Month', 'time')">
           <span class="panel-icon">
             <i class="fas fa-check-square" aria-hidden="true"></i>
           </span>
           1 Month
         </a>
-        <a class="panel-block time filter" id="module-6Months" onclick="selectDateFilter(event, '6Months', 'time')">
+        <a class="panel-block time module-date-filter" id="module-6months" onclick="selectDateFilter(event, '6Months', 'time')">
           <span class="panel-icon">
             <i class="fas fa-check-square" aria-hidden="true"></i>
           </span>
           6 Months
         </a>
-        <a class="panel-block time filter" id="module-1Year" onclick="selectDateFilter(event, '1Year', 'time')">
+        <a class="panel-block time module-date-filter" id="module-1year" onclick="selectDateFilter(event, '1Year', 'time')">
           <span class="panel-icon">
             <i class="fas fa-check-square" aria-hidden="true"></i>
           </span>
           1 Year
         </a>
-        <a class="panel-block time filter" id="5Years" onclick="selectDateFilter(event, '5Years', 'time')">
+        <a class="panel-block time module-date-filter" id="module-5years" onclick="selectDateFilter(event, '5Years', 'time')">
           <span class="panel-icon">
             <i class="fas fa-check-square" aria-hidden="true"></i>
           </span>
           5 Years
         </a>
-        <a class="panel-block time filter" id="Older" onclick="selectDateFilter(event, 'Older', 'time')">
+        <a class="panel-block time module-date-filter" id="module-older" onclick="selectDateFilter(event, 'Older', 'time')">
           <span class="panel-icon">
             <i class="fas fa-check-square" aria-hidden="true"></i>
           </span>
@@ -77,27 +77,27 @@
         <p class="panel-block time filter" id="module-stars">
           <a class="button is-light is-small" id="module-1stars">
             <span class="icon">
-              <i class="fas fa-star"></i>
+              <i class="far fa-star module-search-filter-star"></i>
             </span>
           </a>
           <a class="button is-light is-small" id="module-2stars">
             <span class="icon">
-              <i class="fas fa-star"></i>
+              <i class="far fa-star module-search-filter-star"></i>
             </span>
           </a>
           <a class="button is-light is-small" id="module-3stars">
             <span class="icon">
-              <i class="fas fa-star"></i>
+              <i class="far fa-star module-search-filter-star"></i>
             </span>
           </a>
           <a class="button is-light is-small" id="module-4stars">
             <span class="icon">
-              <i class="fas fa-star"></i>
+              <i class="far fa-star module-search-filter-star"></i>
             </span>
           </a>
           <a class="button is-light is-small" id="module-5stars">
             <span class="icon">
-              <i class="fas fa-star"></i>
+              <i class="far fa-star module-search-filter-star"></i>
             </span>
           </a>        
           &amp; Up
@@ -109,13 +109,41 @@
           <div class="select">
             <select>
               <option>Select subject</option>
-              <option>With options</option>
+              <option>AI</option>
+              <option>Anthropology</option>
+              <option>Archaeology</option>
+              <option>Architecture</option>
+              <option>Arts</option>
+              <option>Biology</option>
+              <option>Chemistry</option>
+              <option>Computer Science</option>
+              <option>Design</option>
+              <option>Drama</option>
+              <option>Economics</option>
+              <option>Engineering</option>
+              <option>Geography</option>
+              <option>History</option>
+              <option>Humanities</option>
+              <option>Languages</option>
+              <option>Law</option>
+              <option>Linguistics</option>
+              <option>Literature</option>
+              <option>Mathematics</option>
+              <option>Medicine</option>
+              <option>Philosophy</option>
+              <option>Physics</option>
+              <option>Political Science</option>
+              <option>Psychology</option>
+              <option>Sciences</option>
+              <option>Social Sciences</option>
+              <option>Sociology</option>
+              <option>Theology</option>
             </select>
           </div>
         </a>
         
         <div class="panel-block">
-          <button class="button is-warning is-fullwidth" onclick="resetFilters()">
+          <button class="button is-warning is-fullwidth" id="module-reset">
             <i class="fas fa-undo-alt"></i>
             <span>Reset</span>
           </button>
@@ -153,18 +181,22 @@
   }
 
   function resetFilters() {
-    tabs = document.getElementsByClassName('filter');
+    tabs = document.getElementsByClassName('module-date-filter');
     for (i = 0; i < tabs.length; i++) {
       tabs[i].className = tabs[i].className.replace(' is-active', '');
     }
-    rating = null;
+    rating = 0;
     time = null;
+    stars = document.getElementsByClassName('module-search-filter-star');
+    for (i = 0; i < 5; i++) {
+      stars[i].className = stars[i].className.replace('fas', 'far');
+    }
   }
 
   (function() {
     let date, rating, time;
     date = 'created';
-    rating = null;
+    rating = 0;
     time = null;
     let today = new Date();
     let dd = today.getDate();
@@ -174,7 +206,7 @@
 
     if (!searchBtn) return;
 
-    searchBtn.onclick = (event) => {
+    searchBtn.onclick = async (event) => {
       document.getElementById('module-searchResults').innerHTML = "";
       // don't send the HTML form
       event.preventDefault();
@@ -193,88 +225,129 @@
         uri += '?' + Object.entries(queryParams).map(pair => pair.join('=')).join('&');
       }
       // error codes 400..499 and 500..599 are client and server errors
-      return fetch(uri, cfg)
-        .then(response => response.status >= 400
-            // if it goes wrong force it to jump to reject
-            ? response.json().then(errMsg => Promise.reject(errMsg))
-            // the JSON object is guaranteed to have a "msg" property
-            : response.json())
-        .then(json => {
-          //Display results
-          if (rating === null && time === null) {
-            for (module in json.result) {
-              console.log("not here");
-              const moduleName = json.result[module].name;
-              const moduleSummary = json.result[module].summary;
-              document.getElementById('module-searchResults').innerHTML +=
-                  `<div class="box" onclick="location.href = "/module">
-              <div class="media-content">
-                <div class="content">
-                  <p class="is-size-5">
-                    <a href="module/"><strong>${moduleName}</strong></a>
-                    <br>
-                    ${moduleSummary}
-                  </p>
-                </div>
-              </div>
-              <br>
-              <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
-            </div>`;
-            }
-          } else if (time == null) {
-            for (module in json.result) {
-              if (module.rating == rating) {
-                const moduleName = json.result[module].name;
-                const moduleSummary = json.result[module].summary;
-                document.getElementById('module-searchResults').innerHTML +=
-                    `<div class="box" onclick="location.href = "/module">
-                <div class="media-content">
-                  <div class="content">
-                    <p class="is-size-5">
-                      <a href="module/"><strong>${moduleName}</strong></a>
-                      <br>
-                      ${moduleSummary}
-                    </p>
-                  </div>
-                </div>
+      try {
+        let json = null;
+        const results = await fetch(uri, cfg);
+        if (rating !=0){
+          const ratings = await fetch('/api/rating/search?moduleId=${moduleId}&stars='+rating, cfg);
+          json = await ratings.json();
+        } else {
+          json = await results.json();
+        }
+
+        for (module in json.result) {
+          const moduleName = json.result[module].id;
+          const moduleSummary = json.result[module].summary;
+          const moduleRating = 0;
+
+          document.getElementById('module-searchResults').innerHTML +=
+              `<div class="box" onclick="location.href = "/module">
+          <div class="media-content">
+            <div class="content">
+              <p class="is-size-5">
+                <a href="/module/${moduleName}"><strong>${moduleName}</strong></a>
                 <br>
-                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
-              </div>`;
-              }
-            }
-          }
-        })
-      .catch(err => {
-        console.error(err);
-        return alert(err.msg || err.message || err.toString());
-      });
+                ${moduleSummary}
+              </p>
+            </div>
+          </div>
+          <br>
+          <i class="fas fa-star">${moduleRating}
+        </div>`;
+        }
+
+      } catch (e) {
+        console.error(e);
+        return alert(e.message);
+      }
     };
 
     document.getElementById('module-5stars').onclick = (event) => {
       // Get all elements with class="tabs" and remove the class "active"
-      stars = document.getElementsByClassName('fa-star');
+      stars = document.getElementsByClassName('module-search-filter-star');
       for (i = 0; i < stars.length; i++) {
-        stars[i].className = stars[i].className.replace(' is-warning', '');
+        stars[i].className = stars[i].className.replace('far', 'fas');
       }
-      for (i = 0; i < stars.length; i++) {
-        stars[i].className = stars[i].className += ' is-warning';
-      }
+      rating = 5;
     }
 
     document.getElementById('module-4stars').onclick = (event) => {
-
+      stars = document.getElementsByClassName('module-search-filter-star');
+      for (i = 0; i < 5; i++) {
+        stars[i].className = stars[i].className.replace('fas', 'far');
+      }
+      for (i = 0; i < 4; i++) {
+        stars[i].className = stars[i].className.replace('far', 'fas');
+      }
+      rating = 4;
     }
 
     document.getElementById('module-3stars').onclick = (event) => {
-
+      stars = document.getElementsByClassName('module-search-filter-star');
+      for (i = 0; i < 5; i++) {
+        stars[i].className = stars[i].className.replace('fas', 'far');
+      }
+      for (i = 0; i < 3; i++) {
+        stars[i].className = stars[i].className.replace('far', 'fas');
+      }
+      rating = 3;
     }
 
     document.getElementById('module-2stars').onclick = (event) => {
-
+      stars = document.getElementsByClassName('module-search-filter-star');
+      for (i = 0; i < 5; i++) {
+        stars[i].className = stars[i].className.replace('fas', 'far');
+      }
+      for (i = 0; i < 2; i++) {
+        stars[i].className = stars[i].className.replace('far', 'fas');
+      }
+      rating = 2;
     }
 
     document.getElementById('module-1stars').onclick = (event) => {
+      stars = document.getElementsByClassName('module-search-filter-star');
+      for (i = 0; i < 5; i++) {
+        stars[i].className = stars[i].className.replace('fas', 'far');
+      }
+      stars[0].className = stars[0].className.replace('far', 'fas');
+      rating = 1;
+    }
 
+    document.getElementById('module-1week').onclick = (event) => {
+      
+    }
+
+    document.getElementById('module-1month').onclick = (event) => {
+      
+    }
+
+    document.getElementById('module-6months').onclick = (event) => {
+      
+    }
+
+    document.getElementById('module-1year').onclick = (event) => {
+      
+    }
+
+    document.getElementById('module-5years').onclick = (event) => {
+      
+    }
+
+    document.getElementById('module-older').onclick = (event) => {
+      
+    }
+
+    document.getElementById('module-reset').onclick = (event) => {
+      tabs = document.getElementsByClassName('module-date-filter');
+      for (i = 0; i < tabs.length; i++) {
+        tabs[i].className = tabs[i].className.replace(' is-active', '');
+      }
+      rating = 0;
+      time = null;
+      stars = document.getElementsByClassName('module-search-filter-star');
+      for (i = 0; i < 5; i++) {
+        stars[i].className = stars[i].className.replace('fas', 'far');
+      }
     }
 
   })();
