@@ -2,7 +2,11 @@
   <dictionary name="Kier">
     <words>
       <w>flexbox</w>
+      <w>multer</w>
       <w>multiline</w>
+      <w>sequelize</w>
+      <w>sess</w>
+      <w>unauthenticate</w>
     </words>
   </dictionary>
 </component>

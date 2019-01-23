@@ -17,7 +17,7 @@ router.get('/search', (req, res) => res.render(join('user', 'search')));
 /**
  * Registration page if not logged in, otherwise redirect to user home.
  */
-router.get('/register', (req, res) => res.locals.loggedIn
+router.get(['/register', '/sign[-_]?up', 'create'], (req, res) => res.locals.loggedIn
   ? res.redirect('/user/home')
   : res.render(join('user', 'register')));
 
@@ -27,9 +27,10 @@ router.get(['/edit', '/settings'], isLoggedIn(),
 /**
  * User profile page of the user that's logged in.
  */
-router.get(['/', '/home', '/profile', '/dashboard', '/account'], (req, res) => res.locals.loggedIn === undefined
-  ? res.status(403).redirect('/user/register')
-  : res.render(join('user', 'home')));
+router.get(['/', '/home', '/profile', '/dashboard', '/account'],
+  (req, res) => res.locals.loggedIn === undefined
+    ? res.status(403).redirect('/user/register')
+    : res.render(join('user', 'home')));
 
 /**
  * Public info about a user.

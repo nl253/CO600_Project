@@ -8,7 +8,7 @@ const {Enrollment, Module, Lesson, Rating, sequelize, User} = require('../../dat
 
 router.get('/edit', isLoggedIn(), (req, res) => res.render(join('module', 'edit')));
 
-router.get('/search', (req, res) => res.render(join('module', 'search')));
+router.get(['/search', '/'], (req, res) => res.render(join('module', 'search')));
 
 router.get(['/view', '/learn'], (req, res) => res.render(join('module', 'learn')));
 
@@ -59,7 +59,5 @@ router.get('/:id', async (req, res, next) => {
 
   return res.render(join('module', 'view'), {module: moduleInfo});
 });
-
-router.get('/', (req, res) => res.redirect('/module/search'));
 
 module.exports = router;

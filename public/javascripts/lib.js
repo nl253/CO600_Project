@@ -102,7 +102,7 @@ async function get(model, query = {}, force = true, doSave = false) {
  * Create a new object in the database.
  *
  * @param {'User', 'Module', 'Lesson', 'Question', 'Rating'} model
- * @param {!Blob|!BufferSource|!FormData|!URLSearchParams|!ReadableStream|!String} postData
+ * @param {!Blob|!BufferSource|!FormData|!URLSearchParams|!ReadableStream|!String} [postData]
  * @return {Promise<void|{id: !Number, createdAt: !Date, updatedAt: !Date}>} created object
  */
 async function create(model, postData = '') {

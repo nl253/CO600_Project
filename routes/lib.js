@@ -51,7 +51,6 @@ function sha256(data) {
   return hash.digest('base64').toString();
 }
 
-
 /**
  * Decrypt a string.
  *
@@ -59,8 +58,7 @@ function sha256(data) {
  * @return {String} decrypted string
  */
 function decrypt(s) {
-  const decipher = createDecipher(process.env.ENCRYPTION_ALGORITHM,
-    process.env.SECRET);
+  const decipher = createDecipher(process.env.ENCRYPTION_ALGORITHM, process.env.SECRET);
   let decrypted = decipher.update(s, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
   return decrypted;
@@ -80,9 +78,23 @@ function encrypt(s) {
   return encrypted;
 }
 
-function genToken(tokenLen = 18) {
+/**
+ * Generate a token.
+ *
+ * @param {Number} [tokenLen]
+ * @returns {String} token
+ */
+function genToken(tokenLen = (process.env.TOKEN_LEN && eval(process.env.TOKEN_LEN)) || 18) {
   return randomBytes(tokenLen).toString('base64');
 }
+
+/**
+ * Checks if user is logged in.
+ *
+ * NOTE this relies on the middleware in /app.js which tries to set the loggedIn variable on each request.
+ *
+ * @returns {Function}
+ */
 function isLoggedIn() {
   return async (req, res, next) => {
     if (res.locals.loggedIn) return next();
@@ -90,19 +102,21 @@ function isLoggedIn() {
   };
 }
 
-function neededCols(where, needed) {
-  return (req, res, next) => {
-
-  };
-}
-
+/**
+ * Validate request. Check that it uses valid db columns.
+ *
+ * @param {Sequelize.Model} model
+ * @param {String} [where] object name
+ * @param {Array<String>} [bannedCols]
+ * @returns {function(*, *, *): *}
+ */
 function validCols(model, where = 'body', bannedCols = ['createdAt', 'updatedAt']) {
   return (req, res, next) => {
-    const badCol = Object.keys(req[where])
+    const maybeBadCol = Object.keys(req[where])
       .find(col => model.attributes[col] === undefined || bannedCols.includes(col));
-    return badCol === undefined
+    return maybeBadCol === undefined
       ? next()
-      : next(new InvalidRequestErr(model.getTableName(), badCol));
+      : next(new InvalidRequestErr(model.getTableName(), maybeBadCol));
   };
 }
 

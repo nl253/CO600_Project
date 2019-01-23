@@ -721,7 +721,8 @@ function destroyQuest(id) {
 /**
  * Destroys an attachment (file).
  *
- * @param {{id: !Number, lessonId: !Number}} file
+ * @param id
+ * @param lessonId
  * @return {Promise<void|!String>}
  */
 function destroyAttach(id, lessonId) {
@@ -740,7 +741,7 @@ document.getElementById('module-edit-btn-module-create').onclick = async functio
   e.preventDefault();
   const authorId = JSON.parse(sessionStorage.getItem('loggedIn')).id;
   try {
-    const module = create('Module', JSON.stringify({authorId} ));
+    const module = create('Module');
     sessionStorage.removeItem(`${location.pathname}/modules?authorId=${authorId}`);
     return appendModule(await module);
   } catch (e) {
@@ -780,7 +781,7 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
   const moduleId = getSelId('Module');
   if (!moduleId) return alert('Module must be selected.');
   try {
-    const question = create('Question', JSON.stringify({moduleId} ));
+    const question = create('Question', JSON.stringify({moduleId}));
     sessionStorage.removeItem(`${location.pathname}/questions?moduleId=${moduleId}`);
     return appendQuestion(await question);
   } catch (e) {
@@ -871,8 +872,4 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
     console.error(e);
     return alert(msg)
   }
-  // document.querySelectorAll("li[data-id]:not([class*='has-background-light'])").forEach(el => {
-  //   el.onmouseover = () => el.classList.add('has-background-light');
-  //   el.onmouseout = () => el.classList.remove('has-background-light');
-  // });
 })();
