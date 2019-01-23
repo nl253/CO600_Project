@@ -74,17 +74,46 @@
         <p class="panel-heading">
           Filter by Rating
         </p>
-        <a class="panel-block rating filter is-block" id="module-5stars"
-           onclick="selectDateFilter(event, '5stars', 'rating')">
-          <div style="display: flex; flex-direction: row; align-items: center; justify-content: space-around;">
-            <i class="far fa-star" id="module-5stars"></i>
-            <i class="far fa-star" id="module-4stars"></i>
-            <i class="far fa-star" id="module-3stars"></i>
-            <i class="far fa-star" id="module-2stars"></i>
-            <i class="far fa-star" id="module-1stars"></i>
-            &amp; Up
+        <p class="panel-block time filter" id="module-stars">
+          <a class="button is-light is-small" id="module-1stars">
+            <span class="icon">
+              <i class="fas fa-star"></i>
+            </span>
+          </a>
+          <a class="button is-light is-small" id="module-2stars">
+            <span class="icon">
+              <i class="fas fa-star"></i>
+            </span>
+          </a>
+          <a class="button is-light is-small" id="module-3stars">
+            <span class="icon">
+              <i class="fas fa-star"></i>
+            </span>
+          </a>
+          <a class="button is-light is-small" id="module-4stars">
+            <span class="icon">
+              <i class="fas fa-star"></i>
+            </span>
+          </a>
+          <a class="button is-light is-small" id="module-5stars">
+            <span class="icon">
+              <i class="fas fa-star"></i>
+            </span>
+          </a>        
+          &amp; Up
+        </p>
+         <p class="panel-heading">
+          Filter by Subject
+        </p>
+        <a class="panel-block">
+          <div class="select">
+            <select>
+              <option>Select subject</option>
+              <option>With options</option>
+            </select>
           </div>
         </a>
+        
         <div class="panel-block">
           <button class="button is-warning is-fullwidth" onclick="resetFilters()">
             <i class="fas fa-undo-alt"></i>
@@ -142,6 +171,7 @@
     let mm = today.getMonth() + 1;
     let yyyy = today.getFullYear();
     const searchBtn = document.getElementById('module-searchBtn');
+
     if (!searchBtn) return;
 
     searchBtn.onclick = (event) => {
@@ -219,5 +249,33 @@
         return alert(err.msg || err.message || err.toString());
       });
     };
+
+    document.getElementById('module-5stars').onclick = (event) => {
+      // Get all elements with class="tabs" and remove the class "active"
+      stars = document.getElementsByClassName('fa-star');
+      for (i = 0; i < stars.length; i++) {
+        stars[i].className = stars[i].className.replace(' is-warning', '');
+      }
+      for (i = 0; i < stars.length; i++) {
+        stars[i].className = stars[i].className += ' is-warning';
+      }
+    }
+
+    document.getElementById('module-4stars').onclick = (event) => {
+
+    }
+
+    document.getElementById('module-3stars').onclick = (event) => {
+
+    }
+
+    document.getElementById('module-2stars').onclick = (event) => {
+
+    }
+
+    document.getElementById('module-1stars').onclick = (event) => {
+
+    }
+
   })();
 </script>
