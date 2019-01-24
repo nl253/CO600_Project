@@ -227,25 +227,27 @@
         let json = null;
         const modules = (await ((await fetch(uri, cfg)).json())).result;
         for (const m of modules) {
-
           const ratingRes = await fetch(`/api/rating/search?moduleId=${m.id}&stars=${rating}`, cfg);
           const json = await ratingRes.json();
           const stars = json.result.map(r => r.stars);
           const avg = stars.length === 0 ? 0 : stars.reduce((x, y) => x + y) / stars.length;
-          document.getElementById('module-searchResults').innerHTML +=
-            `<div class="box" onclick="location.href = '/module/${m.id}'">
-              <div class="media-content">
-                <div class="content">
-                  <p class="is-size-6">
-                    <a href="/module/${m.id}"><strong>${m.name}</strong></a>
-                    <br>
-                    ${m.summary}
-                  </p>
+          if (avg == rating){
+            document.getElementById('module-searchResults').innerHTML +=
+              `<div class="box" onclick="location.href = '/module/${m.id}'">
+                <div class="media-content">
+                  <div class="content">
+                    <p class="is-size-6">
+                      <a href="/module/${m.id}"><strong>${m.name}</strong></a>
+                      <br>
+                      ${m.summary}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <br>
-              <i class="fas fa-star">${avg}
-            </div>`;
+                <br>
+                <i class="fas fa-star">${avg}
+              </div>`;
+          }
+          
         }
       } catch (e) {
         console.error(e);
