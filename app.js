@@ -1,7 +1,3 @@
-/**
- * TODO deleting attachments in module/lesson edit
- */
-
 const fs = require('fs');
 const path = require('path');
 
@@ -80,8 +76,10 @@ app.use(/\/javascripts\/.*\.js$/, async (req, res, next) => {
   const jsPathMin = jsPath.replace(/\.js$/, '.min.js');
   if (process.env.NODE_ENV === 'development' || !fs.existsSync(jsPathMin)) {
     const {code, map} = await babel.transformFileAsync(jsPath);
-    fs.writeFileSync(jsPathMin, code);
-    fs.writeFileSync(jsPathMap, JSON.stringify(map));
+    const writeJSMinP = new Promise((res, rej) => res(fs.writeFileSync(jsPathMin, code)));
+    const writeJSMapP = new Promise((res, rej) => res(fs.writeFileSync(jsPathMap, JSON.stringify(map))));
+    await writeJSMinP;
+    await writeJSMapP;
   }
   return res.send(fs.readFileSync(jsPathMin));
 });
@@ -148,7 +146,7 @@ app.use(async (req, res, next) => {
 app.use('/user', require('./routes/user'));
 app.use('/file', require('./routes/file'));
 app.use('/module', require('./routes/module'));
-app.use('/lesson', require('./routes/lesson'));
+// app.use('/lesson', require('./routes/lesson'));
 app.use('/api', require('./routes/api'));
 app.use('/', require('./routes'));
 

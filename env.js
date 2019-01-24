@@ -15,6 +15,7 @@ const APP_ENV = {
   LOGGING_DB: 'warn',
   NO_MOCKS: 10,
   LOGGING_TESTS: 'info',
+  TOKEN_LEN: 18,
   SECRET: 'U\x0bQ*kf\x1bb$Z\x13\x03\x15w\'- f\x0fn1\x0f\\\x106V\'M~\x07',
   SESSION_TIME: 20 * MINUTE,
   ROOT: resolve(__dirname),

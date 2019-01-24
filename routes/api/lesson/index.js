@@ -12,15 +12,23 @@ const upload = multer({
 
 // Project
 const {validCols, needs, isLoggedIn} = require('../../lib');
-const {suggestRoutes, msg, log} = require('../lib');
-const {APIErr, NoSuchRecordErr, NotLoggedInErr, DeniedErr, InvalidRequestErr} = require('../../errors');
-const {Lesson, Module, User, sequelize, File} = require('../../../database');
-
+const {msg} = require('../lib');
+const {APIErr, NoSuchRecordErr, DeniedErr} = require('../../errors');
+const {Lesson, Module, User, sequelize, File, Enrollment} = require('../../../database');
 
 router.get(['/:id/download', '/:id/content'], isLoggedIn(),
   async (req, res) => {
     try {
-      const lesson = await Lesson.findOne({where: {id: req.params.id}}).then(l => l.dataValues);
+      const lesson = await Lesson.findOne({where: {id: req.params.id}});
+      if (lesson === null) {
+        throw new NoSuchRecordErr('Lesson', {id: req.params.id});
+      }
+      const mod = await Module.findOne({where: {id: lesson.moduleId}});
+      if (mod.authorId !== res.locals.loggedIn.id && await Enrollment.findOne({where: {
+          moduleId: mod.id,
+          studentId: res.locals.loggedIn.id}}) === null) {
+        throw new DeniedErr('download lesson content');
+      }
       res.set('Content-Type', 'text/html');
       res.send(lesson.content);
       return res.end();
@@ -31,16 +39,14 @@ router.get(['/:id/download', '/:id/content'], isLoggedIn(),
 
 router.delete('/:id', isLoggedIn(),
   async (req, res, next) => {
-    if (!res.locals.loggedIn) return new NotLoggedInErr();
     try {
       const lesson = await Lesson.findOne({where: {id: req.params.id}});
       if (lesson === null) {
         return new NoSuchRecordErr('Lesson',
           {id: req.params.id});
       }
-      const module = await Module.findOne({where: {id: lesson.moduleId}});
-      const author = await User.findOne({where: {id: module.authorId}});
-      if (author.id !== res.locals.loggedIn.id) {
+      const mod = await Module.findOne({where: {id: lesson.moduleId}});
+      if (res.locals.loggedIn.id !== mod.authorId) {
         return next(new DeniedErr(`delete lesson ${req.params.id}`));
       }
       await lesson.destroy();
@@ -82,20 +88,17 @@ router.post(['/:id', '/:id/update', '/:id/modify'],
       if (lesson === null) {
         return next(new NoSuchRecordErr('Lesson', {id: req.params.id}));
       }
-      const module = await Module.findOne({where: {id: lesson.moduleId}});
-      const author = await User.findOne({where: {id: module.authorId}});
-      if (author.id !== res.locals.loggedIn.id) {
-        return next(new DeniedErr(`delete lesson ${req.params.id}`));
+      const mod = await Module.findOne({where: {id: lesson.moduleId}});
+      if (mod.authorId !== res.locals.loggedIn.id) {
+        throw new DeniedErr(`delete lesson ${req.params.id}`);
       }
       const existingFileNames = await File.findAll({
-        where: {
-          lessonId: lesson.id,
-        },
+        where: {lessonId: lesson.id},
         attributes: ['name'],
       }).then(ns => ns.map(n => n.dataValues.name));
-      console.log(existingFileNames.length === 0 ? 'no existing files' : `existing files: ${existingFileNames.join(', ')}`);
-      console.debug(req.files);
-      console.debug(req.body);
+      // console.log(existingFileNames.length === 0 ? 'no existing files' : `existing files: ${existingFileNames.join(', ')}`);
+      // console.debug(req.files);
+      // console.debug(req.body);
       const maybeLessFile = req.files.find(f => f.fieldname === 'lesson');
       if (maybeLessFile && !maybeLessFile.originalname.match(/\.x?html?$/)) {
         return next(new APIErr('Invalid lesson content file.'));
@@ -145,7 +148,5 @@ router.get(['/', '/search'], validCols(Lesson, 'query'),
       return next(e);
     }
   });
-
-suggestRoutes(router, /.*/, {});
 
 module.exports = router;

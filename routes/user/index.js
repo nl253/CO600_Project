@@ -17,7 +17,7 @@ router.get('/search', (req, res) => res.render(join('user', 'search')));
 /**
  * Registration page if not logged in, otherwise redirect to user home.
  */
-router.get('/register', (req, res) => res.locals.loggedIn
+router.get(['/register', '/sign[-_]?up', 'create'], (req, res) => res.locals.loggedIn
   ? res.redirect('/user/home')
   : res.render(join('user', 'register')));
 
@@ -27,9 +27,10 @@ router.get(['/edit', '/settings'], isLoggedIn(),
 /**
  * User profile page of the user that's logged in.
  */
-router.get(['/', '/home', '/profile', '/dashboard', '/account'], (req, res) => res.locals.loggedIn === undefined
-  ? res.status(403).redirect('/user/register')
-  : res.render(join('user', 'home')));
+router.get(['/', '/home', '/profile', '/dashboard', '/account'],
+  (req, res) => res.locals.loggedIn === undefined
+    ? res.status(403).redirect('/user/register')
+    : res.render(join('user', 'home')));
 
 /**
  * Public info about a user.
@@ -50,15 +51,18 @@ router.get('/:page',
           attributes,
         });
       } else return next();
-      if (user === null) return next(new NoSuchRecordErr('User', [req.params.page]));
+      if (user === null) {
+        throw new NoSuchRecordErr('User', [req.params.page]);
+      }
       user = user.dataValues;
       user.enrollments = await Enrollment.findAll({where: {studentId: user.id}}).then(es => es.map(e => e.dataValues));
       for (let i = 0; i < user.enrollments.length; i++) {
-        user.enrollments[i].module = (await (Module.findOne({where: {id: user.enrollments[i].moduleId}}))).dataValues;
+        user.enrollments[i].module = await Module.findOne({where: {id: user.enrollments[i].moduleId}}).then(m => m.dataValues);
       }
       user.isMe = res.locals.loggedIn && res.locals.loggedIn.id && res.locals.loggedIn.id === user.id;
       user.createdModules = await Module.findAll({where: {authorId: user.id}}).then(ms => ms.map(m => m.dataValues));
-      return res.render(join('user', 'view'), {user});
+      console.log(user);
+      return res.render(join('user', 'profile'), {user});
     } catch (err) {
       return next(err);
     }
