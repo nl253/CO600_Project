@@ -215,47 +215,38 @@
       const cfg = {
         redirect: 'follow',
         cache: 'no-cache',
-        mode: 'cors',
         credentials: 'include',
-        headers: {Accept: 'application/json'},
       };
       let uri = `/api/module/search`;
 
-      if ([...Object.keys(queryParams)].length > 0) {
+      if (Object.keys(queryParams).length > 0) {
         uri += '?' + Object.entries(queryParams).map(pair => pair.join('=')).join('&');
       }
       // error codes 400..499 and 500..599 are client and server errors
       try {
         let json = null;
-        const results = await fetch(uri, cfg);
-        if (rating !=0){
-          const ratings = await fetch('/api/rating/search?moduleId=${moduleId}&stars='+rating, cfg);
-          json = await ratings.json();
-        } else {
-          json = await results.json();
-        }
-
-        for (module in json.result) {
-          const moduleName = json.result[module].id;
-          const moduleSummary = json.result[module].summary;
-          const moduleRating = 0;
-
+        const modules = (await ((await fetch(uri, cfg)).json())).result;
+        if (rating === 0) return; 
+        for (const m of modules) {
+          const ratingRes = await fetch(`/api/rating/search?moduleId=${m.moduleId}&stars=${rating}`, cfg);
+          const json = await ratingRes.json();
+          const stars = json.result.map(r => r.stars);
+          const avg = stars.reduce((x, y) => x + y) / stars.length;
           document.getElementById('module-searchResults').innerHTML +=
-              `<div class="box" onclick="location.href = "/module">
-          <div class="media-content">
-            <div class="content">
-              <p class="is-size-5">
-                <a href="/module/${moduleName}"><strong>${moduleName}</strong></a>
-                <br>
-                ${moduleSummary}
-              </p>
-            </div>
-          </div>
-          <br>
-          <i class="fas fa-star">${moduleRating}
-        </div>`;
+            `<div class="box" onclick="location.href = "/module/${m.id}">
+              <div class="media-content">
+                <div class="content">
+                  <p class="is-size-6">
+                    <a href="/module/${m.id}"><strong>${m.name}</strong></a>
+                    <br>
+                    ${m.summary}
+                  </p>
+                </div>
+              </div>
+              <br>
+              <i class="fas fa-star">${avg}
+            </div>`;
         }
-
       } catch (e) {
         console.error(e);
         return alert(e.message);
