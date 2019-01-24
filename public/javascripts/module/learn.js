@@ -66,20 +66,14 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
   try {
     document.getElementById('module-edit-pane').innerHTML = `
       <h2 class="title" style="margin-bottom: 10px;">
-        Name
+      ${module.name ? module.name : ''}
       </h2>
-      
-      <div id="module-edit-name" style="max-width: 300px;">
-        ${module.name ? module.name : ''}
-      </div>
       <h3 class="subtitle" style="margin: 25px 0 0 0;">
-        Topic
-      </h3>
-      <span id="module-edit-topic" style="min-width: 150px;">${module.topic ?
+      ${module.topic ?
         module.topic :
-        ''}</span>
-      
-      <section class="content" style="margin-top: 40px;">
+        ''}
+      </h3>
+      <section class="content" style="margin-top: 20px;">
         <strong>Author</strong>   
         <a href="/user/${module.authorId}">
           ${await get('User', {id: module.authorId}).then(us => us[0].email)}
@@ -94,18 +88,12 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
       })}/5</span>
       </section>
       <section class="is-medium" style="margin-bottom: 30px;">
-        <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
+        <h3 class="subtitle" style="margin-bottom: 10px;">Summary</h3>
         <div id="module-edit-summary"
-                  style="min-width: 100%; min-height: 90px; word-wrap: break-word; padding: 10px; border: 1px #c9c3c3 dashed;">${module.summary ?
+                  style="min-width: 100%; min-height: 90px; word-wrap: break-word;">${module.summary ?
       module.summary :
       ''}</div>
       </section>
-      <div class="field is-grouped">
-        <button type="reset" onclick="alert('Implement eroll to module')" class="button is-info" style="margin: 7px">
-          <i class="fas fa-user-plus"></i>
-          <span>Enrol</span>
-        </button>
-      </div>
     `;
   } catch (e) {
     console.error(e);
@@ -117,69 +105,18 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
  * Shows the lesson edit pane.
  *
  * @param {{id: !Number, moduleId: !Number, name: ?String, content: ?Boolean, summary: ?String}} lesson
- * @param {Array<{id: ?Number, name: !String}>} attachments
  */
-function showLessEditPane(lesson, attachments = []) {
-  document.getElementById('module-edit-pane').innerHTML = `
-    <form enctype="multipart/form-data"
-          id="module-edit-form-lesson"
-          disabled="true"
-          class="lesson-edit-form column is-10-desktop is-full-tablet is-full-mobile"
-          style="display: flex; flex-direction: column; justify-content: space-around; align-items: flex-start; margin-top: -15px;">
-      <h2 class="title is-3">Name</h2>
-      <input name="name" value="${lesson.name ? lesson.name : ''}" 
-             autocomplete="on" placeholder="e.g. Introduction to AI"
-             style="background: #d3d3d329; padding: 5px; border: 1px #c9c3c3 dashed; min-width: 60%;">
-      <h2 class="title is-3" style="margin-top: 20px;">Summary</h2>
-      <textarea name="summary" autocomplete="on"
-                style="padding: 5px; min-width: 650px; min-height: 50px; max-height: 400px; border: 1px #c9c3c3 dashed;">${lesson.summary ? lesson.summary : ''}</textarea>
-      <h2 class="title is-3" style="margin-top: 20px;">Content</h2>
-      <p style="margin-bottom: 10px;">Upload HTML file with the lesson content</p>
-      <div id="module-edit-lesson-content"></div>
-      <input type="file" name="lesson" style="display: block; max-width: 200px; margin-top: 20px;">
-      <h2 class="title is-3" style="margin-top: 20px;">Attachments (optional)</h2>
-      <p><strong>Select a file:</strong></p>
-      <br>
-      <ul style="list-style-type: disc; display: flex; flex-direction: column; justify-content: space-around; align-items: flex-start; margin-left: 19px;">
-        <li>Image (.jpg, .jpeg, .png, .gif)</li>
-        <li>Audio (.mp3)</li>
-        <li>Video (.mp4, .mpg)</li>
-      </ul>
-      <br>
-      <input type="file" name="attachments" multiple style="display: block">
-      <div style="display: flex; flex-direction: column; justify-content: space-around; align-items: flex-start; margin-top: 20px;">
-        <h3 id="lesson-edit-h-uploaded-files title is-5" style="margin-bottom: 8px;">
-          Uploaded Files
-        </h3>
-        <ul id="module-edit-list-attachments" style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; min-width: 300px;"></ul>
-      </div>
-      <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 20px; min-width: 380px; max-width: 500px;">
-        <button onclick="alert('Not Implemented Yet.')" type="reset" class="button is-warning" style="min-width: 100px;">
-          <i class="fas fa-undo"></i>
-          <span>Reset</span>
-        </button>
-        <button onclick="event.preventDefault(); updateLess()" class="button is-success" style="min-width: 100px;">
-          <i class="fas fa-check"></i>
-          <span>Save</span>
-        </button>
-        <button onclick="event.preventDefault(); if (confirm('Delete lesson?')) destroyLess(${lesson.id})" class="button is-danger" style="min-width: 100px;">
-          <i class="fas fa-times"></i>
-          <span>Delete</span>
-        </button>
-      </div>
-    </form>
-    `;
+async function showLessEditPane(lesson) {
+  
+  const cfg = {
+    redirect: 'follow',
+    cache: 'no-cache',
+    credentials: 'include',
+  };
+  const lessonRes = await fetch(`/api/lesson/search?id=${lesson.id}`,cfg);
+  const json = await lessonRes.json();
 
-  // document.querySelector("form[enctype='multipart/form-data']").onsubmit = function(e) {
-  //   return e.preventDefault();
-  // };
-
-  if (lesson.content) setLessContent();
-  else unsetLessContent();
-
-  for (const f of attachments) {
-    appendAttachment({id: f.id, lessonId: lesson.id, name: f.name});
-  }
+  document.getElementById('module-edit-pane').innerHTML = json.result[0].content;
 }
 
 /**
@@ -479,80 +416,20 @@ function unsetLessContent() {
     const cfg = {
       redirect: 'follow',
       cache: 'no-cache',
-      mode: 'cors',
       credentials: 'include',
-      headers: {Accept: 'application/json'},
     };
-    const userId = JSON.parse(sessionStorage.getItem("loggedIn")).id;
-    fetch(`/api/enrollment/search?userId=${userId}`,cfg)
-      .then(response => response.status >= 400
-        // if it goes wrong force it to jump to reject
-        ? response.json().then(errMsg => Promise.reject(errMsg))
-        // the JSON object is guaranteed to have a "msg" property
-        : response.json())
-    .then(json => {
-      for (const m of json) {
-        appendModule(m);
-      }
-    });
-
-    const memory = sessionStorage.getItem(`${location.pathname}?click`);
-    if (!memory) return false;
-    const {page, id} = JSON.parse(memory);
-
-    /**
-     * @return {Promise<Boolean>}
-     */
-    async function tryRecallMod() {
-      if (page !== 'module') {
-        return false;
-      } else if (!document.querySelector(`#module-edit-list-module li[data-id='${JSON.parse(memory).id}'] > a`)) {
-        return false;
-      }
-      await toggleModule(JSON.parse(memory).id);
-      return true;
+    const studentId = JSON.parse(sessionStorage.getItem("loggedIn")).id;
+    const enrollmentRes = await fetch(`/api/enrollment/search?studentId=${studentId}`,cfg);
+    if (enrollmentRes.status >= 400){
+      const errMsg = "Could not load modules";
+      console.error(errMsg);
+      return alert(errMsg);
     }
-
-    /**
-     * @return {Promise<Boolean>}
-     */
-    async function tryRecallLess() {
-      if (page !== 'lesson') return false;
-      const ls = await get('Lesson', {id});
-      if (ls.length === 0) return false;
-      const {moduleId} = ls[0];
-      if (!document.querySelector(`#module-edit-list-module li[data-id='${moduleId}'] > a`)) {
-        return false;
-      }
-      await toggleModule(moduleId);
-      if (!document.querySelector(`#module-edit-list-lesson li[data-id='${id}'] > a`)) {
-        return false;
-      }
-      await toggleLesson(id);
-      return true;
+    const enrollments = (await enrollmentRes.json()).result;
+    for (const e of enrollments) {
+      const m = (await (await fetch(`/api/module/search?id=${e.moduleId}`)).json()).result[0];
+      appendModule(m);
     }
-
-    /**
-     * @return {Promise<Boolean>}
-     */
-    async function tryRecallQuest() {
-      if (page !== 'question') return false;
-      const qs = await get('Question', {id});
-      if (qs.length === 0) return false;
-      const moduleId = qs[0].moduleId;
-      if (!document.querySelector(`#module-edit-list-module li[data-id='${moduleId}'] > a`)) {
-        return false;
-      }
-      await toggleModule(moduleId);
-      if (!document.querySelector(`#module-edit-list-question li[data-id='${id}'] > a`)) {
-        return false;
-      }
-      await toggleQuestion(id);
-      return true;
-    }
-
-    return (await tryRecallMod()) || ((await tryRecallLess()) || await tryRecallQuest());
-
   } catch(e) {
     const msg = e.msg || e.message || e.toString();
     console.error(e);
