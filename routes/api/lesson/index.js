@@ -139,6 +139,9 @@ router.get(['/', '/search'], validCols(Lesson, 'query'),
         order: sequelize.col('order'),
         limit: process.env.MAX_RESULTS || 100,
       }).then(ls => ls.map(l => l.dataValues));
+      for (const l of lessons) {
+        l.content = l.content.toString();
+      }
       let s = `found ${lessons.length} lessons`;
       if (Object.entries(req.query).length > 0) {
         s += ` matching given ${Object.keys(req.query).join(', ')}`;
