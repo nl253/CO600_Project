@@ -35,41 +35,35 @@
           <a class="tabLinks" id="module-dateUpdated"
              onclick="selectDateFilter(event, 'module-dateUpdated', 'tabLinks')">Date updated</a>
         </p>
-        <a class="panel-block time module-date-filter" id="module-1week" onclick="selectDateFilter(event, '1Week', 'time')">
+        <a class="panel-block module-date-filter" id="module-1week">
           <span class="panel-icon">
             <i class="fas fa-check-square" aria-hidden="true"></i>
           </span>
           1 Week
         </a>
-        <a class="panel-block time module-date-filter" id="module-1month" onclick="selectDateFilter(event, '1Month', 'time')">
+        <a class="panel-block module-date-filter" id="module-1month">
           <span class="panel-icon">
             <i class="fas fa-check-square" aria-hidden="true"></i>
           </span>
           1 Month
         </a>
-        <a class="panel-block time module-date-filter" id="module-6months" onclick="selectDateFilter(event, '6Months', 'time')">
+        <a class="panel-block module-date-filter" id="module-6months">
           <span class="panel-icon">
             <i class="fas fa-check-square" aria-hidden="true"></i>
           </span>
           6 Months
         </a>
-        <a class="panel-block time module-date-filter" id="module-1year" onclick="selectDateFilter(event, '1Year', 'time')">
+        <a class="panel-block module-date-filter" id="module-1year">
           <span class="panel-icon">
             <i class="fas fa-check-square" aria-hidden="true"></i>
           </span>
           1 Year
         </a>
-        <a class="panel-block time module-date-filter" id="module-5years" onclick="selectDateFilter(event, '5Years', 'time')">
+        <a class="panel-block module-date-filter" id="module-5years">
           <span class="panel-icon">
             <i class="fas fa-check-square" aria-hidden="true"></i>
           </span>
           5 Years
-        </a>
-        <a class="panel-block time module-date-filter" id="module-older" onclick="selectDateFilter(event, 'Older', 'time')">
-          <span class="panel-icon">
-            <i class="fas fa-check-square" aria-hidden="true"></i>
-          </span>
-          Older
         </a>
         <p class="panel-heading">
           Filter by Rating
@@ -162,21 +156,42 @@
    * @param {String} tabName
    * @param {String} filterName
    */
-  function selectDateFilter(evt, tabName, filterName) {
+  function selectDateFilter(evt, filterTime) {
     // Declare all variables
     let i, tabs;
     //Change variable to updated or selected.
     // Get all elements with class="tabs" and remove the class "active"
-    tabs = document.getElementsByClassName(filterName);
+    tabs = document.getElementsByClassName('tabLinks');
     for (i = 0; i < tabs.length; i++) {
+      if (i === 0){
+        dateFilter = 'created';
+      } else if (i === 1){
+        dateFilter = 'updated';
+      }
       tabs[i].className = tabs[i].className.replace(' is-active', '');
     }
     // Show the current tab, and add an "active" class to the button that opened the tab
     evt.currentTarget.className += ' is-active';
-    if (tabs[0].classList.contains('time')) {
-      time = evt.currentTarget.id.toString();
-    } else if (tabs[0].classList.contains('rating')) {
-      rating = evt.currentTarget.id.toString();
+  }
+
+  function getDate(timeFrame){
+    const second = 1000;
+    const minute = second * 60;
+    const hour = minute * 60;
+    const day = hour * 24;
+    const month = day * 30;
+    const year = month * 12 + day*5;
+
+    if(timeFrame === '1Week') {
+      return new Date() - day*7;
+    } else if(timeFrame === '1Month') {
+      return new Date() - month;
+    } else if(timeFrame === '6Months') {
+      return new Date() - month*6;
+    } else if(timeFrame === '1Year') {
+      return new Date() - year;
+    } else if(timeFrame === '5Years') {
+      return new Date() - year*5;
     }
   }
 
@@ -186,7 +201,7 @@
       tabs[i].className = tabs[i].className.replace(' is-active', '');
     }
     rating = 0;
-    time = null;
+    dateFilter = null;
     stars = document.getElementsByClassName('module-search-filter-star');
     for (i = 0; i < 5; i++) {
       stars[i].className = stars[i].className.replace('fas', 'far');
@@ -194,14 +209,11 @@
   }
 
   (function() {
-    let date, rating, time;
-    date = 'created';
+    let date, dateFilter, rating;
+    date = new Date(0);
+    dateFilter = null;
     rating = 0;
-    time = null;
-    let today = new Date();
-    let dd = today.getDate();
-    let mm = today.getMonth() + 1;
-    let yyyy = today.getFullYear();
+    
     const searchBtn = document.getElementById('module-searchBtn');
 
     if (!searchBtn) return;
@@ -217,21 +229,18 @@
         cache: 'no-cache',
         credentials: 'include',
       };
-      let uri = `/api/module/search`;
-
-      if (Object.keys(queryParams).length > 0) {
-        uri += '?' + Object.entries(queryParams).map(pair => pair.join('=')).join('&');
-      }
       // error codes 400..499 and 500..599 are client and server errors
-      try {
-        let json = null;
-        const modules = (await ((await fetch(uri, cfg)).json())).result;
+      try {        
+        const result = await fetch(`/api/module/search?name=${searchTerm}&${dateFilter === 'created' ? 'createdAt' : 'updatedAt'}=${date.toISOString()}`, cfg);
+        const json = await result.json();
+        const modules = json.result;
         for (const m of modules) {
           const ratingRes = await fetch(`/api/rating/search?moduleId=${m.id}&stars=${rating}`, cfg);
           const json = await ratingRes.json();
           const stars = json.result.map(r => r.stars);
           const avg = stars.length === 0 ? 0 : stars.reduce((x, y) => x + y) / stars.length;
-          if (Math.round(avg) === rating){
+          
+          if (Math.round(avg) >= rating){
             document.getElementById('module-searchResults').innerHTML +=
               `<div class="box" onclick="location.href = '/module/${m.id}'">
                 <div class="media-content">
@@ -307,27 +316,48 @@
     }
 
     document.getElementById('module-1week').onclick = (event) => {
-      
+      dateFilters = document.getElementsByClassName('module-date-filter');
+      for (i = 0; i < 5; i++) {
+        dateFilters[i].className = dateFilters[i].className.replace(' is-active', '');
+      }
+      dateFilters[0].className += ' is-active';
+      date = getDate('1Week');
     }
 
     document.getElementById('module-1month').onclick = (event) => {
-      
+      dateFilters = document.getElementsByClassName('module-date-filter');
+      for (i = 0; i < dateFilters.length; i++) {
+        dateFilters[i].className = dateFilters[i].className.replace(' is-active', '');
+      }
+      dateFilters[1].className += ' is-active';
+      date = getDate('1Month');
     }
 
     document.getElementById('module-6months').onclick = (event) => {
-      
+      dateFilters = document.getElementsByClassName('module-date-filter');
+      for (i = 0; i < dateFilters.length; i++) {
+        dateFilters[i].className = dateFilters[i].className.replace(' is-active', '');
+      }
+      dateFilters[2].className += ' is-active';
+      date = getDate('6Months');
     }
 
     document.getElementById('module-1year').onclick = (event) => {
-      
+      dateFilters = document.getElementsByClassName('module-date-filter');
+      for (i = 0; i < dateFilters.length; i++) {
+        dateFilters[i].className = dateFilters[i].className.replace(' is-active', '');
+      }
+      dateFilters[3].className += ' is-active';
+      date = getDate('1Year');
     }
 
     document.getElementById('module-5years').onclick = (event) => {
-      
-    }
-
-    document.getElementById('module-older').onclick = (event) => {
-      
+      dateFilters = document.getElementsByClassName('module-date-filter');
+      for (i = 0; i < dateFilters.length; i++) {
+        dateFilters[i].className = dateFilters[i].className.replace(' is-active', '');
+      }
+      dateFilters[4].className += ' is-active';
+      date = getDate('5Years');
     }
 
     document.getElementById('module-reset').onclick = (event) => {
