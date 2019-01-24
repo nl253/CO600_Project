@@ -42,12 +42,12 @@
       }
       for (const u of users) {
         document.getElementById('user-search-results').innerHTML +=
-          `<div class="box" onclick="location.path = "/user/${u.id}">
+          `<div class="box" onclick="location.href = '/user/${u.id}'">
               <div class="media-content">
                 <div class="content">
                   <p class="is-size-6">
                     ${u.firstName && u.lastName ?
-            `<strong>${u.firstName} ${u.lastName}</strong><br><br>` :
+            `<a href="location.href = '/user/${u.id}'"><strong>${u.firstName} ${u.lastName}</strong></a><br><br>` :
             ''}
                     ${u.info ? `<span>${u.info}</span><br><br>` : ''}
                     <a href="/user/${u.id}"><strong>${u.email}</strong></a>
