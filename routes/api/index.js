@@ -7,6 +7,13 @@ const router = express.Router();
 const {log, errMsg} = require('./lib');
 const {NotImplYetErr} = require('./../errors');
 
+router.use((req, res, next) => {
+  res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+  res.header('Expires', '-1');
+  res.header('Pragma', 'no-cache');
+  return next();
+});
+
 const MODELS = [
   'Enrollment',
   'File',
