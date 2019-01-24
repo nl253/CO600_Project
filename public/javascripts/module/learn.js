@@ -107,7 +107,7 @@ async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeol
  * @param {{id: !Number, moduleId: !Number, name: ?String, content: ?Boolean, summary: ?String}} lesson
  */
 async function showLessEditPane(lesson) {
-  
+
   const cfg = {
     redirect: 'follow',
     cache: 'no-cache',
@@ -126,63 +126,31 @@ async function showLessEditPane(lesson) {
  */
 function showQuestEditPane(question) {
   document.getElementById('module-edit-pane').innerHTML = `
-    <h1 class="title is-3" style="margin-bottom: 10px;">Question</h1>
-    <p><strong>Note:</strong> Save the current question before editing another one</p>
-    <br>
-    <div class="field">
-      <a id="module-edit-question-name" class="button is-medium is-light" style="width: 100%; padding: 5px; border: 1px; margin: auto;">${question.name ?
-    question.name :
-    ''}</a>
-    </div>
-    <br>
-
-    <div class="field">
-      <h2 class="title is-3" style="margin-bottom: 10px;">Correct Answer</h2>
-      <a id="module-edit-question-answer" class="button is-medium is-light" style="width: 100%; padding: 5px; border: 1px; margin: auto;">${question.correctAnswer ?
-    question.correctAnswer :
-    ''}</a>
-    </div>
-    <br>
-    
-    <h3 class="title is-3" style="margin-bottom: 10px;">Other Answers</h3>
-
-    <p><strong>Note:</strong> Include other answers which are wrong</p>
-
-    <br>
+    <h2 class="title is-3" style="margin-bottom: 30px;">${question.name ? question.name : ''}</h2>
 
     <div class="field is-horizontal">
-      <a id="module-edit-question-bad-answer-1" class="button is-medium is-light" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer1 ?
-    question.badAnswer1 :
-    ''}</a>
+      <a id="module-edit-question-bad-answer-1" class="button is-medium is-light" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">
+        ${question.badAnswer1 ? question.badAnswer1 : ''}
+      </a>
     </div>
 
     <div class="field is-horizontal">
-      <a id="module-edit-question-bad-answer-2" class="button is-medium is-light" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer2 ?
-    question.badAnswer2 :
-    ''}</a>
+      <a id="module-edit-question-bad-answer-2" class="button is-medium is-light" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">
+        ${question.badAnswer2 ? question.badAnswer2 : ''}
+      </a>
     </div>
     
     <div class="field is-horizontal">
-      <a id="module-edit-question-bad-answer-3" class="button is-medium is-light" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">${question.badAnswer3 ?
-    question.badAnswer3 :
-    ''}</a>
+      <a id="module-edit-question-bad-answer-3" class="button is-medium is-light" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">
+        ${question.badAnswer3 ? question.badAnswer3 : ''}
+      </a>
     </div>
     <br>
 
-    <div class="field is-grouped">
-      <button type="submit" onclick="updateQuest()" class="button is-success" style="margin: 7px">
-        <i class="fas fa-check"></i>
-        <span>Save</span>
-      </button>
-      <button type="reset" onclick="alert('Not Implemented Yet.')" class="button is-warning" style="margin: 7px">
-        <i class="fas fa-undo"></i>
-        <span>Reset</span>
-      </button>
-      <button onclick="if (confirm('Delete question?')) destroyQuest(${question.id}) " class="button is-danger" style="margin: 7px">
-        <i class="fas fa-check"></i>
-        <span>Delete</span>
-      </button>
-    </div>
+    <button type="submit" onclick="alert('not implemented yet')"  class="button is-success is-block" style="margin: 7px auto;">
+      <i class="fas fa-check" style="position: relative; top: 4px;"></i>
+      <span>Check</span>
+    </button>
   `;
 }
 
