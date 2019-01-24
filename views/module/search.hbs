@@ -226,14 +226,14 @@
       try {
         let json = null;
         const modules = (await ((await fetch(uri, cfg)).json())).result;
-        if (rating === 0) return; 
         for (const m of modules) {
-          const ratingRes = await fetch(`/api/rating/search?moduleId=${m.moduleId}&stars=${rating}`, cfg);
+
+          const ratingRes = await fetch(`/api/rating/search?moduleId=${m.id}&stars=${rating}`, cfg);
           const json = await ratingRes.json();
           const stars = json.result.map(r => r.stars);
-          const avg = stars.reduce((x, y) => x + y) / stars.length;
+          const avg = stars.length === 0 ? 0 : stars.reduce((x, y) => x + y) / stars.length;
           document.getElementById('module-searchResults').innerHTML +=
-            `<div class="box" onclick="location.href = "/module/${m.id}">
+            `<div class="box" onclick="location.href = '/module/${m.id}'">
               <div class="media-content">
                 <div class="content">
                   <p class="is-size-6">
