@@ -3,7 +3,6 @@ if (location.pathname.includes('/user/register')) {
   if (btn) btn.remove();
 }
 
-
 (function() {
   let btn = document.getElementById('layout-btn-log-in');
   if (!btn) return;
@@ -38,21 +37,17 @@ if (location.pathname.includes('/user/register')) {
       }
     }
 
-    let json;
-
     try {
-      json = await logInRes.json();
+      const json = await logInRes.json();
+      sessionStorage.setItem('loggedIn', JSON.stringify(json.result));
+      setCookie('token', json.result.token);
+      location.href = location.pathname.includes('/register')
+        ? '/user/home'
+        : location.href;
     } catch (e) {
       console.error(e);
       sessionStorage.clear();
-      return document.getElementById('layout-btn-log-in').dispatchEvent(new Event('click'));
     }
-
-    sessionStorage.setItem('loggedIn', JSON.stringify(json.result));
-    setCookie('token', json.result.token);
-    location.href = location.pathname.includes('/register')
-      ? '/user/home'
-      : location.href;
   };
 })();
 
@@ -61,7 +56,6 @@ if (location.pathname.includes('/user/register')) {
   if (!burger) return;
   burger.onclick = () => {
     const menu = document.querySelector('.navbar-menu');
-
     return menu.classList.contains('is-active')
       ? menu.classList.remove( 'is-active')
       : menu.classList.add('is-active');
