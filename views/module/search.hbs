@@ -231,7 +231,7 @@
           const json = await ratingRes.json();
           const stars = json.result.map(r => r.stars);
           const avg = stars.length === 0 ? 0 : stars.reduce((x, y) => x + y) / stars.length;
-          if (avg == rating){
+          if (Math.round(avg) === rating){
             document.getElementById('module-searchResults').innerHTML +=
               `<div class="box" onclick="location.href = '/module/${m.id}'">
                 <div class="media-content">
