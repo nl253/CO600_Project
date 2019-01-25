@@ -39,6 +39,63 @@ function getSelId(what) {
 }
 
 /**
+ * Updates the rating for the selected module.
+ */
+async function updateRating() {
+  const raterId = JSON.parse(sessionStorage.getItem('loggedIn')).id;
+  const moduleId = getSelId('Module');
+  const comment = document.getElementById('module-learn-comment').value.trim();
+  let stars = 0;
+  for (let i = 5; i > 0; i--) {
+    const starEl = document.getElementById(`module-learn-star-${i}`);
+    if (starEl.classList.contains('is-warning')) {
+      stars = i;
+      break;
+    }
+  }
+  stars = stars ? stars : null;
+  let myRatings = await get('Rating', {moduleId, raterId});
+  if (myRatings.length > 0) {
+    await update('Rating', myRatings[0].id, JSON.stringify({comment, stars}));
+  } else await create('Rating', JSON.stringify({raterId, moduleId, comment, stars}));
+  unSelect('Module');
+  document.getElementById('module-edit-pane').innerHTML = '';
+  return await toggleMod(moduleId);
+}
+
+/**
+ * Destroys a rating.
+ *
+ * @returns {Promise<void>}
+ */
+async function destroyRating() {
+  const raterId = JSON.parse(sessionStorage.getItem('loggedIn')).id;
+  const moduleId = getSelId('Module');
+  let myRatings = await get('Rating', {moduleId, raterId});
+  if (myRatings.length > 0) {
+    await destroy('Rating', myRatings[0].id);
+    unSelect('Module');
+    document.getElementById('module-edit-pane').innerHTML = '';
+    return await toggleMod(moduleId);
+  }
+}
+
+/**
+ * Lights stars from given fromNo to 1 (goes down e.g. 4 .. 3 .. 2 .. 1).
+ *
+ * @param {!Number} fromNo
+ */
+function lightStars(fromNo = 5) {
+  for (const el of document.querySelectorAll("[id^='module-learn-star']")) {
+    el.classList.remove('is-warning');
+  }
+  for (let i = fromNo; i > 0; i--) {
+    const starEl = document.getElementById(`module-learn-star-${i}`);
+    starEl.classList.add('is-warning');
+  }
+}
+
+/**
  * Shows the lesson edit pane.
  *
  * @param {!{id: !Number, name: ?String, authorId: !Number, topic: ?String, summary: ?String}} module
@@ -47,6 +104,11 @@ function getSelId(what) {
  */
 async function showMod(module, topics = TOPICS) {
   try {
+    const myRatings = await get('Rating', {
+      raterId: JSON.parse(sessionStorage.getItem('loggedIn')).id,
+      moduleId: module.id,
+    });
+    const myRating =  myRatings.length > 0 ? myRatings[0] : null;
     document.getElementById('module-edit-pane').innerHTML = `
       <h2 class="title">
         ${module.name ? module.name : ''}
@@ -82,7 +144,7 @@ async function showMod(module, topics = TOPICS) {
         <h3 class="subtitle" style="margin-bottom: 10px;">Rating</h3>
         <div class="control">
           ${Array(5).fill(0).map((_, idx) => `
-            <button id="module-learn-star-${idx + 1}" class="button">
+            <button onclick="lightStars(${idx + 1})" id="module-learn-star-${idx + 1}" class="button" style="min-width: 0;">
               <span class="icon is-large">
                 <i class="fas fa-star"></i>
               </span>
@@ -91,28 +153,32 @@ async function showMod(module, topics = TOPICS) {
       </div> 
 
       <h4 class="subtitle" style="margin-bottom: 10px; margin-top: 20px;">Comment (optional)</h2>
-      <textarea>
-        ${await get('Rating', {
-            moduleId: module.id, 
-            raterId: JSON.parse(sessionStorage.getItem('loggedIn')).id,
-          }).then(rs => rs.length > 0 && rs[0].comment ? rs[0].comment : '')}
+      
+      <textarea id="module-learn-comment">
+        ${myRating && myRating.comment ? myRating.comment.trim() : ''}
       </textarea>
 
       <div class="field is-grouped" style="margin-top: 20px;">
         <p class="control">
-          <button type="submit"  class="button is-success is-block" style="margin: 7px auto; width: 100%;">
+          <button type="submit" onclick="updateRating()" class="button is-success is-block" style="margin: 7px auto; width: 100%;">
             <i class="fas fa-check" style="position: relative; top: 4px; left: 2px;"></i>
             <span>Save</span>
           </button>
         </p>
         <p class="control">
-          <button class="button is-danger is-block" style="margin: 7px auto; width: 100%;">
+          <button onclick="destroyRating()" class="button is-danger is-block" style="margin: 7px auto; width: 100%;">
             <i class="fas fa-times" style="position: relative; top: 4px; left: 2px;"></i>
             <span>Delete</span>
           </button>
         </p>
       </div>
     `;
+    if (myRating) {
+      for (let i = myRating.stars; i > 0; i--) {
+        const starBtn = document.getElementById(`module-learn-star-${i}`);
+        starBtn.classList.add('is-warning');
+      }
+    }
   } catch (e) {
     console.error(e);
     return alert(e.msg || e.message || e.toString());
