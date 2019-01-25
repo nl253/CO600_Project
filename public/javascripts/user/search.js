@@ -4,7 +4,6 @@
 
   const cfg = {redirect: 'follow'};
 
-
   /**
    * @param {String} email
    * @returns {Promise<String|Array<{id: !Number}>>}
@@ -42,13 +41,14 @@
       }
       for (const u of users) {
         document.getElementById('user-search-results').innerHTML +=
-          `<div class="box" onclick="location.href = '/user/${u.id}'">
+          `<div class="box" onclick="location.pathname = '/user/${u.id}'">
               <div class="media-content">
                 <div class="content">
                   <p class="is-size-6">
-                    ${u.firstName && u.lastName ?
-            `<a href="location.href = '/user/${u.id}'"><strong>${u.firstName} ${u.lastName}</strong></a><br><br>` :
-            ''}
+                    ${u.firstName && u.lastName 
+                      ? `<a href="/user/${u.id}"><strong>${u.firstName} ${u.lastName}</strong></a><br><br>` 
+                      : ''
+                    }
                     ${u.info ? `<span>${u.info}</span><br><br>` : ''}
                     <a href="/user/${u.id}"><strong>${u.email}</strong></a>
                     <br>

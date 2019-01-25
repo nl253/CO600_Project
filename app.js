@@ -55,6 +55,7 @@ app.use(
   require('node-sass-middleware')({
     src: process.env.PUBLIC_PATH,
     dest: process.env.PUBLIC_PATH,
+    maxAge: parseInt(process.env.SESSION_TIME),
     force: process.env.NODE_ENV === 'development',
     debug: false,
     outputStyle: 'compressed',
@@ -111,7 +112,7 @@ app.use(async (req, res, next) => {
       res.clearCookie('token', cookieOpts);
       res.clearCookie('token');
       return next();
-    } else if ((Date.now() - sess.updatedAt) >= process.env.SESSION_TIME) {
+    } else if ((Date.now() - sess.updatedAt) >= parseInt(process.env.SESSION_TIME)) {
       log.debug(`token sent is stale, destroying associated session`);
       sess.destroy();
       res.append("Clear-Site-Data", '"cache", "cookies"');

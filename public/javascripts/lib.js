@@ -1,9 +1,3 @@
-const SECOND = 1000;
-const MINUTE = 60 * SECOND;
-const HOUR = 60 * MINUTE;
-
-const TOPICS = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology'];
-
 /**
  * Logs the user out by sending a logout request.
  *
@@ -28,46 +22,6 @@ async function logOut() {
 }
 
 /**
- * @param {Array} array
- * @returns {Array}
- */
-function shuffle(array = []) {
-  let currentIndex = array.length, temporaryValue, randomIndex;
-  // While there remain elements to shuffle...
-  while (0 !== currentIndex) {
-
-    // Pick a remaining element...
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex -= 1;
-
-    // And swap it with the current element.
-    temporaryValue = array[currentIndex];
-    array[currentIndex] = array[randomIndex];
-    array[randomIndex] = temporaryValue;
-  }
-  return array;
-}
-
-/**
- * Returns the value of a cookie.
- *
- * @param {!String} name
- * @return {?String} cookie value
- */
-function getCookie(name) {
-  const pairs = document.cookie
-      .split(';')
-      .map((s) => s.trim())
-      .map((s) => s.split('='))
-      .map((pair) => pair.map(decodeURIComponent));
-  const dictionary = {};
-  for (const pair of pairs) {
-    dictionary[pair[0]] = pair[1];
-  }
-  return dictionary[name];
-}
-
-/**
  * Sets the value of a cookie.
  *
  * @param {!String} name
@@ -87,15 +41,6 @@ function setCookie(name, value, opts = {}) {
     ['Path', options.path],
     ['SameSite', options.sameSite]
   ].map((pair) => pair.join('=')).join('; ');
-}
-
-/**
- * Clears a cookie.
- *
- * @param {!String} name
- */
-function clearCookie(name) {
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
 }
 
 /**
@@ -228,3 +173,14 @@ async function destroy(model, id) {
     return alert(e.msg || e.message || e.toString());
   }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  /** Strip email suffix. I.e. all after the '@' at symbol. */
+  const emailRegex = /([A-Za-z0-9.]+)@([A-Za-z0-9.]+)/;
+  for (const greeting of document.getElementsByClassName('greeting-email')) {
+    const match = emailRegex.exec(greeting.innerText);
+    if (match !== null) {
+      greeting.innerText = greeting.innerText.replace(match[0], ` ${match[1]} `);
+    }
+  }
+});
