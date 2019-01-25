@@ -102,6 +102,9 @@ async function showLess(lesson) {
   document.getElementById('module-edit-pane').innerHTML = json.result[0].content;
 }
 
+/**
+ * Selects answer to quiz question.
+ */
 function selAns(e) {
   const ans = document.querySelector("#module-edit-pane .field [onclick][class*='is-warning']");
   if (ans) {
@@ -112,6 +115,9 @@ function selAns(e) {
   e.target.classList.add('is-warning');
 }
 
+/**
+ * Checks answer to quiz question.
+ */
 function checkAns() {
   const ans = document.querySelector("#module-edit-pane .field [onclick][class*='is-warning']");
   if (!ans) return;
@@ -249,13 +255,13 @@ async function toggleQuestion(id) {
  * @param {{id: !Number, authorId: !Number, name: ?String}} module
  */
 function appendModule(module = {id: null , name: null}) {
-  document.getElementById('module-edit-list-module').innerHTML += `
-    <li data-id="${module.id}">
-      <a onclick="toggleModule(${module.id})" style="min-width: 100px; padding: 10px; margin-right: 5px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
-        <span>${module.name ? module.name : 'unnamed #' + module.id.toString()}</span>
-      </a>
-    </li>
-    `;
+  const li = document.createElement('li');
+  li.setAttribute('data-id', module.id);
+  li.innerHTML =` 
+    <a onclick="toggleModule(${module.id})" style="min-width: 100px; padding: 10px; margin-right: 5px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+      <span>${module.name ? module.name : 'unnamed #' + module.id.toString()}</span>
+    </a>`;
+  document.getElementById('module-edit-list-module').appendChild(li);
 }
 
 /**
@@ -264,15 +270,13 @@ function appendModule(module = {id: null , name: null}) {
  * @param {{id: !Number, moduleId: !Number, name: ?String}} lesson
  */
 function appendLesson(lesson) {
-  // append to the second (lesson) menu
-  document.getElementById('module-edit-list-lesson').innerHTML += `
-    <li data-id="${lesson.id}"
-        data-module-id="${lesson.moduleId}">
-      <a onclick="toggleLesson(${lesson.id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
-        <span>${lesson.name ? lesson.name : 'unnamed #' + lesson.id}</span>
-      </a>
-    </li>
-    `;
+  const li = document.createElement('li');
+  li.setAttribute('data-id', lesson.id);
+  li.innerHTML =` 
+    <a onclick="toggleLesson(${lesson.id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+      <span>${lesson.name ? lesson.name : 'unnamed #' + lesson.id}</span>
+    </a>`;
+  document.getElementById('module-edit-list-lesson').appendChild(li);
 }
 
 /**
@@ -281,14 +285,13 @@ function appendLesson(lesson) {
  * @param {{id: !Number, moduleId: !Number, name: ?String, correctAnswer: ?String, badAnswer1: ?String, badAnswer2: ?String, badAnswer3: ?String}} question
  */
 function appendQuestion(question) {
-  document.querySelector(`#module-edit-list-question`).innerHTML += `
-    <li data-id="${question.id}"
-        data-module-id="${question.moduleId}">
-      <a class="has-text-dark" onclick="toggleQuestion(${question.id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
-        <span>${question.name ? question.name : 'unnamed #' + question.id}</span>
-      </a>
-    </li>
-  `;
+  const li = document.createElement('li');
+  li.setAttribute('data-id', question.id);
+  li.innerHTML =`
+    <a class="has-text-dark" onclick="toggleQuestion(${question.id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+      <span>${question.name ? question.name : 'unnamed #' + question.id}</span>
+    </a>`;
+  document.getElementById('module-edit-list-question').appendChild(li);
 }
 
 //Populate the page using AJAX
