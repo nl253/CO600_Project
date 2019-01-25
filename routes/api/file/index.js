@@ -44,7 +44,7 @@ router.get(['/', '/search'],
         .findAll({
           where: req.query,
           order: sequelize.col('createdAt'),
-          limit: process.env.MAX_RESULTS || 100,
+          limit: parseInt(process.env.MAX_RESULTS),
         })
         .then(fs => fs.map(f_ => {
           const f = f_.dataValues;

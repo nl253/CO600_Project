@@ -2,7 +2,7 @@
 const {createLogger} = require('../../lib');
 const log = createLogger({
   label: 'API',
-  lvl: process.env.LOGGING_API || 'warn',
+  lvl: process.env.LOGGING_API,
 });
 
 /**

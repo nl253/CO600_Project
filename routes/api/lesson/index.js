@@ -148,7 +148,7 @@ router.get(['/', '/search'],
       const lessons = await Lesson.findAll({
         where: req.query,
         order: sequelize.col('order'),
-        limit: process.env.MAX_RESULTS || 100,
+        limit: parseInt(process.env.MAX_RESULTS),
       }).then(ls => ls.map(l => l.dataValues));
       for (const l of lessons.filter(l => l.content)) {
         l.content = l.content.toString();

@@ -18,7 +18,7 @@ router.get(['/', '/register'], (req, res) => res.redirect('/user/register'));
  */
 router.get('/:page', (req, res, next) => {
   const {page} = req.params;
-  const pagePath = resolve(join(process.env.ROOT || process.env.PWD, 'views', 'pages', `${page}.hbs`));
+  const pagePath = resolve(join(process.env.ROOT, 'views', 'pages', `${page}.hbs`));
   return existsSync(pagePath)
     ? res.render(join('pages', page))
     : next();

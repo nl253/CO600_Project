@@ -21,7 +21,7 @@ const {
 
 const log = createLogger({
   label: 'ROUTING',
-  lvl: process.env.LOGGING_ROUTING || 'warn',
+  lvl: process.env.LOGGING_ROUTING,
 });
 
 /**
@@ -84,7 +84,7 @@ function encrypt(s) {
  * @param {Number} [tokenLen]
  * @returns {String} token
  */
-function genToken(tokenLen = (process.env.TOKEN_LEN && eval(process.env.TOKEN_LEN)) || 18) {
+function genToken(tokenLen = parseInt(process.env.TOKEN_LEN)) {
   return randomBytes(tokenLen).toString('base64');
 }
 

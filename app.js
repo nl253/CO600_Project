@@ -11,7 +11,7 @@ const log = require('./lib')
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
 
-const babel = require("babel-core");
+const babel = require('babel-core');
 const express = require('express');
 const app = express();
 require('./locals')(app);
@@ -99,39 +99,33 @@ app.use(async (req, res, next) => {
       token = decrypt(decodeURIComponent(req.cookies.token));
     } catch (e) {
       log.debug(`token sent could not be decrypted`);
-      res.append("Clear-Site-Data", '"*"');
+      res.append("Clear-Site-Data", '"cache", "cookies"');
       res.clearCookie('token', cookieOpts);
       res.clearCookie('token');
       return next();
     }
     const sess = await Session.findOne({where: {token}});
-    if (sess === null && !req.originalUrl.includes('/api/')) {
+    if (sess === null) {
       log.debug(`token sent is does not correspond to a session`);
-      res.append("Clear-Site-Data", '"*"');
+      res.append("Clear-Site-Data", '"cache", "cookies"');
       res.clearCookie('token', cookieOpts);
       res.clearCookie('token');
       return next();
-    } else if ((Date.now() - sess.updatedAt) >=
-      (process.env.SESSION_TIME || 20 * MINUTE)) {
+    } else if ((Date.now() - sess.updatedAt) >= process.env.SESSION_TIME) {
       log.debug(`token sent is stale, destroying associated session`);
       sess.destroy();
-      if (!req.originalUrl.includes('/api/')) {
-        res.append("Clear-Site-Data", '"*"');
-        res.clearCookie('token', cookieOpts);
-        res.clearCookie('token');
-      }
+      res.append("Clear-Site-Data", '"cache", "cookies"');
+      res.clearCookie('token', cookieOpts);
+      res.clearCookie('token');
       return next();
-    } else {
-      log.debug(`valid token sent, refreshing it`);
-      await sess.update({updatedAt: Date.now()});
     }
-    res.locals.loggedIn = await User.findOne({
+    log.debug(`valid token sent, refreshing it`);
+    sess.update({updatedAt: Date.now()});
+    const userP = await User.findOne({
       where: {email: sess.email},
       attributes: {exclude: ['password']},
     }).then(u => u.dataValues);
-    // log.info(`logged in: ${Object.entries(res.locals.loggedIn)
-    //   .map(pair => pair.join(' = '))
-    //   .join(', ')}`);
+    res.locals.loggedIn = await userP;
     return next();
   } catch (err) {
     return next(err);

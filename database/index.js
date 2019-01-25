@@ -16,7 +16,7 @@ const {createLogger} = require('../lib');
  * @type {winston.Logger}
  */
 // const log = createLogger({label: 'DATABASE', lvl: process.env.js.LOGGING_DB});
-const log = createLogger({label: 'DATABASE', lvl: process.env.LOGGING_DB || 'warn'});
+const log = createLogger({label: 'DATABASE', lvl: process.env.LOGGING_DB});
 
 // 3rd Party
 const Sequelize = require('sequelize');

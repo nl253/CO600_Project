@@ -147,7 +147,7 @@ async function showMod({id, name, topic, authorId, summary}, topics = TOPICS) {
     });
     document.getElementById('module-edit-pane').innerHTML = `
       <h2 class="title">
-        ${name ? name : ''}
+        <a href="/module/${id}">${name ? name : 'Module'}</a>
       </h2>
       <h3 class="subtitle" style="margin: 10px 0 0 0;">
         ${topic ? topic : ''} 
@@ -455,15 +455,23 @@ function appendQuest({id, name}) {
     document.getElementById('module-edit-spinner-list-module').classList.remove('is-invisible');
     const studentId = JSON.parse(sessionStorage.getItem('loggedIn')).id;
     const enrollments = await get('Enrollment', {studentId}, false, true);
-    const modules = (await Promise.all(enrollments.map(({moduleId}) => get('Module', {id: moduleId}, false, true)))).map(xs => xs[0]);
+    let modules = (await Promise.all(enrollments.map(({moduleId}) => get('Module', {id: moduleId}, false, true)))).map(xs => xs[0]);
     console.log(enrollments);
     console.log(modules);
-    for (const m of modules.sort((m1, m2) => {
+    modules = modules.sort((m1, m2) => {
       if (m1.name && !m2.name) return 1;
       else if (!m1.name && m2.name) return -1;
       else if (!m1.name && !m2.name) return 0;
       return m1.name.localeCompare(m2.name);
-    })) appendMod(m);
+    });
+    if (modules.length > 0) modules.forEach(appendMod) ;
+    else document.getElementById('module-edit-list-module').innerHTML = `
+        <li>
+          <p class="has-text-centered">no enrollments</p>
+          <br>
+          <p class="has-text-centered"><strong>Hint</strong> search for modules to enroll (see navbar)</p>
+        </li>
+    `;
     document.getElementById('module-edit-spinner-list-module').classList.add('is-invisible');
   } catch (e) {
     const msg = e.msg || e.message || e.toString();

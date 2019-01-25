@@ -103,7 +103,7 @@ router.get(['/', '/search'], validCols(Question, 'query', []),
       const questions = await Question.findAll({
         where: req.query,
         order: sequelize.col('name'),
-        limit: process.env.MAX_RESULTS || 100,
+        limit: parseInt(process.env.MAX_RESULTS),
       }).then(qs => qs.map(q => q.dataValues));
       let s = `found ${questions.length} questions`;
       if (Object.entries(req.query).length > 0) {

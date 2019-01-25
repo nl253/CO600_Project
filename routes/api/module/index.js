@@ -73,7 +73,7 @@ router.get(['/', '/search'],
         }
       }
       const modules = await Module.findAll({
-        limit: process.env.MAX_RESULTS || 100,
+        limit: parseInt(process.env.MAX_RESULTS),
         order: sequelize.col('name'),
         where: req.query,
       }).then(ms => ms.map(m => m.dataValues));

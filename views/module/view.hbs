@@ -1,5 +1,5 @@
 <div style="margin: 50px 20vw;">
-  <h1 id="module-h-name" class="title" style="">
+  <h1 id="module-h-name" class="title">
     {{module.name}}
   </h1>
   <h3 id="module-h-topic" class="subtitle">
@@ -13,7 +13,7 @@
       </button>
     {{else}}
       {{#if module.isMine}}
-        <a href="/module/{{module.id}}/edit" class="button is-warning">
+        <a href="/module/edit" class="button is-warning">
           <i class="fas fa-edit"></i>
           Edit
         </a>
@@ -28,7 +28,6 @@
     <div class="message is-warning" style="margin: 50px auto 0 auto; width: 80%;">
       <div class="message-header">
         <p>Warning</p>
-        <button class="delete" aria-label="delete"></button>
       </div>
       <div class="message-body">
         Log in to enroll and see lessons' contents.
@@ -53,31 +52,18 @@
   <section class="is-medium" style="margin-bottom: 30px;">
     <h2 class="title is-medium">Lessons</h2>
     {{#if module.lessons}}
-      <ol id="module-lessons" class="" style="min-width: 100%;">
-        {{#if loggedIn}}
-          {{#each module.lessons}}
-            <li class="list-item"
-                data-id="{{id}}"
-                data-name="{{name}}"
-                data-created-at="{{createdAt}}"
-                data-summary="{{summary}}"
-                style="border: none; padding-left: 0;"
-                data-updated-at="{{updatedAt}}">
-              <p data-id="{{id}}">{{name}}</p>
-            </li>
-          {{/each}}
-        {{else}}
-          {{#each module.lessons}}
-            <li class="list-item"
-                data-id="{{id}}"
-                data-name="{{name}}"
-                data-created-at="{{createdAt}}"
-                data-summary="{{summary}}"
-                data-updated-at="{{updatedAt}}">
-              <a data-id="{{id}}">{{name}}</a>
-            </li>
-          {{/each}}
-        {{/if}}
+      <ol id="module-lessons" class="list-group" style="min-width: 100%;">
+        {{#each module.lessons}}
+          <li class="list-group-item"
+              data-id="{{id}}"
+              data-name="{{name}}"
+              data-created-at="{{createdAt}}"
+              data-summary="{{summary}}"
+              style="border: none; padding-left: 0;"
+              data-updated-at="{{updatedAt}}">
+            <p data-id="{{id}}">{{name}}</p>
+          </li>
+        {{/each}}
       </ol>
     {{else}}
       <p class="has-text-centered">No lessons</p>
@@ -85,24 +71,22 @@
   </section>
   <section class="is-small">
     <h2 class="title is-medium">Comments</h2>
-    {{#if module.ratings}}
-      {{#each module.ratings}}
-        <div class="box"
-             data-id="{{id}}"
-             data-rater-id="{{raterId}}"
-             data-module-id="{{moduleId}}"
-             data-updated-at="{{updatedAt}}"
-             data-created-at="{{createdAt}}"
-             style="margin: 20px auto 0;">
-          <div style="margin-bottom: 10px;">
-            <strong>{{stars}}/5</strong> by <em><a href="/user/{{rater.email}}">{{rater.email}}</a></em>
-          </div>
-          <p class="content">{{comment}}</p>
+    {{#each module.ratings}}
+      <div class="box"
+           data-id="{{id}}"
+           data-rater-id="{{raterId}}"
+           data-module-id="{{moduleId}}"
+           data-updated-at="{{updatedAt}}"
+           data-created-at="{{createdAt}}"
+           style="margin: 20px auto 0;">
+        <div style="margin-bottom: 10px;">
+          <strong>{{stars}}/5</strong> by <em><a href="/user/{{rater.id}}">{{rater.email}}</a></em>
         </div>
-      {{/each}}
+        <p class="content">{{comment}}</p>
+      </div>
     {{else}}
       <p class="has-text-centered">No comments</p>
-    {{/if}}
+    {{/each}}
   </section>
 </div>
 
