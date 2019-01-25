@@ -1,4 +1,5 @@
 // 3rd Party
+const ValidationErr = require('../../errors').ValidationErr;
 const {isLoggedIn, validCols} = require('../../lib');
 const {msg} = require('../lib');
 const router = require('express').Router();
@@ -14,6 +15,12 @@ router.post('/create',
   async (req, res, next) => {
     try {
       const vars = Object.assign({studentId: res.locals.loggedIn.id}, req.body);
+      if ((await Enrollment.findOne({where: {
+          studentId: res.locals.loggedIn.id,
+          moduleId: req.body.moduleId,
+        }})) !== null)  {
+        throw new ValidationErr('create another enrollment for the same module');
+      }
       const enrollment = await Enrollment.create(vars);
       return res.json(msg('successfully enrolled', enrollment.dataValues));
     } catch (e) {
@@ -35,9 +42,9 @@ router.get(['/', '/search'],
   async (req, res, next) => {
   try {
     const enrollments = await Enrollment.findAll({
-      where: req.query || {},
+      where: req.query,
       order: sequelize.col('createdAt'),
-      limit: process.env.MAX_RESULTS || 100,
+      limit: parseInt(process.env.MAX_RESULTS),
     }).then(es => es.map(e => e.dataValues));
     let s = `found ${enrollments.length} enrollments`;
     if (req.query && Object.entries(req.query) > 0) {

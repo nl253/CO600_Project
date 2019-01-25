@@ -86,7 +86,7 @@ router.get(['/search', '/'],
       const ratings = await Rating.findAll({
         where: req.query,
         order: sequelize.col('stars'),
-        limit: process.env.MAX_RESULTS || 100,
+        limit: parseInt(process.env.MAX_RESULTS),
       }).then(rs => rs.map(r => r.dataValues));
       let s = `found ${ratings.length} ratings`;
       if (Object.keys(req.query).length > 0) {

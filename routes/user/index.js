@@ -71,7 +71,7 @@ router.get('/:page',
   (req, res, next) => {
     // not a user but a user page (for development render all pages in /views/user)
     const {page} = req.params;
-    const pagePath = join(process.env.ROOT || process.env.PWD, 'views', 'user', `${page}.hbs`);
+    const pagePath = join(process.env.ROOT, 'views', 'user', `${page}.hbs`);
     return fs.exists(pagePath, ok => {
       if (ok) return res.render(join('user', page));
       log.warn(`the file ${pagePath} does not exist`);

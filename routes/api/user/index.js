@@ -61,7 +61,7 @@ router.get(['/logout', '/unauthenticate'],
       const sess = await Session.findOne({
         where: {token: decrypt(decodeURIComponent(req.cookies.token))},
       });
-      res.append("Clear-Site-Data", '"*"');
+      res.append("Clear-Site-Data", '"cache", "cookies"');
       await sess.destroy();
       return res.json(msg('successfully logged out'));
     } catch (e) {
@@ -193,7 +193,7 @@ router.get(['/', '/search'],
         }
       }
       const users = await User.findAll({
-        limit: process.env.MAX_RESULTS || 100,
+        limit: parseInt(process.env.MAX_RESULTS),
         order: sequelize.col('createdAt'),
         where: req.query,
         attributes: Object

@@ -13,7 +13,15 @@
       <h2 class="subtitle">Content</h2>
       <ul>
         {{#each user.createdModules}}
-          <li><a href="/module/{{this.id}}">{{this.name}}</a></li>
+          <li>
+            <a href="/module/{{this.id}}">
+            {{#if this.name}}
+              {{this.name}}
+            {{else}}
+              unnamed #{{this.id}}
+            {{/if}}
+            </a>
+          </li>
         {{else}}
           <li><p>no created modules</p></li>
         {{/each}}
@@ -23,8 +31,10 @@
       <h1 class="title">{{user.firstName}} {{user.lastName}}</h1>
       <p><a href="mailto:{{user.email}}">{{user.email}}</a></p>
       <br>
-      <p><strong>Info</strong></p>
-      <p>{{user.info}}</p>
+      {{#if user.info}}
+        <p><strong>Info</strong></p>
+        <p>{{user.info}}</p>
+      {{/if}}
     </div>
   </section>
 </div>

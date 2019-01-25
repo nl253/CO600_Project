@@ -79,7 +79,7 @@ function setCookie(name, value, opts = {}) {
     path: '/',
     httpOnly: false,
     sameSite: 'Strict',
-    // expires: new Date(Date.now() + HOUR * 2),
+    // expires: new Date(Date.now() + process.env.SESSION_TIME),
   }, opts);
   document.cookie = [
     [name, value].map(encodeURIComponent),
@@ -147,7 +147,7 @@ async function get(model, query = {}, force = true, doSave = false) {
 /**
  * Create a new object in the database.
  *
- * @param {'User', 'Module', 'Lesson', 'Question', 'Rating'} model
+ * @param {'User', 'Module', 'Lesson', 'Question', 'Rating', 'Enrollment'} model
  * @param {!Blob|!BufferSource|!FormData|!URLSearchParams|!ReadableStream|!String} [postData]
  * @return {Promise<void|{id: !Number, createdAt: !Date, updatedAt: !Date}>} created object
  */
@@ -208,7 +208,7 @@ async function update(model, id, postData, contentType = 'application/json') {
 /**
  * Destroy an object from the database.
  *
- * @param {'User', 'Module', 'Lesson', 'Question', 'Rating', 'File'} model
+ * @param {'User', 'Module', 'Lesson', 'Question', 'Rating', 'File', 'Enrollment'} model
  * @param {!Number} id
  * @return {Promise<void|!String>}
  */
