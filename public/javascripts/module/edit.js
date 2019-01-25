@@ -1,3 +1,5 @@
+const TOPICS = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology'];
+
 /**
  * Select (highlight) a list item.
  *
@@ -62,7 +64,7 @@ function getSelId(what) {
  * @param {!Array<!String>} topics
  * @return {Promise<void>}
  */
-async function showModEditPane(module, topics = ['AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology']) {
+async function showModEditPane(module, topics = TOPICS) {
   try {
     document.getElementById('module-edit-pane').innerHTML = `
       <div class="animate-ease-in">
@@ -225,7 +227,12 @@ async function showLessEditPane(lesson, attachments = []) {
   if (lesson.content) setLessContent();
   else unsetLessContent();
 
-  return await Promise.all(attachments.map(f => appendAttachment({id: f.id, lessonId: lesson.id, name: f.name})));
+  return await Promise.all(attachments.sort((a1, a2) => {
+    if (!a1.name && a2.name) return -1;
+    else if (a1.name && !a2.name) return 1;
+    else if (!a1.name && !a2.name) return 0;
+    else return a1.name.localeCompare(a2.name);
+  }).map(f => appendAttachment({id: f.id, lessonId: lesson.id, name: f.name})));
 }
 
 /**
@@ -362,9 +369,19 @@ async function toggleModule(id) {
     document.getElementById('module-edit-spinner-list-lesson').classList.remove('is-invisible');
     document.getElementById('module-edit-spinner-list-question').classList.remove('is-invisible');
     const lessP = get('Lesson', {moduleId: id})
-      .then(ls => Promise.all(ls.map(l => appendLesson(l))));
+      .then(ls => Promise.all(ls.sort((l1, l2) => {
+        if (!l1.name && l2.name) return -1;
+        else if (l1.name && !l2.name) return 1;
+        else if (!l1.name && !l2.name) return 0;
+        else return l1.name.localeCompare(l2.name);
+      }).map(l => appendLesson(l))));
     const QuestP = get('Question', {moduleId: id})
-      .then(qs => Promise.all(qs.map(q => appendQuestion(q))));
+      .then(qs => Promise.all(qs.sort((q1, q2) => {
+        if (!q1.name && q2.name) return -1;
+        else if (q1.name && !q2.name) return 1;
+        else if (!q1.name && !q2.name) return 0;
+        else return q1.name.localeCompare(q2.name);
+      }).map(q => appendQuestion(q))));
     await lessP;
     await QuestP;
     document.getElementById('module-edit-spinner-list-lesson').classList.add('is-invisible');
@@ -626,7 +643,12 @@ async function updateLess() {
     console.debug([...formData.entries()]);
     await update('Lesson', id, formData, null);
     if (hasLessCont) setLessContent(id);
-    await Promise.all(Array.from(attachments).map(f => appendAttachment({id: f.id, name: f.name, lessonId: id})));
+    await Promise.all(Array.from(attachments).sort((a1, a2) => {
+      if (!a1.name && a2.name) return -1;
+      else if (a1.name && !a2.name) return 1;
+      else if (!a1.name && !a2.name) return 0;
+      else return a1.name.localeCompare(a2.name);
+    }).map(f => appendAttachment({id: f.id, name: f.name, lessonId: id})));
     const moduleId = getSelId('Module');
     sessionStorage.removeItem(`${location.pathname}/lessons?id=${id}&moduleId=${moduleId}`);
     sessionStorage.removeItem(`${location.pathname}/lessons?id=${id}`);
@@ -805,7 +827,12 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
 
     if (!loggedIn) return logOut();
 
-    await get('Module', {authorId: JSON.parse(loggedIn).id}).then(ms => Promise.all(ms.map(m => appendModule(m))));
+    await get('Module', {authorId: JSON.parse(loggedIn).id}).then(ms => Promise.all(ms.sort((m1, m2) => {
+      if (!m1.name && m2.name) return -1;
+      else if (m1.name && !m2.name) return 1;
+      else if (!m1.name && !m2.name) return 0;
+      else return m1.name.localeCompare(m2.name);
+    }).map(m => appendModule(m))));
     document.getElementById('module-edit-spinner-list-module').classList.add('is-invisible');
 
     return;

@@ -18,10 +18,7 @@ if (location.pathname.includes('/user/register')) {
       redirect: 'follow',
       cache: 'no-cache',
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({email, password}),
     });
 
@@ -32,18 +29,20 @@ if (location.pathname.includes('/user/register')) {
         console.error(msg);
         return alert(msg);
       } catch (e) {
+        const msg = 'could not log in';
+        console.error(msg);
         console.error(e);
-        return alert(e);
+        return alert(msg);
       }
     }
 
     try {
-      const json = await logInRes.json();
-      sessionStorage.setItem('loggedIn', JSON.stringify(json.result));
-      setCookie('token', json.result.token);
-      location.href = location.pathname.includes('/register')
+      const user = (await logInRes.json()).result;
+      sessionStorage.setItem('loggedIn', JSON.stringify(user));
+      setCookie('token', user.token);
+      location.pathname = location.pathname.includes('/register')
         ? '/user/home'
-        : location.href;
+        : location.pathname;
     } catch (e) {
       console.error(e);
       sessionStorage.clear();

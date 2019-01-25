@@ -17,7 +17,7 @@ const {
 
 const {sha256} = require('../../lib');
 
-const {User, Session, Sequelize} = require('../../../database');
+const {User, Session, Sequelize, sequelize} = require('../../../database');
 
 /**
  * Logs a user in.
@@ -29,13 +29,13 @@ router.post(['/login', '/authenticate'],
   needs('password', 'body'),
   async (req, res, next) => {
     try {
-      const {email} = req.body;
+      const {email, password} = req.body;
       const user = await User.findOne({where: {
           email,
-          password: sha256(req.body.password),
+          password: sha256(password),
         }});
       if (user === null) {
-        throw new NoSuchRecordErr('User', {email: req.body.email});
+        throw new NoSuchRecordErr('User', {email});
       }
       const sess = await Session.findOrCreate({
         where: {email},
@@ -58,7 +58,10 @@ router.get(['/logout', '/unauthenticate'],
   isLoggedIn(),
   async (req, res, next) => {
     try {
-      const sess = await Session.findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}});
+      const sess = await Session.findOne({
+        where: {token: decrypt(decodeURIComponent(req.cookies.token))},
+      });
+      res.set("Clear-Site-Data", '*');
       await sess.destroy();
       return res.json(msg('successfully logged out'));
     } catch (e) {
@@ -179,13 +182,19 @@ router.get(['/', '/search'],
   validCols(User, 'query', ['password']),
   async (req, res, next) => {
     try {
-      for (const attr of ['lastName', 'email']) {
+      for (const attr of ['firstName', 'lastName', 'email', 'info']) {
         if (req.query[attr]) {
           req.query[attr] = {[Sequelize.Op.like]: `%${req.query[attr]}%`};
         }
       }
+      for (const dateAttr of ['createdAt', 'updatedAt']) {
+        if (req.query[dateAttr]) {
+          req.query[dateAttr] = {[Sequelize.Op.gte]: new Date(Date.parse(req.query[dateAttr]))};
+        }
+      }
       const users = await User.findAll({
         limit: process.env.MAX_RESULTS || 100,
+        order: sequelize.col('createdAt'),
         where: req.query,
         attributes: Object
           .keys(User.attributes)

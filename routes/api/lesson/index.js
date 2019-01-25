@@ -14,7 +14,7 @@ const upload = multer({
 const {validCols, needs, isLoggedIn} = require('../../lib');
 const {msg} = require('../lib');
 const {APIErr, NoSuchRecordErr, DeniedErr} = require('../../errors');
-const {Lesson, Module, User, sequelize, File, Enrollment} = require('../../../database');
+const {Lesson, Module, Sequelize, sequelize, File, Enrollment} = require('../../../database');
 
 router.get(['/:id/download', '/:id/content'], isLoggedIn(),
   async (req, res) => {
@@ -131,15 +131,26 @@ router.post(['/:id', '/:id/update', '/:id/modify'],
     }
   });
 
-router.get(['/', '/search'], validCols(Lesson, 'query'),
+router.get(['/', '/search'],
+  validCols(Lesson, 'query', []),
   async (req, res, next) => {
     try {
+      for (const attr of ['name', 'summary', 'content']) {
+        if (req.query[attr]) {
+          req.query[attr] = {[Sequelize.Op.like]: `%${req.query[attr]}%`};
+        }
+      }
+      for (const dateAttr of ['createdAt', 'updatedAt']) {
+        if (req.query[dateAttr]) {
+          req.query[dateAttr] = {[Sequelize.Op.gte]: new Date(Date.parse(req.query[dateAttr]))};
+        }
+      }
       const lessons = await Lesson.findAll({
         where: req.query,
         order: sequelize.col('order'),
         limit: process.env.MAX_RESULTS || 100,
       }).then(ls => ls.map(l => l.dataValues));
-      for (const l of lessons) {
+      for (const l of lessons.filter(l => l.content)) {
         l.content = l.content.toString();
       }
       let s = `found ${lessons.length} lessons`;

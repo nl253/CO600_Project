@@ -8,7 +8,7 @@ const router = require('express').Router();
 // Project
 const {needs, validCols} = require('../../lib');
 
-const {Question, Module, sequelize} = require('../../../database');
+const {Question, Module, sequelize, Sequelize} = require('../../../database');
 
 router.post('/create',
   isLoggedIn(),
@@ -87,11 +87,22 @@ router.delete(['/:id', '/:id/delete', '/:id/remove'],
   }
 });
 
-router.get(['/', '/search'], validCols(Question, 'query'),
+router.get(['/', '/search'], validCols(Question, 'query', []),
   async (req, res, next) => {
     try {
+      for (const attr of ['name', 'correctAnswer', 'badAnswer1', 'badAnswer2', 'badAnswer3']) {
+        if (req.query[attr]) {
+          req.query[attr] = {[Sequelize.Op.like]: `%${req.query[attr]}%`};
+        }
+      }
+      for (const dateAttr of ['createdAt', 'updatedAt']) {
+        if (req.query[dateAttr]) {
+          req.query[dateAttr] = {[Sequelize.Op.gte]: new Date(Date.parse(req.query[dateAttr]))};
+        }
+      }
       const questions = await Question.findAll({
         where: req.query,
+        order: sequelize.col('name'),
         limit: process.env.MAX_RESULTS || 100,
       }).then(qs => qs.map(q => q.dataValues));
       let s = `found ${questions.length} questions`;

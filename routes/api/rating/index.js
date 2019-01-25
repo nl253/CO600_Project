@@ -2,7 +2,7 @@
 const {validCols, isLoggedIn, needs} = require('../../lib');
 const {msg} = require('../lib');
 const {NoSuchRecordErr, ValidationErr} = require('../../errors');
-const {Sequelize, Enrollment, Rating} = require('../../../database');
+const {Sequelize, Enrollment, Rating, sequelize} = require('../../../database');
 
 // 3rd Party
 const router = require('express').Router();
@@ -50,14 +50,23 @@ router.delete(['/:id', '/:id/remove', '/:id/delete'],
   });
 
 router.get(['/search', '/'],
-  validCols(Rating, 'query'),
+  validCols(Rating, 'query', []),
   async (req, res, next) => {
     try {
       if (req.query.stars) {
         req.query.stars = {[Sequelize.Op.gte]: req.query.stars};
       }
+      if (req.query.comment) {
+        req.query.comment = {[Sequelize.Op.like]: `%${req.query.comment}%`};
+      }
+      for (const dateAttr of ['createdAt', 'updatedAt']) {
+        if (req.query[dateAttr]) {
+          req.query[dateAttr] = {[Sequelize.Op.gte]: new Date(Date.parse(req.query[dateAttr]))};
+        }
+      }
       const ratings = await Rating.findAll({
         where: req.query,
+        order: sequelize.col('stars'),
         limit: process.env.MAX_RESULTS || 100,
       }).then(rs => rs.map(r => r.dataValues));
       let s = `found ${ratings.length} ratings`;
