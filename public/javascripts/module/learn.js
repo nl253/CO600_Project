@@ -1,4 +1,34 @@
 /**
+ * @param {Array} array
+ * @returns {Array}
+ */
+function shuffle(array = []) {
+  let currentIndex = array.length, temporaryValue, randomIndex;
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+  return array;
+}
+
+const TOPICS = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology'];
+const PANE = document.getElementById('module-edit-pane');
+const SPINNER_MOD = document.getElementById('module-edit-spinner-list-module');
+const SPINNER_LESS = document.getElementById('module-edit-spinner-list-lesson');
+const SPINNER_QUEST = document.getElementById('module-edit-spinner-list-question');
+const LIST_MOD = document.getElementById('module-edit-list-module');
+const LIST_LESS = document.getElementById('module-edit-list-lesson');
+const LIST_QUEST = document.getElementById('module-edit-list-question');
+
+/**
  * Disables all buttons while a fetch response is awaited.
  */
 function lockBtns() {
@@ -80,7 +110,7 @@ async function updateRating() {
     await update('Rating', myRatings[0].id, JSON.stringify({comment, stars}));
   } else await create('Rating', JSON.stringify({raterId, moduleId, comment, stars}));
   unSelect('Module');
-  document.getElementById('module-edit-pane').innerHTML = '';
+  PANE.innerHTML = '';
   await toggleMod(moduleId);
   unlockBtns();
 }
@@ -103,7 +133,7 @@ async function destroyRating() {
   if (myRatings.length > 0) {
     await destroy('Rating', myRatings[0].id);
     unSelect('Module');
-    document.getElementById('module-edit-pane').innerHTML = '';
+    PANE.innerHTML = '';
     await toggleMod(moduleId);
   }
   unlockBtns();
@@ -134,18 +164,19 @@ function lightStars(fromNo = 5) {
 async function showMod({id, name, topic, authorId, summary}, topics = TOPICS) {
   try {
     lockBtns();
-    const myRatings = await get('Rating', {
+    const myRatingP = get('Rating', {
       raterId: JSON.parse(sessionStorage.getItem('loggedIn')).id,
       moduleId: id,
-    });
-    const myRating = myRatings.length > 0 ? myRatings[0] : null;
-    const avgRating = await get('Rating', {moduleId: id})
+    }).then(rs => rs.length > 0 && rs[0].comment ? rs[0] : '');
+    const avgRating = get('Rating', {moduleId: id})
       .then((rs) => rs.map(({stars}) => stars))
       .then((rs) => {
         const n = rs.length;
         return n > 0 ? rs.reduce((l, r) => l + r) / n : 0;
     });
-    document.getElementById('module-edit-pane').innerHTML = `
+    const authorEmail = get( 'User', {id: authorId}, false, true).then((us) => us[0].email);
+    const myRating = await myRatingP;
+    PANE.innerHTML = `
       <h2 class="title">
         <a href="/module/${id}">${name ? name : 'Module'}</a>
       </h2>
@@ -155,17 +186,16 @@ async function showMod({id, name, topic, authorId, summary}, topics = TOPICS) {
       <section class="content" style="margin-top: 20px;">
         <strong>Author</strong>   
         <a href="/user/${authorId}">
-          ${await get( 'User', {id: authorId}, false, true ).then((us) => us[0].email)}
+          ${await authorEmail}
         </a>
         <br>
         <strong>Rating</strong> 
-        <span id="module-edit-rating">${avgRating}/5
+        <span id="module-edit-rating">${await avgRating}/5
         </span>
       </section>
       <section class="is-medium" style="margin-bottom: 20px;">
         <h3 class="subtitle">Summary</h3>
-        <div id="module-edit-summary"
-                  style="min-width: 100%; word-wrap: break-word;">
+        <div id="module-edit-summary" style="min-width: 100%; word-wrap: break-word;">
           ${summary ? summary : ''}
         </div>
       </section>
@@ -185,7 +215,7 @@ async function showMod({id, name, topic, authorId, summary}, topics = TOPICS) {
       <h4 class="subtitle" style="margin-bottom: 10px; margin-top: 20px;">Comment (optional)</h2>
       
       <textarea id="module-learn-comment">
-        ${myRating && myRating.comment ? myRating.comment.trim() : ''}
+        ${myRating.comment ? myRating.comment : ''}
       </textarea>
 
       <div class="field is-grouped" style="margin-top: 20px;">
@@ -217,8 +247,8 @@ async function showMod({id, name, topic, authorId, summary}, topics = TOPICS) {
  * @param {{id: !Number, moduleId: !Number, name: ?String, content: ?Boolean, summary: ?String}} lesson
  */
 async function showLess({name, content}) {
-  document.getElementById('module-edit-pane').innerHTML = `<h2 class="title" style="margin-bottom: 10px;">${name ? name : 'Lesson'}</h2>`;
-  document.getElementById('module-edit-pane').innerHTML += content;
+  PANE.innerHTML = `<h2 class="title" style="margin-bottom: 10px;">${name ? name : 'Lesson'}</h2>`;
+  PANE.innerHTML += content;
 }
 
 /**
@@ -272,8 +302,7 @@ async function showQuest({id, name, moduleId, correctAnswer, badAnswer1, badAnsw
     el.innerHTML = `
       <a onclick="selAns(event)" ${isCorrect ? 'data-is-correct="true"' : ''} class="button is-medium is-light" style="width: 100%; padding: 5px; border: 1px; margin-right: 10px;">
         ${ans ? ans : ''}
-      </a>
-    `;
+      </a>`;
     return el;
   }
 
@@ -284,17 +313,14 @@ async function showQuest({id, name, moduleId, correctAnswer, badAnswer1, badAnsw
     makeAns(badAnswer3),
   ]);
 
-
-  document.getElementById('module-edit-pane').innerHTML = `
+  PANE.innerHTML = `
     <h2 class="title is-3" style="margin-bottom: 30px;">
       ${name ? name : `unnamed #${id}`}
     </h2>`;
 
-  for (const a of answers) {
-    document.getElementById('module-edit-pane').appendChild(a);
-  }
+  for (const a of answers) PANE.appendChild(a);
 
-  document.getElementById('module-edit-pane').innerHTML += `
+  PANE.innerHTML += `
     <button type="submit" onclick="checkAns()"  class="button is-success is-block" style="margin: 7px auto;">
       <i class="fas fa-check" style="position: relative; top: 4px;"></i>
       <span>Check</span>
@@ -315,14 +341,14 @@ async function toggleMod(id) {
   } // else
 
   lockBtns();
-  document.getElementById('module-edit-pane').innerHTML = `
+  PANE.innerHTML = `
     <p class="has-text-centered" style="margin: 10px auto;">
       <span style="margin-bottom: 15px;">Loading</span>
       <br>
       <i class="fas fa-spinner spinner"></i>
     </p>`;
-  document.getElementById('module-edit-spinner-list-lesson').classList.remove('is-invisible');
-  document.getElementById('module-edit-spinner-list-question').classList.remove('is-invisible');
+  SPINNER_LESS.classList.remove('is-invisible');
+  SPINNER_QUEST.classList.remove('is-invisible');
   unSelect('Lesson');
   unSelect('Question');
 
@@ -352,8 +378,8 @@ async function toggleMod(id) {
     await p2;
   }
   await showMod(await get('Module', {id}, false, true).then((ms) => ms[0]));
-  document.getElementById('module-edit-spinner-list-lesson').classList.add('is-invisible');
-  document.getElementById('module-edit-spinner-list-question').classList.add('is-invisible');
+  SPINNER_LESS.classList.add('is-invisible');
+  SPINNER_QUEST.classList.add('is-invisible');
   unlockBtns();
 }
 
@@ -367,7 +393,7 @@ async function toggleLess(id) {
   const focusedLessId = getSelId('Lesson');
   if (id === focusedLessId) return;
   lockBtns();
-  document.getElementById('module-edit-pane').innerHTML = `
+  PANE.innerHTML = `
     <p class="has-text-centered" style="margin: 10px auto;">
       <span style="margin-bottom: 15px;">Loading</span>
       <br>
@@ -388,7 +414,7 @@ async function toggleLess(id) {
 async function toggleQuest(id) {
   if (id === getSelId('Question')) return;
   lockBtns();
-  document.getElementById('module-edit-pane').innerHTML = `
+  PANE.innerHTML = `
     <p class="has-text-centered" style="margin: 10px auto;">
       <span style="margin-bottom: 15px;">Loading</span>
       <br>
@@ -413,7 +439,7 @@ function appendMod({id, name}) {
     <a onclick="toggleMod(${id})" style="min-width: 100px; padding: 10px; margin-right: 5px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
       <span>${name ? name : `unnamed #${id.toString()}`}</span>
     </a>`;
-  document.getElementById('module-edit-list-module').appendChild(li);
+  LIST_MOD.appendChild(li);
 }
 
 /**
@@ -428,7 +454,7 @@ function appendLess({id, name}) {
     <a onclick="toggleLess(${id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
       <span>${name ? name : `unnamed #${id}`}</span>
     </a>`;
-  document.getElementById('module-edit-list-lesson').appendChild(li);
+  LIST_LESS.appendChild(li);
 }
 
 /**
@@ -443,7 +469,7 @@ function appendQuest({id, name}) {
     <a class="has-text-dark" onclick="toggleQuest(${id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
       <span>${name ? name : `unnamed #${id}`}</span>
     </a>`;
-  document.getElementById('module-edit-list-question').appendChild(li);
+  LIST_QUEST.appendChild(li);
 }
 
 // Populate the page using AJAX
@@ -452,27 +478,26 @@ function appendQuest({id, name}) {
  */
 (async function() {
   try {
-    document.getElementById('module-edit-spinner-list-module').classList.remove('is-invisible');
+    SPINNER_MOD.classList.remove('is-invisible');
     const studentId = JSON.parse(sessionStorage.getItem('loggedIn')).id;
     const enrollments = await get('Enrollment', {studentId}, false, true);
     let modules = (await Promise.all(enrollments.map(({moduleId}) => get('Module', {id: moduleId}, false, true)))).map(xs => xs[0]);
-    console.log(enrollments);
-    console.log(modules);
     modules = modules.sort((m1, m2) => {
       if (m1.name && !m2.name) return 1;
       else if (!m1.name && m2.name) return -1;
       else if (!m1.name && !m2.name) return 0;
       return m1.name.localeCompare(m2.name);
     });
-    if (modules.length > 0) modules.forEach(appendMod) ;
-    else document.getElementById('module-edit-list-module').innerHTML = `
+    if (modules.length > 0) modules.forEach(appendMod);
+    else {
+      LIST_MOD.innerHTML = `
         <li>
           <p class="has-text-centered">no enrollments</p>
           <br>
           <p class="has-text-centered"><strong>Hint</strong> search for modules to enroll (see navbar)</p>
-        </li>
-    `;
-    document.getElementById('module-edit-spinner-list-module').classList.add('is-invisible');
+        </li>`;
+    }
+    SPINNER_MOD.classList.add('is-invisible');
   } catch (e) {
     const msg = e.msg || e.message || e.toString();
     console.error(e);

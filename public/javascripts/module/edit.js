@@ -19,16 +19,6 @@ function unSelect(what) {
 }
 
 /**
- * Saves the last click. (this is recalled later)
- *
- * @param {'Module'|'Lesson'|'Question'} what
- * @param {!Number} id
- */
-function saveClick(what, id) {
-  return sessionStorage.setItem(`${location.pathname}?click`, JSON.stringify({page: what.toLowerCase(), id}));
-}
-
-/**
  * Clears a list.
  *
  * @param {'Module'|'Lesson'|'Question'} what
@@ -62,7 +52,7 @@ function getSelId(what) {
  * @param {!Array<!String>} topics
  * @return {Promise<void>}
  */
-async function showModEditPane(module, topics = TOPICS) {
+async function showModEditPane(module, topics = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology']) {
   try {
     document.getElementById('module-edit-pane').innerHTML = `
       <div class="animate-ease-in">
@@ -297,40 +287,6 @@ function showQuestEditPane(question) {
 }
 
 /**
- * Memorize the changes made to the input (or contenteditable) fields.
- */
-function saveProgress() {
-  const pane = document.getElementById('module-edit-pane');
-  const moduleId = getSelId('Module');
-  const lessonId = getSelId('Lesson');
-  const questionId = getSelId('Question');
-  if (moduleId && lessonId && !questionId) {
-    // TODO saveProgress for lesson
-  } else if (moduleId && !lessonId && questionId) {
-    if (!pane.querySelector('#module-edit-question-answer')) return;
-    const vars = JSON.stringify([{
-      authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id,
-      badAnswer1 : pane.querySelector('#module-edit-question-bad-answer-1').innerText.trim(),
-      badAnswer2 : pane.querySelector('#module-edit-question-bad-answer-2').innerText.trim(),
-      badAnswer3 : pane.querySelector('#module-edit-question-bad-answer-3').innerText.trim(),
-      correctAnswer : pane.querySelector('#module-edit-question-answer').innerText.trim(),
-      name : pane.querySelector('#module-edit-question-name').innerText.trim(),
-    }]);
-    sessionStorage.setItem(`${location.pathname}/questions?id=${questionId}`, vars);
-    return sessionStorage.setItem(`${location.pathname}/questions?id=${questionId}&moduleId=${moduleId}`, vars);
-  } else if (moduleId && !lessonId && !questionId) {
-    if (!pane.querySelector('#module-edit-name')) return;
-    return sessionStorage.setItem(`${location.pathname}/modules?id=${moduleId}`,
-      JSON.stringify([{
-        name: pane.querySelector('#module-edit-name').innerText.trim(),
-        topic: pane.querySelector('#module-edit-topic').innerText.trim(),
-        authorId: JSON.parse(sessionStorage.getItem('loggedIn')).id,
-        summary: pane.querySelector('#module-edit-summary').value.trim(),
-      }]));
-  }
-}
-
-/**
  * Toggle module. Run when a module is pressed. Shows the module-edit pane.
  *
  * @param {!Number} id
@@ -338,8 +294,6 @@ function saveProgress() {
  */
 async function toggleModule(id) {
   if (!document.querySelector(`#module-edit-list-module > li[data-id='${id}']`)) return;
-  saveClick('Module', id);
-  saveProgress();
   const focusedMod = getSelId('Module');
 
   if (focusedMod === id && !getSelId('Lesson') && !getSelId('Question')) {
@@ -407,8 +361,6 @@ async function toggleLesson(id) {
       <br>
       <i class="fas fa-spinner spinner"></i>
     </p>`;
-  saveClick('Lesson', id);
-  saveProgress();
   unSelect(focusedLessId === null ? 'Question' : 'Lesson');
   select('Lesson', id);
   const lesson = (await get('Lesson', {id, moduleId: getSelId('Module')}))[0];
@@ -432,8 +384,6 @@ async function toggleQuestion(id) {
       <br>
       <i class="fas fa-spinner spinner"></i>
     </p>`;
-  saveClick('Question', id);
-  saveProgress();
   unSelect('Question');
   unSelect('Lesson');
   select('Question', id);
@@ -832,65 +782,6 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
       else return m1.name.localeCompare(m2.name);
     }).map(m => appendModule(m))));
     document.getElementById('module-edit-spinner-list-module').classList.add('is-invisible');
-
-    return;
-
-    // const memory = sessionStorage.getItem(`${location.pathname}?click`);
-    // if (!memory) return false;
-    // const {page, id} = JSON.parse(memory);
-    //
-    // /**
-    //  * @return {Promise<Boolean>}
-    //  */
-    // async function tryRecallMod() {
-    //   if (page !== 'module') {
-    //     return false;
-    //   } else if (!document.querySelector(`#module-edit-list-module li[data-id='${JSON.parse(memory).id}'] > a`)) {
-    //     return false;
-    //   }
-    //   await toggleMod(JSON.parse(memory).id);
-    //   return true;
-    // }
-    //
-    // /**
-    //  * @return {Promise<Boolean>}
-    //  */
-    // async function tryRecallLess() {
-    //   if (page !== 'lesson') return false;
-    //   const ls = await get('Lesson', {id});
-    //   if (ls.length === 0) return false;
-    //   const {moduleId} = ls[0];
-    //   if (!document.querySelector(`#module-edit-list-module li[data-id='${moduleId}'] > a`)) {
-    //     return false;
-    //   }
-    //   await toggleMod(moduleId);
-    //   if (!document.querySelector(`#module-edit-list-lesson li[data-id='${id}'] > a`)) {
-    //     return false;
-    //   }
-    //   await toggleLess(id);
-    //   return true;
-    // }
-    //
-    // /**
-    //  * @return {Promise<Boolean>}
-    //  */
-    // async function tryRecallQuest() {
-    //   if (page !== 'question') return false;
-    //   const qs = await get('Question', {id});
-    //   if (qs.length === 0) return false;
-    //   const moduleId = qs[0].moduleId;
-    //   if (!document.querySelector(`#module-edit-list-module li[data-id='${moduleId}'] > a`)) {
-    //     return false;
-    //   }
-    //   await toggleMod(moduleId);
-    //   if (!document.querySelector(`#module-edit-list-question li[data-id='${id}'] > a`)) {
-    //     return false;
-    //   }
-    //   await toggleQuest(id);
-    //   return true;
-    // }
-    //
-    // return (await tryRecallMod()) || ((await tryRecallLess()) || await tryRecallQuest());
   } catch(e) {
     document.getElementById('module-edit-spinner-list-module').classList.add('is-invisible');
     const msg = e.msg || e.message || e.toString();
