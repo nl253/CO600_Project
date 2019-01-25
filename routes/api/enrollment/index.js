@@ -5,7 +5,7 @@ const router = require('express').Router();
 
 // Project
 const {needs} = require('../../lib');
-const {Enrollment} = require('../../../database');
+const {Enrollment, sequelize} = require('../../../database');
 
 router.post('/create',
   needs('moduleId', 'body'),
@@ -30,10 +30,13 @@ router.delete(['/:id', '/:id/delete', '/:id/remove'],
     .then(() => res.json(msg('successfully un-enrolled')))
     .catch(err => next(err)));
 
-router.get(['/', '/search'], async (req, res, next) => {
+router.get(['/', '/search'],
+  validCols(Enrollment, 'query', []),
+  async (req, res, next) => {
   try {
     const enrollments = await Enrollment.findAll({
       where: req.query || {},
+      order: sequelize.col('createdAt'),
       limit: process.env.MAX_RESULTS || 100,
     }).then(es => es.map(e => e.dataValues));
     let s = `found ${enrollments.length} enrollments`;

@@ -6,7 +6,7 @@ const router = require('express').Router();
 
 // Project
 const {validCols} = require('../../lib');
-const {File, Lesson, Module} = require('../../../database');
+const {File, Lesson, Module, Sequelize, sequelize} = require('../../../database');
 
 router.delete(['/:id', '/:id/delete', '/:id/remove'], isLoggedIn(),
   async (req, res, next) => {
@@ -29,11 +29,23 @@ router.delete(['/:id', '/:id/delete', '/:id/remove'], isLoggedIn(),
   });
 
 router.get(['/', '/search'],
-  validCols(File, 'query'),
+  validCols(File, 'query', []),
   async (req, res, next) => {
     try {
+      if (req.query.name) {
+        req.query.name = {[Sequelize.Op.like]: `%${req.query.name}%`};
+      }
+      for (const dateAttr of ['createdAt', 'updatedAt']) {
+        if (req.query[dateAttr]) {
+          req.query[dateAttr] = {[Sequelize.Op.gte]: new Date(Date.parse(req.query[dateAttr]))};
+        }
+      }
       const files = await File
-        .findAll({where: req.query, limit: process.env.MAX_RESULTS || 100})
+        .findAll({
+          where: req.query,
+          order: sequelize.col('createdAt'),
+          limit: process.env.MAX_RESULTS || 100,
+        })
         .then(fs => fs.map(f_ => {
           const f = f_.dataValues;
           f.data = !!f.data;

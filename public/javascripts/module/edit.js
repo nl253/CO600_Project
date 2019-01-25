@@ -1,3 +1,5 @@
+const TOPICS = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology'];
+
 /**
  * Select (highlight) a list item.
  *
@@ -62,7 +64,7 @@ function getSelId(what) {
  * @param {!Array<!String>} topics
  * @return {Promise<void>}
  */
-async function showModEditPane(module, topics = ['AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology']) {
+async function showModEditPane(module, topics = TOPICS) {
   try {
     document.getElementById('module-edit-pane').innerHTML = `
       <div class="animate-ease-in">

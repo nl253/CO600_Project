@@ -1,7 +1,7 @@
 const NoSuchRecord = require('../../errors').NoSuchRecordErr;
 const validCols = require('../../lib').validCols;
 const isLoggedIn = require('../../lib').isLoggedIn;
-const {Module, Sequelize} = require('../../../database');
+const {Module, Sequelize, sequelize} = require('../../../database');
 const router = require('express').Router();
 
 const {msg} = require('../lib');
@@ -59,28 +59,22 @@ router.post(['/:id', '/:id/update', '/:id/modify'],
 
 
 router.get(['/', '/search'],
-  validCols(Module, 'query'),
+  validCols(Module, 'query', []),
   async (req, res, next) => {
     try {
-      if (req.query.name) {
-        req.query.name = {[Sequelize.Op.like]: `%${req.query.name}%`};
+      for (const attr of ['name', 'topic', 'summary', 'badAnswer2', 'badAnswer3']) {
+        if (req.query[attr]) {
+          req.query[attr] = {[Sequelize.Op.like]: `%${req.query[attr]}%`};
+        }
       }
-      if (req.query.topic) {
-        req.query.topic = {[Sequelize.Op.like]: `%${req.query.topic}%`};
-      }
-      if (req.query.summary) {
-        req.query.summary = {[Sequelize.Op.like]: `%${req.query.summary}%`};
-      }
-      if (req.query.createdAt) {
-        req.query.createdAt = new Date(Date.parse(req.query.createdAt));
-        req.query.createdAt = {[Sequelize.Op.gte]: req.query.createdAt};
-      }
-      if (req.query.updatedAt) {
-        req.query.updatedAt = new Date(Date.parse(req.query.updatedAt));
-        req.query.updatedAt = {[Sequelize.Op.gte]: req.query.updatedAt};
+      for (const dateAttr of ['createdAt', 'updatedAt']) {
+        if (req.query[dateAttr]) {
+          req.query[dateAttr] = {[Sequelize.Op.gte]: new Date(Date.parse(req.query[dateAttr]))};
+        }
       }
       const modules = await Module.findAll({
         limit: process.env.MAX_RESULTS || 100,
+        order: sequelize.col('name'),
         where: req.query,
       }).then(ms => ms.map(m => m.dataValues));
       let s = `found ${modules.length} modules`;

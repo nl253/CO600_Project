@@ -8,7 +8,7 @@
     "@babel/preset-env": "^7.2.3",
     "babel-core": "^7.0.0-beta.3",
     "babel-polyfill": "^6.26.0",
-    "babel-preset-minify": "^0.5.0",
+    "babel-preset-minify": "^0.4.2",
     "body-parser": "latest",
     "compression": "^1.7.3",
     "cookie-parser": "^1.4.3",

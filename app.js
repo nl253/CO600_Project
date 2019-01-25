@@ -94,6 +94,7 @@ app.use(async (req, res, next) => {
       token = decrypt(decodeURIComponent(req.cookies.token));
     } catch (e) {
       log.debug(`token sent could not be decrypted`);
+      // res.set("Clear-Site-Data", '*');
       res.clearCookie('token', {
         SameSite: 'Strict',
         httpOnly: false,
@@ -104,6 +105,7 @@ app.use(async (req, res, next) => {
     const sess = await Session.findOne({where: {token}});
     if (sess === null && !req.originalUrl.includes('/api/')) {
       log.debug(`token sent is does not correspond to a session`);
+      // res.set("Clear-Site-Data", '*');
       res.clearCookie('token', {
         SameSite: 'Strict',
         httpOnly: false,
@@ -115,6 +117,7 @@ app.use(async (req, res, next) => {
       log.debug(`token sent is stale, destroying associated session`);
       sess.destroy();
       if (!req.originalUrl.includes('/api/')) {
+        // res.set("Clear-Site-Data", '*');
         res.clearCookie('token', {
           SameSite: 'Strict',
           httpOnly: false,
