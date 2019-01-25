@@ -1,8 +1,3 @@
-// (function () {
-  // const textarea = document.querySelector("form[method=post] textarea");
-  // textarea.rows = Math.max(200, Math.min(500, (textarea.value.split("\n").length * 50))).toString() + 'px';
-// })();
-
 document.getElementById('lesson-edit-btn-more').onclick = function(event) {
   event.preventDefault();
   const number = eval(

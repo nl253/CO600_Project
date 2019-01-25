@@ -2,6 +2,31 @@ const SECOND = 1000;
 const MINUTE = 60 * SECOND;
 const HOUR = 60 * MINUTE;
 
+const TOPICS = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology'];
+
+/**
+ * Logs the user out by sending a logout request.
+ *
+ * @returns {Promise<void>}
+ */
+async function logOut() {
+  try {
+    const response = await fetch('/api/user/logout', {
+      redirect: 'follow',
+      cache: 'no-cache',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    });
+    sessionStorage.clear();
+    if (response.status >= 400) throw new (await response.json());
+  } catch (e) {
+    console.error(e);
+  }
+}
+
 /**
  * @param {Array} array
  * @returns {Array}

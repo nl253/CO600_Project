@@ -1,4 +1,11 @@
-const TOPICS = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology'];
+if (!sessionStorage.getItem('loggedIn') || document.cookie.indexOf('token') < 0) {
+  logOut().then(ok => {
+    location.pathname = '/';
+  }).catch(err => {
+    console.error(err);
+    location.pathname = '/';
+  });
+}
 
 /**
  * Select (highlight) a list item.
@@ -599,7 +606,7 @@ async function updateMod() {
     }));
     sessionStorage.removeItem(`${location.pathname}/modules?authorId=${JSON.parse(sessionStorage.getItem('loggedIn')).id}`);
     sessionStorage.removeItem(`${location.pathname}/modules?id=${moduleId}`);
-    // await toggleModule(getSelId('Module'));
+    // await toggleMod(getSelId('Module'));
   } catch (e) {
     const msg = e.msg || e.message || e.toString();
     console.error(e);
@@ -850,7 +857,7 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
     //   } else if (!document.querySelector(`#module-edit-list-module li[data-id='${JSON.parse(memory).id}'] > a`)) {
     //     return false;
     //   }
-    //   await toggleModule(JSON.parse(memory).id);
+    //   await toggleMod(JSON.parse(memory).id);
     //   return true;
     // }
     //
@@ -865,11 +872,11 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
     //   if (!document.querySelector(`#module-edit-list-module li[data-id='${moduleId}'] > a`)) {
     //     return false;
     //   }
-    //   await toggleModule(moduleId);
+    //   await toggleMod(moduleId);
     //   if (!document.querySelector(`#module-edit-list-lesson li[data-id='${id}'] > a`)) {
     //     return false;
     //   }
-    //   await toggleLesson(id);
+    //   await toggleLess(id);
     //   return true;
     // }
     //
@@ -884,11 +891,11 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
     //   if (!document.querySelector(`#module-edit-list-module li[data-id='${moduleId}'] > a`)) {
     //     return false;
     //   }
-    //   await toggleModule(moduleId);
+    //   await toggleMod(moduleId);
     //   if (!document.querySelector(`#module-edit-list-question li[data-id='${id}'] > a`)) {
     //     return false;
     //   }
-    //   await toggleQuestion(id);
+    //   await toggleQuest(id);
     //   return true;
     // }
     //

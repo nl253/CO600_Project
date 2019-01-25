@@ -1,8 +1,11 @@
-if (!sessionStorage.getItem('loggedIn')) {
-  location.pathname = '/';
+if (!sessionStorage.getItem('loggedIn') || document.cookie.indexOf('token') < 0) {
+  logOut().then(ok => {
+    location.pathname = '/';
+  }).catch(err => {
+    console.error(err);
+    location.pathname = '/';
+  });
 }
-
-const TOPICS = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology'];
 
 /**
  * Select (highlight) a list item.
@@ -140,6 +143,7 @@ function checkAns() {
     btn.setAttribute('disabled', 'true');
     btn.onclick = undefined;
   }
+  document.querySelector(".button[onclick*='checkAns']").remove();
 }
 
 /**
@@ -192,7 +196,7 @@ async function showQuest(question) {
  * @param {!Number} id
  * @return {Promise<void>}
  */
-async function toggleModule(id) {
+async function toggleMod(id) {
   const focusedMod = getSelId('Module');
   if (focusedMod === id && !getSelId('Lesson') && !getSelId('Question')) {
     // re-select *the same* module - do nothing
@@ -213,7 +217,7 @@ async function toggleModule(id) {
         else if (!l1.name && l2.name) return -1;
         else if (!l1.name && !l2.name) return 0;
         else return l1.name.localeCompare(l2.name);
-      })) appendLesson(l);
+      })) appendLess(l);
     });
     get('Question', {moduleId: id}).then(qs => {
       for (const q of qs.sort((q1, q2) => {
@@ -221,7 +225,7 @@ async function toggleModule(id) {
         else if (!q1.name && q2.name) return -1;
         else if (!q1.name && !q2.name) return 0;
         else return q1.name.localeCompare(q2.name);
-      })) appendQuestion(q);
+      })) appendQuest(q);
     });
   }
   return showMod(await get('Module', {id}).then(ms => ms[0]));
@@ -233,7 +237,7 @@ async function toggleModule(id) {
  * @param {!Number} id
  * @return {Promise<void>}
  */
-async function toggleLesson(id) {
+async function toggleLess(id) {
   const focusedLessId = getSelId('Lesson');
   if (id === focusedLessId) return;
   unSelect(focusedLessId === null ? 'Question' : 'Lesson');
@@ -248,7 +252,7 @@ async function toggleLesson(id) {
  * @param {!Number} id
  * @return {Promise<void>}
  */
-async function toggleQuestion(id) {
+async function toggleQuest(id) {
   if (id === getSelId('Question')) return;
   unSelect('Question');
   unSelect('Lesson');
@@ -261,11 +265,11 @@ async function toggleQuestion(id) {
  *
  * @param {{id: !Number, authorId: !Number, name: ?String}} module
  */
-function appendModule(module = {id: null , name: null}) {
+function appendMod(module = {id: null , name: null}) {
   const li = document.createElement('li');
   li.setAttribute('data-id', module.id);
   li.innerHTML =` 
-    <a onclick="toggleModule(${module.id})" style="min-width: 100px; padding: 10px; margin-right: 5px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+    <a onclick="toggleMod(${module.id})" style="min-width: 100px; padding: 10px; margin-right: 5px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
       <span>${module.name ? module.name : 'unnamed #' + module.id.toString()}</span>
     </a>`;
   document.getElementById('module-edit-list-module').appendChild(li);
@@ -276,11 +280,11 @@ function appendModule(module = {id: null , name: null}) {
  *
  * @param {{id: !Number, moduleId: !Number, name: ?String}} lesson
  */
-function appendLesson(lesson) {
+function appendLess(lesson) {
   const li = document.createElement('li');
   li.setAttribute('data-id', lesson.id);
   li.innerHTML =` 
-    <a onclick="toggleLesson(${lesson.id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+    <a onclick="toggleLess(${lesson.id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
       <span>${lesson.name ? lesson.name : 'unnamed #' + lesson.id}</span>
     </a>`;
   document.getElementById('module-edit-list-lesson').appendChild(li);
@@ -291,11 +295,11 @@ function appendLesson(lesson) {
  *
  * @param {{id: !Number, moduleId: !Number, name: ?String, correctAnswer: ?String, badAnswer1: ?String, badAnswer2: ?String, badAnswer3: ?String}} question
  */
-function appendQuestion(question) {
+function appendQuest(question) {
   const li = document.createElement('li');
   li.setAttribute('data-id', question.id);
   li.innerHTML =`
-    <a class="has-text-dark" onclick="toggleQuestion(${question.id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+    <a class="has-text-dark" onclick="toggleQuest(${question.id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
       <span>${question.name ? question.name : 'unnamed #' + question.id}</span>
     </a>`;
   document.getElementById('module-edit-list-question').appendChild(li);
@@ -329,7 +333,7 @@ function appendQuestion(question) {
       else if (!m1.name && m2.name) return -1;
       else if (!m1.name && !m2.name) return 0;
       return m1.name.localeCompare(m2.name);
-    })) appendModule(m);
+    })) appendMod(m);
   } catch(e) {
     const msg = e.msg || e.message || e.toString();
     console.error(e);

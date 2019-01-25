@@ -1,28 +1,10 @@
-/**
- * Logs the user out by sending a logout request.
- *
- * @returns {Promise<void>}
- */
-async function logOut() {
-    try {
-      const response = await fetch('/api/user/logout', {
-        redirect: 'follow',
-        cache: 'no-cache',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      });
-      sessionStorage.clear();
-      if (response.status >= 400) throw new (await response.json());
-    } catch (e) {
-      console.error(e);
-    }
-}
-
-if (sessionStorage.getItem('loggedIn') === null) {
-  logOut().then(ok => location.pathname = '/').catch(err => alert(err));
+if (!sessionStorage.getItem('loggedIn') || document.cookie.indexOf('token') < 0) {
+  logOut().then(ok => {
+    location.pathname = '/';
+  }).catch(err => {
+    console.error(err);
+    location.pathname = '/';
+  });
 }
 
 document.querySelector(".navbar-burger.burger").onclick = () => {
