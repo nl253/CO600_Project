@@ -22,6 +22,13 @@
     <h2 class="title has-text-centered" style="margin-bottom: 10px;">
       Modules
     </h2>
+
+    <p id="module-edit-spinner-list-module" class="has-text-centered is-invisible" style="margin: 0 auto;">
+      <span style="margin-bottom: 15px;">Loading</span>
+      <br>
+      <i class="fas fa-spinner spinner"></i>
+    </p>
+
     <!--list of modules-->
     <ul id="module-edit-list-module" class="menu-list" style="margin-top: 20px; margin-bottom: 20px;"></ul>
 
@@ -32,6 +39,12 @@
     <h2 class="title has-text-centered" style="margin-bottom: 20px;">
       Lessons
     </h2>
+
+    <p id="module-edit-spinner-list-lesson" class="has-text-centered is-invisible" style="margin: 0 auto;">
+      <span style="margin-bottom: 15px;">Loading</span>
+      <br>
+      <i class="fas fa-spinner spinner"></i>
+    </p>
 
     <!--list of lessons-->
     <ol id="module-edit-list-lesson" class="menu-list" style="margin-bottom: 20px; list-style-type: none;">
@@ -44,6 +57,12 @@
       Quiz
     </h2>
 
+    <p id="module-edit-spinner-list-question" class="has-text-centered is-invisible" style="margin: 0 auto;">
+      <span style="margin-bottom: 15px;">Loading</span>
+      <br>
+      <i class="fas fa-spinner spinner"></i>
+    </p>
+
     <!--quiz edit (list of questions)-->
     <ol id="module-edit-list-question" style="list-style-type: none;">
       <li><p class="has-text-centered">Click on a module.</p></li>
@@ -53,7 +72,9 @@
 
   <!--right side of the screen-->
   <!--only one of the divs inside can be visible-->
-  <div id="module-edit-pane" class="column is-7-desktop is-10-tablet is-11-mobile"></div>
+  <div id="module-edit-pane" class="column is-7-desktop is-10-tablet is-11-mobile">
+    <p class="has-text-centered" style="margin-top: 50px;">Click on a lesson or a module.</p>
+  </div>
 </div>
 
 <script async src="/javascripts/module/learn.js"></script>

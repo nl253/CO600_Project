@@ -101,7 +101,7 @@ function clearCookie(name) {
 /**
  * Query the database for objects.
  *
- * @param {'User', 'Module', 'Lesson', 'Question', 'Rating'} model
+ * @param {'User', 'Module', 'Lesson', 'Question', 'Rating', 'Enrollment'} model
  * @param {!Object} query
  * @param {?Boolean} force
  * @return {Promise<!Array<{id: !Number, createdAt: !Date, updatedAt: !Date}>>}

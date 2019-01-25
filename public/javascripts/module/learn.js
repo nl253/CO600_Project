@@ -1,4 +1,24 @@
 /**
+ * Disables all buttons while a fetch response is awaited.
+ */
+function lockBtns() {
+  for (const btn of document.querySelectorAll('#module-edit-list-module li[data-id] > [onclick]:not([disabled]), #module-edit-list-lesson li[data-id] > [onclick]:not([disabled]), #module-edit-list-question li[data-id] > [onclick]:not([disabled])')) {
+    btn.setAttribute('disabled', 'true');
+    btn.style.pointerEvents = 'none';
+  }
+}
+
+/**
+ * Enables all buttons after a fetch response is awaited.
+ */
+function unlockBtns() {
+  for (const btn of document.querySelectorAll('#module-edit-list-module li[data-id] > [onclick][disabled], #module-edit-list-lesson li[data-id] > [onclick][disabled], #module-edit-list-question li[data-id] > [onclick][disabled]')) {
+    btn.removeAttribute('disabled');
+    btn.style.pointerEvents = 'initial';
+  }
+}
+
+/**
  * Select (highlight) a list item.
  *
  * @param {'Module'|'Lesson'|'Question'} what
@@ -54,30 +74,39 @@ async function updateRating() {
     }
   }
   stars = stars ? stars : null;
-  let myRatings = await get('Rating', {moduleId, raterId});
+  lockBtns();
+  const myRatings = await get('Rating', {moduleId, raterId});
   if (myRatings.length > 0) {
     await update('Rating', myRatings[0].id, JSON.stringify({comment, stars}));
   } else await create('Rating', JSON.stringify({raterId, moduleId, comment, stars}));
   unSelect('Module');
   document.getElementById('module-edit-pane').innerHTML = '';
-  return await toggleMod(moduleId);
+  await toggleMod(moduleId);
+  unlockBtns();
 }
 
 /**
  * Destroys a rating.
  *
- * @returns {Promise<void>}
+ * @return {Promise<void>}
  */
 async function destroyRating() {
   const raterId = JSON.parse(sessionStorage.getItem('loggedIn')).id;
   const moduleId = getSelId('Module');
-  let myRatings = await get('Rating', {moduleId, raterId});
+  lockBtns();
+  const myRatings = await get(
+    'Rating',
+    {moduleId, raterId},
+    false,
+    true,
+  );
   if (myRatings.length > 0) {
     await destroy('Rating', myRatings[0].id);
     unSelect('Module');
     document.getElementById('module-edit-pane').innerHTML = '';
-    return await toggleMod(moduleId);
+    await toggleMod(moduleId);
   }
+  unlockBtns();
 }
 
 /**
@@ -86,7 +115,7 @@ async function destroyRating() {
  * @param {!Number} fromNo
  */
 function lightStars(fromNo = 5) {
-  for (const el of document.querySelectorAll("[id^='module-learn-star']")) {
+  for (const el of document.querySelectorAll('[id^=\'module-learn-star\']')) {
     el.classList.remove('is-warning');
   }
   for (let i = fromNo; i > 0; i--) {
@@ -102,41 +131,42 @@ function lightStars(fromNo = 5) {
  * @param {!Array<!String>} topics
  * @return {Promise<void>}
  */
-async function showMod(module, topics = TOPICS) {
+async function showMod({id, name, topic, authorId, summary}, topics = TOPICS) {
   try {
+    lockBtns();
     const myRatings = await get('Rating', {
       raterId: JSON.parse(sessionStorage.getItem('loggedIn')).id,
-      moduleId: module.id,
+      moduleId: id,
     });
-    const myRating =  myRatings.length > 0 ? myRatings[0] : null;
+    const myRating = myRatings.length > 0 ? myRatings[0] : null;
+    const avgRating = await get('Rating', {moduleId: id})
+      .then((rs) => rs.map(({stars}) => stars))
+      .then((rs) => {
+        const n = rs.length;
+        return n > 0 ? rs.reduce((l, r) => l + r) / n : 0;
+    });
     document.getElementById('module-edit-pane').innerHTML = `
       <h2 class="title">
-        ${module.name ? module.name : ''}
+        ${name ? name : ''}
       </h2>
       <h3 class="subtitle" style="margin: 10px 0 0 0;">
-        ${module.topic ? module.topic : ''} 
+        ${topic ? topic : ''} 
       </h3>
       <section class="content" style="margin-top: 20px;">
         <strong>Author</strong>   
-        <a href="/user/${module.authorId}">
-          ${await get('User', {id: module.authorId}).then(us => us[0].email)}
+        <a href="/user/${authorId}">
+          ${await get( 'User', {id: authorId}, false, true ).then((us) => us[0].email)}
         </a>
         <br>
         <strong>Rating</strong> 
-        <span id="module-edit-rating">${
-          await get('Rating', {moduleId: module.id})
-            .then(rs => rs.map(r => r.stars))
-            .then(rs => {
-              const n = rs.length;
-              return n > 0 ? rs.reduce((l, r) => l + r) / n : 0;
-            })}/5
+        <span id="module-edit-rating">${avgRating}/5
         </span>
       </section>
       <section class="is-medium" style="margin-bottom: 20px;">
         <h3 class="subtitle">Summary</h3>
         <div id="module-edit-summary"
                   style="min-width: 100%; word-wrap: break-word;">
-          ${module.summary ? module.summary : ''}
+          ${summary ? summary : ''}
         </div>
       </section>
       
@@ -173,16 +203,12 @@ async function showMod(module, topics = TOPICS) {
         </p>
       </div>
     `;
-    if (myRating) {
-      for (let i = myRating.stars; i > 0; i--) {
-        const starBtn = document.getElementById(`module-learn-star-${i}`);
-        starBtn.classList.add('is-warning');
-      }
-    }
+    if (myRating) lightStars(myRating.stars);
   } catch (e) {
     console.error(e);
     return alert(e.msg || e.message || e.toString());
   }
+  unlockBtns();
 }
 
 /**
@@ -190,52 +216,47 @@ async function showMod(module, topics = TOPICS) {
  *
  * @param {{id: !Number, moduleId: !Number, name: ?String, content: ?Boolean, summary: ?String}} lesson
  */
-async function showLess(lesson) {
-  const cfg = {
-    redirect: 'follow',
-    cache: 'no-cache',
-    credentials: 'include',
-  };
-  const lessonRes = await fetch(`/api/lesson/search?id=${lesson.id}`,cfg);
-  const json = await lessonRes.json();
-  document.getElementById('module-edit-pane').innerHTML = `<h2 class="title" style="margin-bottom: 10px;">${lesson.name ? lesson.name : 'Lesson'}</h2>`;
-  document.getElementById('module-edit-pane').innerHTML += json.result[0].content;
+async function showLess({name, content}) {
+  document.getElementById('module-edit-pane').innerHTML = `<h2 class="title" style="margin-bottom: 10px;">${name ? name : 'Lesson'}</h2>`;
+  document.getElementById('module-edit-pane').innerHTML += content;
 }
 
 /**
  * Selects answer to quiz question.
+ *
+ * @param {Event} event
  */
-function selAns(e) {
-  const ans = document.querySelector("#module-edit-pane .field [onclick][class*='is-warning']");
+function selAns({target}) {
+  const ans = document.querySelector('#module-edit-pane .field [onclick][class*=\'is-warning\']');
   if (ans) {
     ans.classList.remove('is-warning');
     ans.classList.add('is-light');
   }
-  e.target.classList.remove('is-light');
-  e.target.classList.add('is-warning');
+  target.classList.remove('is-light');
+  target.classList.add('is-warning');
 }
 
 /**
  * Checks answer to quiz question.
  */
 function checkAns() {
-  const ans = document.querySelector("#module-edit-pane .field [onclick][class*='is-warning']");
+  const ans = document.querySelector('#module-edit-pane .field [onclick][class*=\'is-warning\']');
   if (!ans) return;
   ans.classList.remove('is-warning');
   if (ans.getAttribute('data-is-correct')) {
     ans.classList.add('is-success');
   } else {
     ans.classList.add('is-danger');
-    const correctEl = document.querySelector("#module-edit-pane .field [onclick][data-is-correct]");
+    const correctEl = document.querySelector('#module-edit-pane .field [onclick][data-is-correct]');
     correctEl.classList.add('is-success');
     correctEl.classList.remove('is-light');
   }
   for (const btn of document.querySelectorAll(
-    "#module-edit-pane .field [onclick]")) {
+    '#module-edit-pane .field [onclick]')) {
     btn.setAttribute('disabled', 'true');
     btn.onclick = undefined;
   }
-  document.querySelector(".button[onclick*='checkAns']").remove();
+  document.querySelector('.button[onclick*=\'checkAns\']').remove();
 }
 
 /**
@@ -243,8 +264,7 @@ function checkAns() {
  *
  * @param {{id: !Number, moduleId: !Number, correctAnswer: ?String, badAnswer1: ?String, badAnswer2: ?String, badAnswer3: ?String}} question
  */
-async function showQuest(question) {
-
+async function showQuest({id, name, moduleId, correctAnswer, badAnswer1, badAnswer2, badAnswer3}) {
   function makeAns(ans = '', isCorrect = false) {
     const el = document.createElement('div');
     el.classList.add('field');
@@ -254,25 +274,24 @@ async function showQuest(question) {
         ${ans ? ans : ''}
       </a>
     `;
-    // el.firstChild.addEventListener('click', e => selAns(e));
     return el;
   }
 
   const answers = shuffle([
-    makeAns(question.correctAnswer, true),
-    makeAns(question.badAnswer1),
-    makeAns(question.badAnswer2),
-    makeAns(question.badAnswer3),
+    makeAns(correctAnswer, true),
+    makeAns(badAnswer1),
+    makeAns(badAnswer2),
+    makeAns(badAnswer3),
   ]);
 
 
   document.getElementById('module-edit-pane').innerHTML = `
     <h2 class="title is-3" style="margin-bottom: 30px;">
-      ${question.name ? question.name : 'unnamed #' + question.id}
+      ${name ? name : `unnamed #${id}`}
     </h2>`;
 
   for (const a of answers) {
-   document.getElementById('module-edit-pane').appendChild(a);
+    document.getElementById('module-edit-pane').appendChild(a);
   }
 
   document.getElementById('module-edit-pane').innerHTML += `
@@ -294,6 +313,16 @@ async function toggleMod(id) {
     // re-select *the same* module - do nothing
     return;
   } // else
+
+  lockBtns();
+  document.getElementById('module-edit-pane').innerHTML = `
+    <p class="has-text-centered" style="margin: 10px auto;">
+      <span style="margin-bottom: 15px;">Loading</span>
+      <br>
+      <i class="fas fa-spinner spinner"></i>
+    </p>`;
+  document.getElementById('module-edit-spinner-list-lesson').classList.remove('is-invisible');
+  document.getElementById('module-edit-spinner-list-question').classList.remove('is-invisible');
   unSelect('Lesson');
   unSelect('Question');
 
@@ -303,7 +332,7 @@ async function toggleMod(id) {
     select('Module', id);
     clearList('Lesson');
     clearList('Question');
-    get('Lesson', {moduleId: id}).then(ls => {
+    const p1 = get('Lesson', {moduleId: id}, false, true).then((ls) => {
       for (const l of ls.sort((l1, l2) => {
         if (l1.name && !l2.name) return 1;
         else if (!l1.name && l2.name) return -1;
@@ -311,7 +340,7 @@ async function toggleMod(id) {
         else return l1.name.localeCompare(l2.name);
       })) appendLess(l);
     });
-    get('Question', {moduleId: id}).then(qs => {
+    const p2 = get('Question', {moduleId: id}, false, true).then((qs) => {
       for (const q of qs.sort((q1, q2) => {
         if (q1.name && !q2.name) return 1;
         else if (!q1.name && q2.name) return -1;
@@ -319,8 +348,13 @@ async function toggleMod(id) {
         else return q1.name.localeCompare(q2.name);
       })) appendQuest(q);
     });
+    await p1;
+    await p2;
   }
-  return showMod(await get('Module', {id}).then(ms => ms[0]));
+  await showMod(await get('Module', {id}, false, true).then((ms) => ms[0]));
+  document.getElementById('module-edit-spinner-list-lesson').classList.add('is-invisible');
+  document.getElementById('module-edit-spinner-list-question').classList.add('is-invisible');
+  unlockBtns();
 }
 
 /**
@@ -332,10 +366,17 @@ async function toggleMod(id) {
 async function toggleLess(id) {
   const focusedLessId = getSelId('Lesson');
   if (id === focusedLessId) return;
+  lockBtns();
+  document.getElementById('module-edit-pane').innerHTML = `
+    <p class="has-text-centered" style="margin: 10px auto;">
+      <span style="margin-bottom: 15px;">Loading</span>
+      <br>
+      <i class="fas fa-spinner spinner"></i>
+    </p>`;
   unSelect(focusedLessId === null ? 'Question' : 'Lesson');
   select('Lesson', id);
-  const lesson = (await get('Lesson', {id, moduleId: getSelId('Module')}))[0];
-  return await showLess(lesson, await get('File', {lessonId: lesson.id}));
+  await showLess((await get('Lesson', {id, moduleId: getSelId('Module')}, false, true))[0]);
+  unlockBtns();
 }
 
 /**
@@ -346,10 +387,18 @@ async function toggleLess(id) {
  */
 async function toggleQuest(id) {
   if (id === getSelId('Question')) return;
+  lockBtns();
+  document.getElementById('module-edit-pane').innerHTML = `
+    <p class="has-text-centered" style="margin: 10px auto;">
+      <span style="margin-bottom: 15px;">Loading</span>
+      <br>
+      <i class="fas fa-spinner spinner"></i>
+    </p>`;
   unSelect('Question');
   unSelect('Lesson');
   select('Question', id);
-  return await showQuest((await get('Question', {id, moduleId: getSelId('Module')}))[0]);
+  await showQuest((await get('Question', {id, moduleId: getSelId('Module')}))[0]);
+  unlockBtns();
 }
 
 /**
@@ -357,12 +406,12 @@ async function toggleQuest(id) {
  *
  * @param {{id: !Number, authorId: !Number, name: ?String}} module
  */
-function appendMod(module = {id: null , name: null}) {
+function appendMod({id, name}) {
   const li = document.createElement('li');
-  li.setAttribute('data-id', module.id);
+  li.setAttribute('data-id', id);
   li.innerHTML =` 
-    <a onclick="toggleMod(${module.id})" style="min-width: 100px; padding: 10px; margin-right: 5px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
-      <span>${module.name ? module.name : 'unnamed #' + module.id.toString()}</span>
+    <a onclick="toggleMod(${id})" style="min-width: 100px; padding: 10px; margin-right: 5px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+      <span>${name ? name : `unnamed #${id.toString()}`}</span>
     </a>`;
   document.getElementById('module-edit-list-module').appendChild(li);
 }
@@ -372,12 +421,12 @@ function appendMod(module = {id: null , name: null}) {
  *
  * @param {{id: !Number, moduleId: !Number, name: ?String}} lesson
  */
-function appendLess(lesson) {
+function appendLess({id, name}) {
   const li = document.createElement('li');
-  li.setAttribute('data-id', lesson.id);
+  li.setAttribute('data-id', id);
   li.innerHTML =` 
-    <a onclick="toggleLess(${lesson.id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
-      <span>${lesson.name ? lesson.name : 'unnamed #' + lesson.id}</span>
+    <a onclick="toggleLess(${id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+      <span>${name ? name : `unnamed #${id}`}</span>
     </a>`;
   document.getElementById('module-edit-list-lesson').appendChild(li);
 }
@@ -387,48 +436,38 @@ function appendLess(lesson) {
  *
  * @param {{id: !Number, moduleId: !Number, name: ?String, correctAnswer: ?String, badAnswer1: ?String, badAnswer2: ?String, badAnswer3: ?String}} question
  */
-function appendQuest(question) {
+function appendQuest({id, name}) {
   const li = document.createElement('li');
-  li.setAttribute('data-id', question.id);
+  li.setAttribute('data-id', id);
   li.innerHTML =`
-    <a class="has-text-dark" onclick="toggleQuest(${question.id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
-      <span>${question.name ? question.name : 'unnamed #' + question.id}</span>
+    <a class="has-text-dark" onclick="toggleQuest(${id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+      <span>${name ? name : `unnamed #${id}`}</span>
     </a>`;
   document.getElementById('module-edit-list-question').appendChild(li);
 }
 
-//Populate the page using AJAX
+// Populate the page using AJAX
 /**
  * Try to recall last click.
  */
 (async function() {
   try {
-    const cfg = {
-      redirect: 'follow',
-      cache: 'no-cache',
-      credentials: 'include',
-    };
-    const studentId = JSON.parse(sessionStorage.getItem("loggedIn")).id;
-    const enrollmentRes = await fetch(`/api/enrollment/search?studentId=${studentId}`,cfg);
-    if (enrollmentRes.status >= 400){
-      const errMsg = "Could not load modules";
-      console.error(errMsg);
-      return alert(errMsg);
-    }
-    const enrollments = (await enrollmentRes.json()).result;
-    const modules = [];
-    for (const e of enrollments) {
-      modules.push((await (await fetch(`/api/module/search?id=${e.moduleId}`)).json()).result[0]);
-    }
+    document.getElementById('module-edit-spinner-list-module').classList.remove('is-invisible');
+    const studentId = JSON.parse(sessionStorage.getItem('loggedIn')).id;
+    const enrollments = await get('Enrollment', {studentId}, false, true);
+    const modules = (await Promise.all(enrollments.map(({moduleId}) => get('Module', {id: moduleId}, false, true)))).map(xs => xs[0]);
+    console.log(enrollments);
+    console.log(modules);
     for (const m of modules.sort((m1, m2) => {
       if (m1.name && !m2.name) return 1;
       else if (!m1.name && m2.name) return -1;
       else if (!m1.name && !m2.name) return 0;
       return m1.name.localeCompare(m2.name);
     })) appendMod(m);
-  } catch(e) {
+    document.getElementById('module-edit-spinner-list-module').classList.add('is-invisible');
+  } catch (e) {
     const msg = e.msg || e.message || e.toString();
     console.error(e);
-    return alert(msg)
+    return alert(msg);
   }
 })();
