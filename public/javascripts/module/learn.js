@@ -1,12 +1,3 @@
-if (!sessionStorage.getItem('loggedIn') || document.cookie.indexOf('token') < 0) {
-  logOut().then(ok => {
-    location.pathname = '/';
-  }).catch(err => {
-    console.error(err);
-    location.pathname = '/';
-  });
-}
-
 /**
  * Select (highlight) a list item.
  *
@@ -79,13 +70,48 @@ async function showMod(module, topics = TOPICS) {
             })}/5
         </span>
       </section>
-      <section class="is-medium" style="margin-bottom: 30px;">
-        <h3 class="subtitle" style="margin-bottom: 10px;">Summary</h3>
+      <section class="is-medium" style="margin-bottom: 20px;">
+        <h3 class="subtitle">Summary</h3>
         <div id="module-edit-summary"
-                  style="min-width: 100%; min-height: 90px; word-wrap: break-word;">
+                  style="min-width: 100%; word-wrap: break-word;">
           ${module.summary ? module.summary : ''}
         </div>
       </section>
+      
+      <div class="field">
+        <h3 class="subtitle" style="margin-bottom: 10px;">Rating</h3>
+        <div class="control">
+          ${Array(5).fill(0).map((_, idx) => `
+            <button id="module-learn-star-${idx + 1}" class="button">
+              <span class="icon is-large">
+                <i class="fas fa-star"></i>
+              </span>
+            </button>`).join('\n')}
+        </div>
+      </div> 
+
+      <h4 class="subtitle" style="margin-bottom: 10px; margin-top: 20px;">Comment (optional)</h2>
+      <textarea>
+        ${await get('Rating', {
+            moduleId: module.id, 
+            raterId: JSON.parse(sessionStorage.getItem('loggedIn')).id,
+          }).then(rs => rs.length > 0 && rs[0].comment ? rs[0].comment : '')}
+      </textarea>
+
+      <div class="field is-grouped" style="margin-top: 20px;">
+        <p class="control">
+          <button type="submit"  class="button is-success is-block" style="margin: 7px auto; width: 100%;">
+            <i class="fas fa-check" style="position: relative; top: 4px; left: 2px;"></i>
+            <span>Save</span>
+          </button>
+        </p>
+        <p class="control">
+          <button class="button is-danger is-block" style="margin: 7px auto; width: 100%;">
+            <i class="fas fa-times" style="position: relative; top: 4px; left: 2px;"></i>
+            <span>Delete</span>
+          </button>
+        </p>
+      </div>
     `;
   } catch (e) {
     console.error(e);

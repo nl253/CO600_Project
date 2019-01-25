@@ -1,12 +1,3 @@
-if (!sessionStorage.getItem('loggedIn') || document.cookie.indexOf('token') < 0) {
-  logOut().then(ok => {
-    location.pathname = '/';
-  }).catch(err => {
-    console.error(err);
-    location.pathname = '/';
-  });
-}
-
 /**
  * Select (highlight) a list item.
  *
