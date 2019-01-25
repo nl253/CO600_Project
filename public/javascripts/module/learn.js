@@ -211,6 +211,7 @@ async function toggleModule(id) {
       for (const l of ls.sort((l1, l2) => {
         if (l1.name && !l2.name) return 1;
         else if (!l1.name && l2.name) return -1;
+        else if (!l1.name && !l2.name) return 0;
         else return l1.name.localeCompare(l2.name);
       })) appendLesson(l);
     });
@@ -218,6 +219,7 @@ async function toggleModule(id) {
       for (const q of qs.sort((q1, q2) => {
         if (q1.name && !q2.name) return 1;
         else if (!q1.name && q2.name) return -1;
+        else if (!q1.name && !q2.name) return 0;
         else return q1.name.localeCompare(q2.name);
       })) appendQuestion(q);
     });
@@ -325,6 +327,7 @@ function appendQuestion(question) {
     for (const m of modules.sort((m1, m2) => {
       if (m1.name && !m2.name) return 1;
       else if (!m1.name && m2.name) return -1;
+      else if (!m1.name && !m2.name) return 0;
       return m1.name.localeCompare(m2.name);
     })) appendModule(m);
   } catch(e) {
