@@ -1,7 +1,7 @@
 // Project
 const {validCols, isLoggedIn, needs} = require('../../lib');
 const {msg} = require('../lib');
-const {NoSuchRecordErr, ValidationErr} = require('../../errors');
+const {NoSuchRecordErr, ValidationErr, DeniedErr} = require('../../errors');
 const {Sequelize, Enrollment, Rating, sequelize} = require('../../../database');
 
 // 3rd Party
@@ -29,6 +29,25 @@ router.post('/create',
       req.body.raterId = res.locals.loggedIn.id;
       const rating = await Rating.create(req.body);
       return res.json(msg('created rating', rating.dataValues));
+    } catch (e) {
+      return next(e);
+    }
+  });
+
+router.post(['/:id', '/:id/update', '/:id/modify'],
+  isLoggedIn(),
+  validCols(Rating, 'body', ['updatedAt', 'raterId', 'createdAt', 'moduleId']),
+  async (req, res) => {
+    try {
+      let rating = await Rating.findOne({where: {id: req.params.id}});
+      if (rating === null) {
+        throw new NoSuchRecord('Rating', {id: req.params.id});
+      }
+      if (res.locals.loggedIn.id !== rating.raterId) {
+        throw new DeniedErr('change rating');
+      }
+      rating = await rating.update(req.body);
+      return res.json(msg('updated module', rating.dataValues));
     } catch (e) {
       return next(e);
     }

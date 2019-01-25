@@ -4,7 +4,6 @@ const {join} = require('path');
 
 // 3rd Party
 const express = require('express');
-const isLoggedIn = require('../lib').isLoggedIn;
 const {NotImplYetErr, NoSuchRecordErr} = require('../errors');
 const router = express.Router();
 
@@ -21,8 +20,10 @@ router.get(['/register', '/sign[-_]?up', 'create'], (req, res) => res.locals.log
   ? res.redirect('/user/home')
   : res.render(join('user', 'register')));
 
-router.get(['/edit', '/settings'], isLoggedIn(),
-  (req, res) => res.render(join('user', 'settings')));
+router.get(['/edit', '/settings'],
+  (req, res) => res.locals.loggedIn === undefined
+    ? res.status(403).redirect('/')
+    : res.render(join('user', 'settings')));
 
 /**
  * User profile page of the user that's logged in.

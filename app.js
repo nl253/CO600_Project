@@ -87,6 +87,11 @@ app.use(async (req, res, next) => {
     log.debug(`token not sent in cookies`);
     return next();
   }
+  const cookieOpts = {
+    SameSite: 'Strict',
+    httpOnly: false,
+    Path: '/',
+  };
   try {
     log.debug(`token sent in cookies`);
     let token;
@@ -94,35 +99,26 @@ app.use(async (req, res, next) => {
       token = decrypt(decodeURIComponent(req.cookies.token));
     } catch (e) {
       log.debug(`token sent could not be decrypted`);
-      // res.set("Clear-Site-Data", '*');
-      res.clearCookie('token', {
-        SameSite: 'Strict',
-        httpOnly: false,
-        Path: '/',
-      });
+      res.append("Clear-Site-Data", '"*"');
+      res.clearCookie('token', cookieOpts);
+      res.clearCookie('token');
       return next();
     }
     const sess = await Session.findOne({where: {token}});
     if (sess === null && !req.originalUrl.includes('/api/')) {
       log.debug(`token sent is does not correspond to a session`);
-      // res.set("Clear-Site-Data", '*');
-      res.clearCookie('token', {
-        SameSite: 'Strict',
-        httpOnly: false,
-        Path: '/',
-      });
+      res.append("Clear-Site-Data", '"*"');
+      res.clearCookie('token', cookieOpts);
+      res.clearCookie('token');
       return next();
     } else if ((Date.now() - sess.updatedAt) >=
       (process.env.SESSION_TIME || 20 * MINUTE)) {
       log.debug(`token sent is stale, destroying associated session`);
       sess.destroy();
       if (!req.originalUrl.includes('/api/')) {
-        // res.set("Clear-Site-Data", '*');
-        res.clearCookie('token', {
-          SameSite: 'Strict',
-          httpOnly: false,
-          Path: '/',
-        });
+        res.append("Clear-Site-Data", '"*"');
+        res.clearCookie('token', cookieOpts);
+        res.clearCookie('token');
       }
       return next();
     } else {
@@ -133,9 +129,9 @@ app.use(async (req, res, next) => {
       where: {email: sess.email},
       attributes: {exclude: ['password']},
     }).then(u => u.dataValues);
-    log.info(`logged in: ${Object.entries(res.locals.loggedIn)
-      .map(pair => pair.join(' = '))
-      .join(', ')}`);
+    // log.info(`logged in: ${Object.entries(res.locals.loggedIn)
+    //   .map(pair => pair.join(' = '))
+    //   .join(', ')}`);
     return next();
   } catch (err) {
     return next(err);

@@ -61,7 +61,7 @@ router.get(['/logout', '/unauthenticate'],
       const sess = await Session.findOne({
         where: {token: decrypt(decodeURIComponent(req.cookies.token))},
       });
-      res.set("Clear-Site-Data", '*');
+      res.append("Clear-Site-Data", '"*"');
       await sess.destroy();
       return res.json(msg('successfully logged out'));
     } catch (e) {
