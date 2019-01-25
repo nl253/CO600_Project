@@ -103,7 +103,8 @@ async function showLess(lesson) {
   };
   const lessonRes = await fetch(`/api/lesson/search?id=${lesson.id}`,cfg);
   const json = await lessonRes.json();
-  document.getElementById('module-edit-pane').innerHTML = json.result[0].content;
+  document.getElementById('module-edit-pane').innerHTML = `<h2 class="title" style="margin-bottom: 10px;">${lesson.name ? lesson.name : 'Lesson'}</h2>`;
+  document.getElementById('module-edit-pane').innerHTML += json.result[0].content;
 }
 
 /**
