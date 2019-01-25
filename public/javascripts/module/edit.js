@@ -1,3 +1,12 @@
+if (!sessionStorage.getItem('loggedIn') || document.cookie.indexOf('token') < 0) {
+  logOut().then(ok => {
+    location.pathname = '/';
+  }).catch(err => {
+    console.error(err);
+    location.pathname = '/';
+  });
+}
+
 const TOPICS = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology'];
 
 /**
