@@ -19,7 +19,6 @@ function shuffle(array = []) {
   return array;
 }
 
-const TOPICS = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology'];
 const PANE = document.getElementById('module-edit-pane');
 const SPINNER_MOD = document.getElementById('module-edit-spinner-list-module');
 const SPINNER_LESS = document.getElementById('module-edit-spinner-list-lesson');
@@ -27,6 +26,7 @@ const SPINNER_QUEST = document.getElementById('module-edit-spinner-list-question
 const LIST_MOD = document.getElementById('module-edit-list-module');
 const LIST_LESS = document.getElementById('module-edit-list-lesson');
 const LIST_QUEST = document.getElementById('module-edit-list-question');
+const MY_ID = JSON.parse(sessionStorage.getItem('loggedIn')).id;
 
 /**
  * Disables all buttons while a fetch response is awaited.
@@ -92,7 +92,7 @@ function getSelId(what) {
  * Updates the rating for the selected module.
  */
 async function updateRating() {
-  const raterId = JSON.parse(sessionStorage.getItem('loggedIn')).id;
+  lockBtns();
   const moduleId = getSelId('Module');
   const comment = document.getElementById('module-learn-comment').value.trim();
   let stars = 0;
@@ -103,15 +103,17 @@ async function updateRating() {
       break;
     }
   }
-  stars = stars ? stars : null;
-  lockBtns();
-  const myRatings = await get('Rating', {moduleId, raterId});
-  if (myRatings.length > 0) {
-    await update('Rating', myRatings[0].id, JSON.stringify({comment: comment ? comment : null, stars}));
-  } else await create('Rating', JSON.stringify({raterId, moduleId, comment, stars}));
-  unSelect('Module');
-  PANE.innerHTML = '';
-  await toggleMod(moduleId);
+  if (stars === 0) {
+    alert('select rating');
+  } else {
+    const myRatings = await get('Rating', {moduleId, raterId: MY_ID});
+    if (myRatings.length > 0) {
+      await update('Rating', myRatings[0].id, JSON.stringify({comment: comment ? comment : null, stars}));
+    } else await create('Rating', JSON.stringify({raterId: MY_ID, moduleId, comment: comment ? comment : null, stars}));
+    unSelect('Module');
+    PANE.innerHTML = '';
+    await toggleMod(moduleId);
+  }
   unlockBtns();
 }
 
@@ -121,20 +123,13 @@ async function updateRating() {
  * @return {Promise<void>}
  */
 async function destroyRating() {
-  const raterId = JSON.parse(sessionStorage.getItem('loggedIn')).id;
-  const moduleId = getSelId('Module');
   lockBtns();
-  const myRatings = await get(
-    'Rating',
-    {moduleId, raterId},
-    false,
-    true,
-  );
+  const myRatings = await get('Rating', {moduleId: getSelId('Module'), raterId: MY_ID});
   if (myRatings.length > 0) {
     await destroy('Rating', myRatings[0].id);
     unSelect('Module');
     PANE.innerHTML = '';
-    await toggleMod(moduleId);
+    await toggleMod(getSelId('Module'));
   }
   unlockBtns();
 }
@@ -161,11 +156,11 @@ function lightStars(fromNo = 5) {
  * @param {!Array<!String>} topics
  * @return {Promise<void>}
  */
-async function showMod({id, name, topic, authorId, summary}, topics = TOPICS) {
+async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology']) {
   try {
     lockBtns();
     const myRatingP = get('Rating', {
-      raterId: JSON.parse(sessionStorage.getItem('loggedIn')).id,
+      raterId: MY_ID,
       moduleId: id,
     }).then(rs => rs.length > 0 && rs[0].comment ? rs[0] : '');
     const avgRating = get('Rating', {moduleId: id})
@@ -215,7 +210,7 @@ async function showMod({id, name, topic, authorId, summary}, topics = TOPICS) {
       <h4 class="subtitle" style="margin-bottom: 10px; margin-top: 20px;">Comment (optional)</h2>
       
       <textarea id="module-learn-comment">
-        ${myRating.comment ? myRating.comment : ''}
+        ${myRating.comment ? myRating.comment.trim() : ''}
       </textarea>
 
       <div class="field is-grouped" style="margin-top: 20px;">
@@ -423,7 +418,7 @@ async function toggleQuest(id) {
   unSelect('Question');
   unSelect('Lesson');
   select('Question', id);
-  await showQuest((await get('Question', {id, moduleId: getSelId('Module')}))[0]);
+  await showQuest((await get('Question', {id, moduleId: getSelId('Module')}, false, true))[0]);
   unlockBtns();
 }
 
@@ -479,8 +474,7 @@ function appendQuest({id, name}) {
 (async function() {
   try {
     SPINNER_MOD.classList.remove('is-invisible');
-    const studentId = JSON.parse(sessionStorage.getItem('loggedIn')).id;
-    const enrollments = await get('Enrollment', {studentId}, false, true);
+    const enrollments = await get('Enrollment', {studentId: MY_ID}, false, true);
     let modules = (await Promise.all(enrollments.map(({moduleId}) => get('Module', {id: moduleId}, false, true)))).map(xs => xs[0]);
     modules = modules.sort((m1, m2) => {
       if (m1.name && !m2.name) return 1;

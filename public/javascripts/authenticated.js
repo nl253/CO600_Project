@@ -1,4 +1,4 @@
-if (!sessionStorage.getItem('loggedIn') || document.cookie.indexOf('token') < 0) {
+if (sessionStorage.getItem('loggedIn') === undefined || document.cookie.indexOf('token') < 0) {
   logOut().then(ok => {
     location.pathname = '/';
   }).catch(err => {
@@ -18,7 +18,7 @@ document.querySelector(".navbar-burger.burger").onclick = () => {
 document.getElementById('navbar-auth-btn-log-out').onclick = async (event) => {
   event.preventDefault();
   try {
-    await logOut()
+    await logOut();
   } catch (e) {
     console.error(e);
   }

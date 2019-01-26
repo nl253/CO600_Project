@@ -42,8 +42,14 @@ router.post(['/login', '/authenticate'],
         defaults: {email, token: genToken()}
       }).spread((s, created) => created ? s : s.update({updatedAt: Date.now()}));
       delete user.dataValues.password;
-      return res.json(msg(`successfully authenticated ${req.body.email}`,
-        Object.assign(user.dataValues, {token: encodeURIComponent(encrypt(sess.token))})));
+      const token = encodeURIComponent(encrypt(sess.token));
+      // res.cookie('token', token, {
+      //   httpOnly: true,
+      //   maxAge: parseInt(process.env.SESSION_TIME),
+      //   signed: true,
+      //   sameSite: true,
+      // });
+      return res.json(msg(`successfully authenticated ${req.body.email}`, Object.assign(user.dataValues, {token})));
     } catch (e) {
       return next(e);
     }
@@ -61,7 +67,13 @@ router.get(['/logout', '/unauthenticate'],
       const sess = await Session.findOne({
         where: {token: decrypt(decodeURIComponent(req.cookies.token))},
       });
-      res.append("Clear-Site-Data", '"cache", "cookies"');
+      // res.clearCookie('token', {
+      //   httpOnly: true,
+      //   maxAge: parseInt(process.env.SESSION_TIME),
+      //   signed: true,
+      //   sameSite: true,
+      // });
+      res.set("Clear-Site-Data", '"cookies", "storage"');
       await sess.destroy();
       return res.json(msg('successfully logged out'));
     } catch (e) {

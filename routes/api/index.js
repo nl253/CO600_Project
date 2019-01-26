@@ -8,13 +8,15 @@ const {log, errMsg} = require('./lib');
 const {NotImplYetErr} = require('./../errors');
 
 router.use((req, res, next) => {
-  res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-  res.header('Expires', '-1');
-  res.header('Pragma', 'no-cache');
+  res.set({
+    'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+    'Expires': '-1',
+    'Pragma': 'no-cache',
+  });
   return next();
 });
 
-const MODELS = [
+const APPS = [
   'Enrollment',
   'File',
   'Lesson',
@@ -25,11 +27,11 @@ const MODELS = [
   'User',
 ];
 
-for (const mod of MODELS.map(key => key.toLowerCase())) {
-  if (existsSync(join(__dirname, `${mod}.js`)) || existsSync(join(__dirname, mod, 'index.js'))) {
-    log.info(`mounting the ${mod} part of the api to /api/${mod}`);
-    router.use(`/${mod}`, require(`./${mod}`));
-  } else router.all(`/${mod}`, (req, res, next) => next(new NotImplYetErr(`${mod} part of the REST API`)));
+for (const app of APPS.map(key => key.toLowerCase())) {
+  if (existsSync(join(__dirname, `${app}.js`)) || existsSync(join(__dirname, app, 'index.js'))) {
+    log.info(`mounting the ${app} part of the api to /api/${app}`);
+    router.use(`/${app}`, require(`./${app}`));
+  } else router.all(`/${app}`, (req, res, next) => next(new NotImplYetErr(`${app} part of the REST API`)));
 }
 
 router.use((err, req, res, next) => {
