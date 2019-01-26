@@ -51,7 +51,12 @@ app.use(async (req, res, next) => {
     log.debug(`token not sent in cookies`);
     return next();
   }
-  const cookieOpts = {SameSite: 'Strict', httpOnly: false, Path: '/'};
+  function clearSiteData() {
+    return;
+    res.set("Clear-Site-Data", '"cookies"');
+    res.clearCookie('token', {sameSite: 'Strict', httpOnly: false, path: '/', signed: false});
+    res.clearCookie('token');
+  }
   try {
     log.debug(`token sent in cookies`);
     let token;
@@ -59,24 +64,18 @@ app.use(async (req, res, next) => {
       token = decrypt(decodeURIComponent(req.cookies.token));
     } catch (e) {
       log.debug(`token sent could not be decrypted`);
-      res.append("Clear-Site-Data", '"cache", "cookies"');
-      res.clearCookie('token', cookieOpts);
-      res.clearCookie('token');
+      clearSiteData();
       return next();
     }
     const sess = await Session.findOne({where: {token}});
     if (sess === null) {
       log.debug(`token sent is does not correspond to a session`);
-      res.append("Clear-Site-Data", '"cache", "cookies"');
-      res.clearCookie('token', cookieOpts);
-      res.clearCookie('token');
+      clearSiteData();
       return next();
     } else if ((Date.now() - sess.updatedAt) >= parseInt(process.env.SESSION_TIME)) {
       log.debug(`token sent is stale, destroying associated session`);
       sess.destroy();
-      res.append("Clear-Site-Data", '"cache", "cookies"');
-      res.clearCookie('token', cookieOpts);
-      res.clearCookie('token');
+      clearSiteData();
       return next();
     }
     log.debug(`valid token sent, refreshing it`);
@@ -92,10 +91,10 @@ app.use(async (req, res, next) => {
   }
 });
 
-app.use((req, res, next) => {
-  if (process.env.NODE_ENV !== 'development' && req.method.toLowerCase() === 'get') {
+app.get(/.*/, (req, res, next) => {
+  if (process.env.NODE_ENV !== 'development') {
     res.set({
-      'Cache-Control': ['private', `max-age=${process.env.SESSION_TIME}`].join(', '),
+      'Cache-Control': ['private', `max-age=${process.env.SESSION_TIME}`, 'only-if-cached', 'immutable'].join(', '),
       'Expires': new Date(
         (Date.now() + parseInt(process.env.SESSION_TIME))).toString()
         .replace(/ GMT.*/, ' GMT'),
@@ -118,7 +117,7 @@ app.use(
   }),
 );
 
-app.use(/\/javascripts\/.*\.js$/, async (req, res, next) => {
+app.get(/\/javascripts\/.*\.js$/, async (req, res, next) => {
   res.header('X-SourceMap', `${req.originalUrl}.map`);
   if (req.originalUrl.match(/\.min\.js$/)) return next();
   const jsPath = path.join(process.env.ROOT, 'public', req.originalUrl.slice(1));
@@ -135,6 +134,14 @@ app.use(/\/javascripts\/.*\.js$/, async (req, res, next) => {
 });
 
 app.use(express.static(process.env.PUBLIC_PATH));
+
+app.use((req, res, next) => {
+  res.set({
+    'Cache-Control': 'no-cache',
+    'Expires': new Date((Date.now() - 1000).toString().replace(/ GMT.*/, ' GMT')),
+  });
+  return next();
+});
 
 app.use('/user', require('./routes/user'));
 app.use('/file', require('./routes/file'));
