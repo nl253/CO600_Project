@@ -5,12 +5,7 @@ require('./env')();
 
 const {User, Session} = require('./database');
 const {decrypt} = require('./routes/lib');
-const log = require('./lib')
-  .createLogger({label: 'APP', fileLvl: 'debug', lvl: 'debug'});
-
-const SECOND = 1000;
-const MINUTE = 60 * SECOND;
-
+const log = require('./lib').createLogger({label: 'APP', fileLvl: 'debug', lvl: 'debug'});
 const babel = require('babel-core');
 const express = require('express');
 const app = express();
@@ -51,48 +46,12 @@ app.use(require('morgan')(':method :url :status :req[cookie]'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
-app.use(
-  require('node-sass-middleware')({
-    src: process.env.PUBLIC_PATH,
-    dest: process.env.PUBLIC_PATH,
-    maxAge: parseInt(process.env.SESSION_TIME),
-    force: process.env.NODE_ENV === 'development',
-    debug: false,
-    outputStyle: 'compressed',
-    // true = .sass and false = .scss
-    indentedSyntax: false,
-    sourceMap: true,
-  }),
-);
-
-app.use(/\/javascripts\/.*\.js$/, async (req, res, next) => {
-  res.header('X-SourceMap', `${req.originalUrl}.map`);
-  if (req.originalUrl.match(/\.min\.js$/)) return next();
-  const jsPath = path.join(process.env.ROOT, 'public', req.originalUrl.slice(1));
-  const jsPathMap = `${jsPath}.map`;
-  const jsPathMin = jsPath.replace(/\.js$/, '.min.js');
-  if (process.env.NODE_ENV === 'development' || !fs.existsSync(jsPathMin)) {
-    const {code, map} = await babel.transformFileAsync(jsPath);
-    const writeJSMinP = new Promise((res, rej) => res(fs.writeFileSync(jsPathMin, code)));
-    const writeJSMapP = new Promise((res, rej) => res(fs.writeFileSync(jsPathMap, JSON.stringify(map))));
-    await writeJSMinP;
-    await writeJSMapP;
-  }
-  return res.send(fs.readFileSync(jsPathMin));
-});
-
-app.use(express.static(process.env.PUBLIC_PATH));
-
 app.use(async (req, res, next) => {
   if (req.cookies.token === undefined) {
     log.debug(`token not sent in cookies`);
     return next();
   }
-  const cookieOpts = {
-    SameSite: 'Strict',
-    httpOnly: false,
-    Path: '/',
-  };
+  const cookieOpts = {SameSite: 'Strict', httpOnly: false, Path: '/'};
   try {
     log.debug(`token sent in cookies`);
     let token;
@@ -132,6 +91,50 @@ app.use(async (req, res, next) => {
     return next(err);
   }
 });
+
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV !== 'development' && req.method.toLowerCase() === 'get') {
+    res.set({
+      'Cache-Control': ['private', `max-age=${process.env.SESSION_TIME}`].join(', '),
+      'Expires': new Date(
+        (Date.now() + parseInt(process.env.SESSION_TIME))).toString()
+        .replace(/ GMT.*/, ' GMT'),
+    });
+  }
+  return next();
+});
+
+app.use(
+  require('node-sass-middleware')({
+    src: process.env.PUBLIC_PATH,
+    dest: process.env.PUBLIC_PATH,
+    maxAge: parseInt(process.env.SESSION_TIME),
+    force: process.env.NODE_ENV === 'development',
+    debug: false,
+    outputStyle: 'compressed',
+    // true = .sass and false = .scss
+    indentedSyntax: false,
+    sourceMap: true,
+  }),
+);
+
+app.use(/\/javascripts\/.*\.js$/, async (req, res, next) => {
+  res.header('X-SourceMap', `${req.originalUrl}.map`);
+  if (req.originalUrl.match(/\.min\.js$/)) return next();
+  const jsPath = path.join(process.env.ROOT, 'public', req.originalUrl.slice(1));
+  const jsPathMap = `${jsPath}.map`;
+  const jsPathMin = jsPath.replace(/\.js$/, '.min.js');
+  if (process.env.NODE_ENV === 'development' || !fs.existsSync(jsPathMin)) {
+    const {code, map} = await babel.transformFileAsync(jsPath);
+    const writeJSMinP = new Promise((res, rej) => res(fs.writeFileSync(jsPathMin, code)));
+    const writeJSMapP = new Promise((res, rej) => res(fs.writeFileSync(jsPathMap, JSON.stringify(map))));
+    await writeJSMinP;
+    await writeJSMapP;
+  }
+  return res.send(fs.readFileSync(jsPathMin));
+});
+
+app.use(express.static(process.env.PUBLIC_PATH));
 
 app.use('/user', require('./routes/user'));
 app.use('/file', require('./routes/file'));

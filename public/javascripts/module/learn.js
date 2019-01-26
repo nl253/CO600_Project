@@ -107,7 +107,7 @@ async function updateRating() {
   lockBtns();
   const myRatings = await get('Rating', {moduleId, raterId});
   if (myRatings.length > 0) {
-    await update('Rating', myRatings[0].id, JSON.stringify({comment, stars}));
+    await update('Rating', myRatings[0].id, JSON.stringify({comment: comment ? comment : null, stars}));
   } else await create('Rating', JSON.stringify({raterId, moduleId, comment, stars}));
   unSelect('Module');
   PANE.innerHTML = '';
