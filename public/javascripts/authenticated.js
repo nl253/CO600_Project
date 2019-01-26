@@ -18,7 +18,7 @@ document.querySelector(".navbar-burger.burger").onclick = () => {
 document.getElementById('navbar-auth-btn-log-out').onclick = async (event) => {
   event.preventDefault();
   try {
-    await logOut();
+    logOut();
   } catch (e) {
     console.error(e);
   }

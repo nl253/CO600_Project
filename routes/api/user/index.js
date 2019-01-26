@@ -67,14 +67,8 @@ router.get(['/logout', '/unauthenticate'],
       const sess = await Session.findOne({
         where: {token: decrypt(decodeURIComponent(req.cookies.token))},
       });
-      // res.clearCookie('token', {
-      //   httpOnly: true,
-      //   maxAge: parseInt(process.env.SESSION_TIME),
-      //   signed: true,
-      //   sameSite: true,
-      // });
-      res.set("Clear-Site-Data", '"cookies", "storage"');
       await sess.destroy();
+      res.set("Clear-Site-Data", '"cookies", "storage"');
       return res.json(msg('successfully logged out'));
     } catch (e) {
       return next(e);

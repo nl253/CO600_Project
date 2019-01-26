@@ -162,7 +162,7 @@ async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'A
     const myRatingP = get('Rating', {
       raterId: MY_ID,
       moduleId: id,
-    }).then(rs => rs.length > 0 && rs[0].comment ? rs[0] : '');
+    }).then(rs => rs.length > 0 ? rs[0] : '');
     const avgRating = get('Rating', {moduleId: id})
       .then((rs) => rs.map(({stars}) => stars))
       .then((rs) => {
@@ -334,7 +334,6 @@ async function toggleMod(id) {
     // re-select *the same* module - do nothing
     return;
   } // else
-
   lockBtns();
   PANE.innerHTML = `
     <p class="has-text-centered" style="margin: 10px auto;">
@@ -342,12 +341,11 @@ async function toggleMod(id) {
       <br>
       <i class="fas fa-spinner spinner"></i>
     </p>`;
-  SPINNER_LESS.classList.remove('is-invisible');
-  SPINNER_QUEST.classList.remove('is-invisible');
   unSelect('Lesson');
   unSelect('Question');
-
   if (focusedMod !== id) {
+    SPINNER_LESS.classList.remove('is-invisible');
+    SPINNER_QUEST.classList.remove('is-invisible');
     // selected *different* module
     unSelect('Module');
     select('Module', id);
@@ -371,10 +369,10 @@ async function toggleMod(id) {
     });
     await p1;
     await p2;
+    SPINNER_LESS.classList.add('is-invisible');
+    SPINNER_QUEST.classList.add('is-invisible');
   }
   await showMod(await get('Module', {id}, false, true).then((ms) => ms[0]));
-  SPINNER_LESS.classList.add('is-invisible');
-  SPINNER_QUEST.classList.add('is-invisible');
   unlockBtns();
 }
 
