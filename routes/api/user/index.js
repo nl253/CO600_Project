@@ -37,18 +37,13 @@ router.post(['/login', '/authenticate'],
       if (user === null) {
         throw new NoSuchRecordErr('User', {email});
       }
+      const newToken = genToken();
       const sess = await Session.findOrCreate({
         where: {email},
-        defaults: {email, token: genToken()}
-      }).spread((s, created) => created ? s : s.update({updatedAt: Date.now()}));
+        defaults: {email, token: newToken},
+      }).spread((s, created) => created ? s : s.update({token: newToken}));
       delete user.dataValues.password;
       const token = encodeURIComponent(encrypt(sess.token));
-      // res.cookie('token', token, {
-      //   httpOnly: true,
-      //   maxAge: parseInt(process.env.SESSION_TIME),
-      //   signed: true,
-      //   sameSite: true,
-      // });
       return res.json(msg(`successfully authenticated ${req.body.email}`, Object.assign(user.dataValues, {token})));
     } catch (e) {
       return next(e);

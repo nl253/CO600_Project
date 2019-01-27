@@ -1,17 +1,25 @@
+const COOKIE_OPTS = {
+  httpOnly: false,
+  path: '/',
+  sameSite: 'Strict',
+  signed: false,
+};
+
 /**
  * Logs the user out by sending a logout request.
  */
 async function logOut() {
   try {
-    const res = await fetch('/api/user/logout', {
-      redirect: 'follow',
-      cache: 'no-cache',
-      credentials: 'include',
-    });
+    clearCookie('token');
+    // const res = await fetch('/api/user/logout', {
+    //   redirect: 'follow',
+    //   cache: 'no-cache',
+    //   credentials: 'include',
+    // });
     // sessionStorage.clear();
-    if (res.status >= 400) {
-      throw new Error('logging out failed');
-    }
+    // if (res.status >= 400) {
+    //   throw new Error('logging out failed');
+    // }
   } catch (e) {
     console.error(e);
   }
@@ -26,12 +34,7 @@ async function logOut() {
  */
 function setCookie(name, value, opts = {}) {
   console.warn(`setting cookie ${name} to ${value}`);
-  const options = Object.assign({
-    httpOnly: false,
-    path: '/',
-    sameSite: 'Strict',
-    signed: true,
-  }, opts);
+  const options = Object.assign(COOKIE_OPTS, opts);
   let cookieStr = [
     [name, encodeURIComponent(value)],
     ['Path', options.path],
@@ -42,6 +45,22 @@ function setCookie(name, value, opts = {}) {
   console.warn(cookieStr);
   document.cookie = cookieStr;
 }
+
+function clearCookie(name, opts = {}) {
+  console.warn(`clearing cookie ${name}`);
+  const options = Object.assign(COOKIE_OPTS, opts);
+  let cookieStr = [
+    [name, ''],
+    ['Expires', new Date().toString().replace(/GMT.*/, 'GMT')],
+    ['Path', options.path],
+  ].map((pair) => pair.join('=')).join('; ');
+  if (options.httpOnly) cookieStr += '; HttpOnly';
+  if (options.sameSite) cookieStr += `; SameSite=${options.sameSite}`;
+  if (options.signed) cookieStr += '; Signed';
+  console.warn(cookieStr);
+  document.cookie = cookieStr;
+}
+
 
 /**
  * @private
