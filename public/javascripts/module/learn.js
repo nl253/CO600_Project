@@ -26,7 +26,7 @@ const SPINNER_QUEST = document.getElementById('module-edit-spinner-list-question
 const LIST_MOD = document.getElementById('module-edit-list-module');
 const LIST_LESS = document.getElementById('module-edit-list-lesson');
 const LIST_QUEST = document.getElementById('module-edit-list-question');
-const MY_ID = JSON.parse(sessionStorage.getItem('loggedIn')).id;
+const USER_ID = JSON.parse(sessionStorage.getItem('loggedIn')).id;
 
 /**
  * Disables all buttons while a fetch response is awaited.
@@ -106,10 +106,10 @@ async function updateRating() {
   if (stars === 0) {
     alert('select rating');
   } else {
-    const myRatings = await get('Rating', {moduleId, raterId: MY_ID});
+    const myRatings = await get('Rating', {moduleId, raterId: USER_ID});
     if (myRatings.length > 0) {
       await update('Rating', myRatings[0].id, JSON.stringify({comment: comment ? comment : null, stars}));
-    } else await create('Rating', JSON.stringify({raterId: MY_ID, moduleId, comment: comment ? comment : null, stars}));
+    } else await create('Rating', JSON.stringify({raterId: USER_ID, moduleId, comment: comment ? comment : null, stars}));
     unSelect('Module');
     PANE.innerHTML = '';
     await toggleMod(moduleId);
@@ -124,7 +124,7 @@ async function updateRating() {
  */
 async function destroyRating() {
   lockBtns();
-  const myRatings = await get('Rating', {moduleId: getSelId('Module'), raterId: MY_ID});
+  const myRatings = await get('Rating', {moduleId: getSelId('Module'), raterId: USER_ID});
   if (myRatings.length > 0) {
     await destroy('Rating', myRatings[0].id);
     unSelect('Module');
@@ -160,7 +160,7 @@ async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'A
   try {
     lockBtns();
     const myRatingP = get('Rating', {
-      raterId: MY_ID,
+      raterId: USER_ID,
       moduleId: id,
     }).then(rs => rs.length > 0 ? rs[0] : '');
     const avgRating = get('Rating', {moduleId: id})
@@ -472,7 +472,7 @@ function appendQuest({id, name}) {
 (async function() {
   try {
     SPINNER_MOD.classList.remove('is-invisible');
-    const enrollments = await get('Enrollment', {studentId: MY_ID}, false, true);
+    const enrollments = await get('Enrollment', {studentId: USER_ID}, false, true);
     let modules = (await Promise.all(enrollments.map(({moduleId}) => get('Module', {id: moduleId}, false, true)))).map(xs => xs[0]);
     modules = modules.sort((m1, m2) => {
       if (m1.name && !m2.name) return 1;

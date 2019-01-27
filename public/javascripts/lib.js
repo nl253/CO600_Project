@@ -97,7 +97,7 @@ async function _tryFetch(model, query = {}, doSave = false) {
  * @param {?Boolean} [doSave]
  * @return {Promise<!Array<{id: !Number, createdAt: !Date, updatedAt: !Date}>>}
  */
-async function get(model, query = {}, force = true, doSave = false) {
+async function get(model, query = {}, force = false, doSave = true) {
   return (force && await _tryFetch(model, query, doSave)) || _tryCache(model, query) || await _tryFetch(model, query, doSave);
 }
 
@@ -118,6 +118,13 @@ async function create(model, postData = '') {
       body: postData,
       cache: 'no-cache',
     });
+    if (document.cache !== undefined)  {
+      for (const m of Object.keys(document.cache)) {
+        if (m.toLowerCase().startsWith(model.toLowerCase())) {
+          delete document.cache[m];
+        }
+      }
+    }
     return (await res.json()).result;
   } catch (e) {
     console.error(e);
@@ -146,6 +153,13 @@ async function update(model, id, postData, contentType = 'application/json') {
       body: postData,
       cache: 'no-cache',
     });
+    if (document.cache !== undefined)  {
+      for (const m of Object.keys(document.cache)) {
+        if (m.toLowerCase().startsWith(model.toLowerCase())) {
+          delete document.cache[m];
+        }
+      }
+    }
     if (res.status >= 400) {
       return Promise.reject((await res.json()).msg);
     } else return (await res.json()).msg;
@@ -179,12 +193,38 @@ async function destroy(model, id) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  /** Strip email suffix. I.e. all after the '@' at symbol. */
-  const emailRegex = /([A-Za-z0-9.]+)@([A-Za-z0-9.]+)/;
-  for (const greeting of document.getElementsByClassName('greeting-email')) {
-    const match = emailRegex.exec(greeting.innerText);
-    if (match !== null) {
-      greeting.innerText = greeting.innerText.replace(match[0], ` ${match[1]} `);
+  (function simplifyName() {
+    /** Strip email suffix. I.e. all after the '@' at symbol. */
+    const emailRegex = /([A-Za-z0-9.]+)@([A-Za-z0-9.]+)/;
+    for (const greeting of document.getElementsByClassName('greeting-email')) {
+      const match = emailRegex.exec(greeting.innerText);
+      if (match !== null) {
+        greeting.innerText = greeting.innerText.replace(match[0], ` ${match[1]} `);
+      }
     }
-  }
+  })();
+  (function highlightCurrentPageLink() {
+    for (const btn of document.querySelectorAll('nav:first-of-type a[href]')) {
+      if (location.pathname === btn.getAttribute('href')) {
+        btn.classList.add('has-background-link');
+        btn.classList.add('has-text-white');
+        break;
+      }
+    }
+    if (location.pathname.match('/search')) {
+      const el = document.querySelector("nav:first-of-type .navbar-item.has-dropdown.is-hoverable").querySelector('.navbar-link');
+      el.classList.add('has-background-link');
+      el.classList.add('has-text-white');
+    }
+  })();
+  (function initNavBar() {
+    let burger = document.querySelector(".navbar-burger.burger");
+    if (!burger) return;
+    burger.onclick = () => {
+      const menu = document.querySelector('.navbar-menu');
+      return menu.classList.contains('is-active')
+        ? menu.classList.remove( 'is-active')
+        : menu.classList.add('is-active');
+    };
+  })();
 });

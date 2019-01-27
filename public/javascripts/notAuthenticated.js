@@ -3,7 +3,7 @@ if (location.pathname.includes('/user/register')) {
   if (btn) btn.remove();
 }
 
-(function() {
+(function initLogInBtn() {
   let btn = document.getElementById('layout-btn-log-in');
   if (!btn) return;
   btn.onclick = async (event) => {
@@ -32,7 +32,9 @@ if (location.pathname.includes('/user/register')) {
         const msg = 'could not log in';
         console.error(msg);
         console.error(e);
-        return alert(msg);
+        alert(msg);
+        sessionStorage.clear();
+        location.pathname = location.pathname;
       }
     }
 
@@ -45,19 +47,9 @@ if (location.pathname.includes('/user/register')) {
         : location.pathname;
     } catch (e) {
       console.error(e);
+      alert(e.message);
       sessionStorage.clear();
+      location.pathname = location.pathname;
     }
   };
 })();
-
-(function() {
-  let burger = document.querySelector(".navbar-burger.burger");
-  if (!burger) return;
-  burger.onclick = () => {
-    const menu = document.querySelector('.navbar-menu');
-    return menu.classList.contains('is-active')
-      ? menu.classList.remove( 'is-active')
-      : menu.classList.add('is-active');
-  };
-})();
-
