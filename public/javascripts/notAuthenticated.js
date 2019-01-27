@@ -3,37 +3,52 @@ if (location.pathname.includes('/user/register')) {
   if (btn) btn.remove();
 }
 
-document.getElementById('layout-btn-log-in').onclick = async (event) => {
+(function initLogInBtn() {
+  let btn = document.getElementById('layout-btn-log-in');
+  if (!btn) return;
+  btn.onclick = async (event) => {
 
-  // don't send the HTML form
-  event.preventDefault();
+    // don't send the HTML form
+    event.preventDefault();
 
-  const email = document.getElementById('layout-input-email').value;
-  const password = document.getElementById('layout-input-password').value;
-  const logInRes = await fetch(`/api/user/login`, {
-    method: 'POST',
-    redirect: 'follow',
-    cache: 'no-cache',
-    mode: 'cors',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    body: JSON.stringify({email, password}),
-  });
+    const email = document.getElementById('layout-input-email').value;
+    const password = document.getElementById('layout-input-password').value;
+    const logInRes = await fetch('/api/user/login', {
+      method: 'POST',
+      cache: 'no-cache',
+      credentials: 'include',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email, password}),
+    });
 
-  if (logInRes.status >= 400) {
-    const err = await logInRes.json();
-    const msg = err.msg || err.message || err.toString();
-    console.error(msg);
-    return alert(msg);
-  }
+    if (logInRes.status >= 400) {
+      try {
+        const err = await logInRes.json();
+        const msg = err.msg || err.message || err.toString();
+        console.error(msg);
+        return alert(msg);
+      } catch (e) {
+        const msg = 'could not log in';
+        console.error(msg);
+        console.error(e);
+        alert(msg);
+        sessionStorage.clear();
+        location.pathname = location.pathname;
+      }
+    }
 
-  const json = await logInRes.json();
-  sessionStorage.setItem('loggedIn', JSON.stringify(json.result));
-  setCookie('token', json.result.token);
-  location.href = location.pathname.includes('/register')
-    ? '/user/home'
-    : location.href;
-};
+    try {
+      const user = (await logInRes.json()).result;
+      sessionStorage.setItem('loggedIn', JSON.stringify(user));
+      setCookie('token', user.token);
+      location.pathname = location.pathname.includes('/register')
+        ? '/user/home'
+        : location.pathname;
+    } catch (e) {
+      console.error(e);
+      alert(e.message);
+      sessionStorage.clear();
+      location.pathname = location.pathname;
+    }
+  };
+})();

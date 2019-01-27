@@ -1,31 +1,18 @@
-document.getElementById('navbar-auth-btn-log-out').onclick = async (event) => {
+if (sessionStorage.getItem('loggedIn') === undefined || document.cookie.indexOf('token') < 0) {
+  logOut().then(ok => {
+    location.pathname = '/';
+  }).catch(err => {
+    console.error(err);
+    location.pathname = '/';
+  });
+}
+
+document.getElementById('navbar-auth-btn-log-out').onclick = async function initLogOutBtn(event){
   event.preventDefault();
   try {
-    const response = await fetch('/api/user/logout', {
-      redirect: 'follow',
-      cache: 'no-cache',
-      mode: 'cors',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    });
-    sessionStorage.clear();
-    if (response.status >= 400) throw new (await response.json());
+    logOut();
   } catch (e) {
     console.error(e);
   }
-  location.href = '/';
+  location.pathname = '/';
 };
-
-(function() {
-  for (const btn of document.querySelectorAll('nav:first-of-type a.button[href]')) {
-    if (location.pathname === btn.getAttribute('href')) {
-      btn.classList.add('has-background-grey-dark');
-      btn.classList.add('has-text-white');
-      break;
-    }
-  }
-})();
-

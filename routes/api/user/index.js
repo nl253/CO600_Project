@@ -1,6 +1,8 @@
 // 3rd Party
-const {suggestRoutes, msg} = require('../lib');
-const {NoSuchRecord} = require('../../errors');
+
+
+const {msg} = require('../lib');
+const {NoSuchRecordErr, RecordExists, ValidationErr} = require('../../errors');
 const router = require('express').Router();
 
 // Project
@@ -15,7 +17,7 @@ const {
 
 const {sha256} = require('../../lib');
 
-const {User, Session} = require('../../../database');
+const {User, Session, Sequelize, sequelize} = require('../../../database');
 
 /**
  * Logs a user in.
@@ -27,19 +29,22 @@ router.post(['/login', '/authenticate'],
   needs('password', 'body'),
   async (req, res, next) => {
     try {
+      const {email, password} = req.body;
       const user = await User.findOne({where: {
-          email: req.body.email,
-          password: sha256(req.body.password),
+          email,
+          password: sha256(password),
         }});
-      if (user === null) return next(new NoSuchRecord('User', {email: req.body.email}));
-      let sess = await Session.findOrCreate({
-        where: {email: req.body.email},
-        defaults: {email: req.body.email, token: genToken()}
-      }).spread((s, created) => created ? s : s.update({updatedAt: Date.now()}));
+      if (user === null) {
+        throw new NoSuchRecordErr('User', {email});
+      }
+      const newToken = genToken();
+      const sess = await Session.findOrCreate({
+        where: {email},
+        defaults: {email, token: newToken},
+      }).spread((s, created) => created ? s : s.update({token: newToken}));
       delete user.dataValues.password;
-      return res.json(
-        msg(`successfully authenticated ${req.body.email}`,
-          Object.assign(user.dataValues, {token: encodeURIComponent(encrypt(sess.token))})));
+      const token = encodeURIComponent(encrypt(sess.token));
+      return res.json(msg(`successfully authenticated ${req.body.email}`, Object.assign(user.dataValues, {token})));
     } catch (e) {
       return next(e);
     }
@@ -52,11 +57,18 @@ router.post(['/login', '/authenticate'],
  */
 router.get(['/logout', '/unauthenticate'],
   isLoggedIn(),
-  (req, res, next) => Session
-    .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
-    .then(session => session.destroy())
-    .then(() => res.json(msg('successfully logged out')))
-    .catch((err) => next(err)),
+  async (req, res, next) => {
+    try {
+      const sess = await Session.findOne({
+        where: {token: decrypt(decodeURIComponent(req.cookies.token))},
+      });
+      await sess.destroy();
+      res.set("Clear-Site-Data", '"cookies", "storage"');
+      return res.json(msg('successfully logged out'));
+    } catch (e) {
+      return next(e);
+    }
+  }
 );
 
 /**
@@ -69,15 +81,19 @@ router.post(['/register', '/create'],
   needs('password', 'body'),
   validCols(User),
   (req, res, next) => {
+    if (!req.body.password.match(/\S{6,}/)) {
+      return next(new ValidationErr('password', 'too short or includes spaces'));
+    }
     req.body.password = sha256(req.body.password);
     return User.findOrCreate({
       where: {email: req.body.email},
       defaults: req.body,
     }).spread((u, created) => {
+      if (!created) return next(new RecordExists('User'));
       u = u.dataValues;
-      console.log(u);
+      console.log(`created { ${Object.entries(u).map(pair => pair.map(el => el ? el.toLocaleString() : '')).join(', ')} }`);
       delete u.password;
-      return res.json(msg(created ? `created user ${req.body.email}` : `${req.body.email} already has an account`, u));
+      return res.json(msg(`created user ${req.body.email}`));
     }).catch(err => next(err));
   });
 
@@ -88,15 +104,17 @@ router.post(['/register', '/create'],
  */
 router.delete(['/', '/unregister', '/delete', '/remove'],
   isLoggedIn(),
-  (req, res, next) => Session
-    .findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}})
-    .then((session) => {
-      const email = session.dataValues.email;
-      return session.destroy().then(() => User.findOne({where: {email}}))
-    })
-    .then((user) => user.destroy())
-    .then(() => res.json(msg('successfully unregistered')))
-    .catch((err) => next(err)));
+  async (req, res, next) => {
+    try {
+      const sess = await Session.findOne({where: {token: decrypt(decodeURIComponent(req.cookies.token))}});
+      await sess.destroy();
+      const user = await User.findOne({where: {id: res.locals.loggedIn.id}});
+      await user.destroy();
+      return res.json(msg('successfully unregistered'));
+    } catch (e) {
+      return next(e);
+    }
+  });
 
 /**
  * Change the user's password.
@@ -104,37 +122,32 @@ router.delete(['/', '/unregister', '/delete', '/remove'],
  * Requires credentials (BOTH email AND password) to be sent in POST request body.
  */
 router.post('/password',
+  isLoggedIn(),
   needs('email', 'body'),
   needs('password', 'body'),
   needs('value', 'body'),
-  (req, res, next) => User
-    .findOne({where: {email: req.body.email}})
-    .then(user => user.update({password: sha256(req.body.value)}))
-    .then(() => res.json(msg(`updated password in user ${req.body.email}`)))
-    .catch((err) => next(err)));
-
-/**
- * Get all users matching properties specified in query params.
- *
- * On success sends: {msg: String, status: String, result: Array<Object<!String, ?String>>}
- *
- * Doesn't require authentication.
- */
-router.get(['/', '/search'],
-  validCols(User, 'query', ['password']),
   async (req, res, next) => {
-    const users = await User.findAll({
-      limit: process.env.MAX_RESULTS || 100,
-      where: req.query,
-      attributes: Object.keys(User.attributes).filter(attr => attr !== 'password'),
-    }).then((results) => results.map((u) => u.dataValues));
-    let s = `found ${users.length} users`;
-    if (Object.keys(req.query).length > 0) {
-      s += ` matching given ${Object.keys(req.query).join(', ')}`;
+    try {
+      if (!req.body.value.match(/\S{6,}/)) {
+        return next(new ValidationErr('password', 'too short or includes spaces'));
+      }
+      const user = await User.findOne({where: {
+          email: req.body.email,
+          id: res.locals.loggedIn.id,
+        }});
+      if (user === null) {
+        throw new NoSuchRecordErr('User', {
+          email: req.body.email,
+          id: res.locals.loggedIn.id,
+        });
+      }
+      await user.update({password: sha256(req.body.value)});
+      return res.json(msg(`updated password in user ${req.body.email}`));
+    } catch (e) {
+      return next(e);
     }
-    return res.json(msg(s, users));
-  }
-);
+  });
+
 
 /**
  * Modifies user's properties (e.g. email AND firstName etc.).
@@ -146,29 +159,57 @@ router.get(['/', '/search'],
 router.post(['/', '/update', '/modify'],
   isLoggedIn(),
   validCols(User, 'body', ['password', 'isAdmin', 'updatedAt', 'createdAt']),
-  (req, res, next) => User.findOne({where: {id: res.locals.loggedIn.id}})
-    .then((user) => user === null
-      ? Promise.reject(new NoSuchRecord('User'))
-      : user.update(req.body))
-    .then(() => res.json(msg(`updated ${Object.keys(req.body).join(', ')}`)))
-    .catch((err) => next(err)));
+  async (req, res, next) => {
+    try {
+      let u =  await User.findOne({where: {id: res.locals.loggedIn.id}});
+      if (u === null) {
+        throw new NoSuchRecordErr('User');
+      }
+      await u.update(req.body);
+      return res.json(msg(`updated ${Object.keys(req.body).join(', ')}`));
+    } catch (e) {
+      return next(e);
+    }
+  });
 
 /**
- * If an API user tries to query the database for users' info with POST suggest using GET.
+ * Get all users matching properties specified in query params.
+ *
+ * On success sends: {msg: String, status: String, result: Array<Object<!String, ?String>>}
+ *
+ * Doesn't require authentication.
  */
-suggestRoutes(router, /.*/, {
-  'POST': {
-    '/{register,create}': 'create a new user in the database',
-    '/{login,authenticate}': 'generated and send a session token',
-    '/:email/:property': 'update the value of :property for a user e.g.: update firstName /if50@kent.ac.uk/firstName',
-  },
-  'GET': {
-    '/{unregister,delete,remove}': 'remove a user from the database',
-    '/:email': 'info about a user',
-    '/:email/:property': 'value of :property for a user e.g.: /nl253@kent.ac.uk/email',
-    '/{logout,unauthenticate}': 'clear created session, deactivate a token and send a session token',
-    '/': 'find all users matching criteria (can be given as query params e.g.: `?email=nv55@kent.ac.uk&firstName=Nic`',
-  },
-});
+router.get(['/', '/search'],
+  validCols(User, 'query', ['password']),
+  async (req, res, next) => {
+    try {
+      for (const attr of ['firstName', 'lastName', 'email', 'info']) {
+        if (req.query[attr]) {
+          req.query[attr] = {[Sequelize.Op.like]: `%${req.query[attr]}%`};
+        }
+      }
+      for (const dateAttr of ['createdAt', 'updatedAt']) {
+        if (req.query[dateAttr]) {
+          req.query[dateAttr] = {[Sequelize.Op.gte]: new Date(Date.parse(req.query[dateAttr]))};
+        }
+      }
+      const users = await User.findAll({
+        limit: parseInt(process.env.MAX_RESULTS),
+        order: sequelize.col('createdAt'),
+        where: req.query,
+        attributes: Object
+          .keys(User.attributes)
+          .filter(attr => attr !== 'password'),
+      }).then(us => us.map(u => u.dataValues));
+      let s = `found ${users.length} users`;
+      if (Object.keys(req.query).length > 0) {
+        s += ` matching given ${Object.keys(req.query).join(', ')}`;
+      }
+      return res.json(msg(s, users));
+    } catch (e) {
+      return next(e);
+    }
+  }
+);
 
 module.exports = router;

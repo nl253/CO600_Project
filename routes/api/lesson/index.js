@@ -12,15 +12,23 @@ const upload = multer({
 
 // Project
 const {validCols, needs, isLoggedIn} = require('../../lib');
-const {suggestRoutes, msg, log} = require('../lib');
-const {APIErr, NoSuchRecord, NotLoggedIn, DeniedErr, InvalidRequestErr} = require('../../errors');
-const {Lesson, Module, User, sequelize, File} = require('../../../database');
-
+const {msg} = require('../lib');
+const {APIErr, NoSuchRecordErr, DeniedErr} = require('../../errors');
+const {Lesson, Module, Sequelize, sequelize, File, Enrollment} = require('../../../database');
 
 router.get(['/:id/download', '/:id/content'], isLoggedIn(),
   async (req, res) => {
     try {
-      const lesson = await Lesson.findOne({where: {id: req.params.id}}).then(l => l.dataValues);
+      const lesson = await Lesson.findOne({where: {id: req.params.id}});
+      if (lesson === null) {
+        throw new NoSuchRecordErr('Lesson', {id: req.params.id});
+      }
+      const mod = await Module.findOne({where: {id: lesson.moduleId}});
+      if (mod.authorId !== res.locals.loggedIn.id && await Enrollment.findOne({where: {
+          moduleId: mod.id,
+          studentId: res.locals.loggedIn.id}}) === null) {
+        throw new DeniedErr('download lesson content');
+      }
       res.set('Content-Type', 'text/html');
       res.send(lesson.content);
       return res.end();
@@ -31,16 +39,14 @@ router.get(['/:id/download', '/:id/content'], isLoggedIn(),
 
 router.delete('/:id', isLoggedIn(),
   async (req, res, next) => {
-    if (!res.locals.loggedIn) return new NotLoggedIn();
     try {
       const lesson = await Lesson.findOne({where: {id: req.params.id}});
       if (lesson === null) {
-        return new NoSuchRecord('Lesson',
+        return new NoSuchRecordErr('Lesson',
           {id: req.params.id});
       }
-      const module = await Module.findOne({where: {id: lesson.moduleId}});
-      const author = await User.findOne({where: {id: module.authorId}});
-      if (author.id !== res.locals.loggedIn.id) {
+      const mod = await Module.findOne({where: {id: lesson.moduleId}});
+      if (res.locals.loggedIn.id !== mod.authorId) {
         return next(new DeniedErr(`delete lesson ${req.params.id}`));
       }
       await lesson.destroy();
@@ -80,22 +86,19 @@ router.post(['/:id', '/:id/update', '/:id/modify'],
     try {
       let lesson = await Lesson.findOne({where: {id: req.params.id}});
       if (lesson === null) {
-        return next(new NoSuchRecord('Lesson', {id: req.params.id}));
+        return next(new NoSuchRecordErr('Lesson', {id: req.params.id}));
       }
-      const module = await Module.findOne({where: {id: lesson.moduleId}});
-      const author = await User.findOne({where: {id: module.authorId}});
-      if (author.id !== res.locals.loggedIn.id) {
-        return next(new DeniedErr(`delete lesson ${req.params.id}`));
+      const mod = await Module.findOne({where: {id: lesson.moduleId}});
+      if (mod.authorId !== res.locals.loggedIn.id) {
+        throw new DeniedErr(`delete lesson ${req.params.id}`);
       }
       const existingFileNames = await File.findAll({
-        where: {
-          lessonId: lesson.id,
-        },
+        where: {lessonId: lesson.id},
         attributes: ['name'],
       }).then(ns => ns.map(n => n.dataValues.name));
-      console.log(existingFileNames.length === 0 ? 'no existing files' : `existing files: ${existingFileNames.join(', ')}`);
-      console.debug(req.files);
-      console.debug(req.body);
+      // console.log(existingFileNames.length === 0 ? 'no existing files' : `existing files: ${existingFileNames.join(', ')}`);
+      // console.debug(req.files);
+      // console.debug(req.body);
       const maybeLessFile = req.files.find(f => f.fieldname === 'lesson');
       if (maybeLessFile && !maybeLessFile.originalname.match(/\.x?html?$/)) {
         return next(new APIErr('Invalid lesson content file.'));
@@ -128,14 +131,28 @@ router.post(['/:id', '/:id/update', '/:id/modify'],
     }
   });
 
-router.get(['/', '/search'], validCols(Lesson, 'query'),
+router.get(['/', '/search'],
+  validCols(Lesson, 'query', []),
   async (req, res, next) => {
     try {
+      for (const attr of ['name', 'summary', 'content']) {
+        if (req.query[attr]) {
+          req.query[attr] = {[Sequelize.Op.like]: `%${req.query[attr]}%`};
+        }
+      }
+      for (const dateAttr of ['createdAt', 'updatedAt']) {
+        if (req.query[dateAttr]) {
+          req.query[dateAttr] = {[Sequelize.Op.gte]: new Date(Date.parse(req.query[dateAttr]))};
+        }
+      }
       const lessons = await Lesson.findAll({
         where: req.query,
         order: sequelize.col('order'),
-        limit: process.env.MAX_RESULTS || 100,
+        limit: parseInt(process.env.MAX_RESULTS),
       }).then(ls => ls.map(l => l.dataValues));
+      for (const l of lessons.filter(l => l.content)) {
+        l.content = l.content.toString();
+      }
       let s = `found ${lessons.length} lessons`;
       if (Object.entries(req.query).length > 0) {
         s += ` matching given ${Object.keys(req.query).join(', ')}`;
@@ -145,7 +162,5 @@ router.get(['/', '/search'], validCols(Lesson, 'query'),
       return next(e);
     }
   });
-
-suggestRoutes(router, /.*/, {});
 
 module.exports = router;

@@ -1,0 +1,40 @@
+<div class="container" style="margin: 10vh;">
+  <section class="columns is-multiline">
+    <div class="column is-one-third-fullhd is-one-third-desktop is-full-tablet is-full-mobile">
+      <h2 class="subtitle">Enrollments</h2>
+      <ul>
+        {{#each user.enrollments}}
+          <li><a href="/module/{{this.module.id}}">{{this.module.name}}</a></li>
+        {{else}}
+          <li><p>no enrollments</p></li>
+        {{/each}}
+      </ul>
+      <br>
+      <h2 class="subtitle">Content</h2>
+      <ul>
+        {{#each user.createdModules}}
+          <li>
+            <a href="/module/{{this.id}}">
+            {{#if this.name}}
+              {{this.name}}
+            {{else}}
+              unnamed #{{this.id}}
+            {{/if}}
+            </a>
+          </li>
+        {{else}}
+          <li><p>no created modules</p></li>
+        {{/each}}
+      </ul>
+    </div>
+    <div class="column is-two-thirds-fullhd is-two-thirds-desktop is-full-tablet is-full-mobile">
+      <h1 class="title">{{user.firstName}} {{user.lastName}}</h1>
+      <p><a href="mailto:{{user.email}}">{{user.email}}</a></p>
+      <br>
+      {{#if user.info}}
+        <p><strong>Info</strong></p>
+        <p>{{user.info}}</p>
+      {{/if}}
+    </div>
+  </section>
+</div>

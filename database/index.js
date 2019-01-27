@@ -6,7 +6,6 @@
 
 // Standard Library
 const {existsSync} = require('fs');
-const {join, resolve} = require('path');
 
 // Project
 const {createLogger} = require('../lib');
@@ -17,17 +16,12 @@ const {createLogger} = require('../lib');
  * @type {winston.Logger}
  */
 // const log = createLogger({label: 'DATABASE', lvl: process.env.js.LOGGING_DB});
-const log = createLogger({label: 'DATABASE', lvl: process.env.LOGGING_DB || 'warn'});
-
-if (process.env.NODE_ENV !== 'development') {
-  log.error(`database not configured for ${process.env.NODE_ENV}, see ${resolve( join(__dirname, __filename))}`);
-  process.exit(1);
-}
+const log = createLogger({label: 'DATABASE', lvl: process.env.LOGGING_DB});
 
 // 3rd Party
 const Sequelize = require('sequelize');
 
-const {STRING, TEXT, INTEGER, TINYINT, BOOLEAN, REAL, BLOB} = Sequelize;
+const {STRING, TEXT, INTEGER, TINYINT, BOOLEAN, BLOB} = Sequelize;
 
 const sequelize = new Sequelize({
 
@@ -92,7 +86,7 @@ const User = sequelize.define('User', {
     type: STRING,
     validate: {
       is: {
-        args: [/.{2,}/],
+        args: [/\S{4,}/],
         msg: 'password is too short',
       },
     },
@@ -350,7 +344,7 @@ if (process.env.DB_SYNC === '1' || (process.env.DB_PATH !== undefined && !exists
     function randModuleId() {return randArrEl(modules).id;}
     function save(obj) {return log.warn(`${obj._modelOptions.name.singular} ${Object.entries(obj.dataValues).filter(pair => pair[1]).map(pair => pair[0] + ' = ' + pair[1].toString().slice(0, 30)).join(', ')}`);}
 
-    for (let i = 0; i < process.env.NO_MOCKS; i++) {
+    for (let i = 0; i < parseInt(process.env.NO_MOCKS); i++) {
       const password = faker.internet.password();
       const user = await User.create({
         firstName: faker.name.firstName(),
@@ -365,7 +359,7 @@ if (process.env.DB_SYNC === '1' || (process.env.DB_PATH !== undefined && !exists
       users.push(user.dataValues);
     }
 
-    for (let i = 0; i < process.env.NO_MOCKS; i++) {
+    for (let i = 0; i < parseInt(process.env.NO_MOCKS); i++) {
       const module = await Module.create({
         name: faker.random.words(3),
         topic: faker.random.word(),
@@ -376,7 +370,7 @@ if (process.env.DB_SYNC === '1' || (process.env.DB_PATH !== undefined && !exists
       modules.push(module.dataValues);
     }
 
-    const lessons = Promise.all([...Array(process.env.NO_MOCKS * 3).keys()]
+    const lessons = Promise.all([...Array(parseInt(process.env.NO_MOCKS) * 3).keys()]
       .map(ord =>
         Lesson.create({
           moduleId: randModuleId(),
@@ -386,7 +380,7 @@ if (process.env.DB_SYNC === '1' || (process.env.DB_PATH !== undefined && !exists
           content: Buffer.from(faker.random.words(500)),
         })));
 
-    const ratings =  Promise.all([...Array(process.env.NO_MOCKS).keys()]
+    const ratings =  Promise.all([...Array(parseInt(process.env.NO_MOCKS)).keys()]
       .map(_ => Rating.create({
         raterId: randUserId(),
         moduleId: randModuleId(),
@@ -394,7 +388,7 @@ if (process.env.DB_SYNC === '1' || (process.env.DB_PATH !== undefined && !exists
         stars: faker.random.number(1, 5),
       })));
 
-    const questions = Promise.all([...Array(process.env.NO_MOCKS * 3).keys()]
+    const questions = Promise.all([...Array(parseInt(process.env.NO_MOCKS) * 3).keys()]
       .map(ord =>
         Question.create({
           correctAnswer: faker.random.words(2),

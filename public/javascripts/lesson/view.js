@@ -2,9 +2,8 @@ for (const lesson of document.querySelectorAll(
   'nav.panel a.panel-block[data-id]')) {
   if (lesson.innerText.trim() === '') {
     lesson.innerHTML = `
-            <i class="fas fa-book" aria-hidden="true" style="margin-right: 7px;"></i>
-            unnamed #${lesson.getAttribute('data-id')}
-          `;
+      <i class="fas fa-book" aria-hidden="true" style="margin-right: 7px;"></i>
+      unnamed #${lesson.getAttribute('data-id')}`;
   }
   const lessonId = /(\d+)(\/edit)?\/?$/.exec(location.pathname)[1];
   if (lessonId === lesson.getAttribute('data-id')) {

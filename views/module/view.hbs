@@ -1,11 +1,5 @@
 <div style="margin: 50px 20vw;">
-  {{#if loggedIn}}
-    <a href="/user?tab=enrollments" class="button is-small" style="margin-bottom: 10px;">
-      <i class="fas fa-arrow-left"></i>
-      Enrollments
-    </a>
-  {{/if}}
-  <h1 id="module-h-name" class="title" style="">
+  <h1 id="module-h-name" class="title">
     {{module.name}}
   </h1>
   <h3 id="module-h-topic" class="subtitle">
@@ -19,7 +13,7 @@
       </button>
     {{else}}
       {{#if module.isMine}}
-        <a href="/module/{{module.id}}/edit" class="button is-warning">
+        <a href="/module/edit" class="button is-warning">
           <i class="fas fa-edit"></i>
           Edit
         </a>
@@ -34,7 +28,6 @@
     <div class="message is-warning" style="margin: 50px auto 0 auto; width: 80%;">
       <div class="message-header">
         <p>Warning</p>
-        <button class="delete" aria-label="delete"></button>
       </div>
       <div class="message-body">
         Log in to enroll and see lessons' contents.
@@ -44,12 +37,22 @@
   <section class="content" style="margin-top: 40px;">
     <strong>Author</strong> <a href="/user/{{module.author.id}}">{{module.author.email}}</a>
     <br>
-    <strong>Rating</strong> <span id="module-rating">{{module.rating}}/5</span>
+    {{#if module.rating}}
+      <strong>Rating</strong> <span id="module-rating">{{module.rating}}</span>
+      <script>
+        document.getElementById('module-rating').innerHTML = Array(
+          Math.round(eval(
+            document.getElementById('module-rating').innerText.trim()))).fill(`
+              <span class="icon">
+                <i class="fas fa-star"></i>
+              </span>`).join('');
+      </script>
+    {{/if}}
   </section>
   <section class="is-medium" style="margin-bottom: 30px;">
     <h2 class="title is-medium" style="margin-bottom: 20px;">Summary</h2>
     {{#if module.summary}}
-      <pre style="background: inherit; font: inherit; padding: inherit; margin: inherit;">
+      <pre style="white-space: pre-wrap; word-wrap: break-word; text-align: justify; background: inherit; font: inherit; padding: inherit; margin: inherit; overflow-wrap: break-word; overflow-x: visible;">
         {{{module.summary}}}
       </pre>
     {{else}}
@@ -59,30 +62,23 @@
   <section class="is-medium" style="margin-bottom: 30px;">
     <h2 class="title is-medium">Lessons</h2>
     {{#if module.lessons}}
-      <ol id="module-lessons" class="list" style="min-width: 100%;">
-        {{#if loggedIn}}
-          {{#each module.lessons}}
-            <li class="list-item"
-                data-id="{{id}}"
-                data-name="{{name}}"
-                data-created-at="{{createdAt}}"
-                data-summary="{{summary}}"
-                data-updated-at="{{updatedAt}}">
-              <a data-id="{{id}}">{{name}}</a>
-            </li>
-          {{/each}}
-        {{else}}
-          {{#each module.lessons}}
-            <li class="list-item"
-                data-id="{{id}}"
-                data-name="{{name}}"
-                data-created-at="{{createdAt}}"
-                data-summary="{{summary}}"
-                data-updated-at="{{updatedAt}}">
-              <a data-id="{{id}}">{{name}}</a>
-            </li>
-          {{/each}}
-        {{/if}}
+      <ol id="module-lessons" class="list-group" style="min-width: 100%;">
+        {{#each module.lessons}}
+          <li class="list-group-item"
+              data-id="{{id}}"
+              data-name="{{name}}"
+              data-created-at="{{createdAt}}"
+              style="border: none; padding-left: 0;"
+              data-updated-at="{{updatedAt}}">
+            <p data-id="{{id}}">
+              {{#if name}}
+                {{name}}
+              {{else}}
+                unnamed #{{id}}
+              {{/if}}
+            </p>
+          </li>
+        {{/each}}
       </ol>
     {{else}}
       <p class="has-text-centered">No lessons</p>
@@ -90,24 +86,22 @@
   </section>
   <section class="is-small">
     <h2 class="title is-medium">Comments</h2>
-    {{#if module.ratings}}
-      {{#each module.ratings}}
-        <div class="box"
-             data-id="{{id}}"
-             data-rater-id="{{raterId}}"
-             data-module-id="{{moduleId}}"
-             data-updated-at="{{updatedAt}}"
-             data-created-at="{{createdAt}}"
-             style="margin: 20px auto 0;">
-          <div style="margin-bottom: 10px;">
-            <strong>{{stars}}/5</strong> by <em><a href="/user/{{rater.email}}">{{rater.email}}</a></em>
-          </div>
-          <p class="content">{{comment}}</p>
+    {{#each module.ratings}}
+      <div class="box"
+           data-id="{{id}}"
+           data-rater-id="{{raterId}}"
+           data-module-id="{{moduleId}}"
+           data-updated-at="{{updatedAt}}"
+           data-created-at="{{createdAt}}"
+           style="margin: 20px auto 0;">
+        <div style="margin-bottom: 10px;">
+          <strong>{{stars}}/5</strong> by <em><a href="/user/{{rater.id}}">{{rater.email}}</a></em>
         </div>
-      {{/each}}
+        <p class="content">{{comment}}</p>
+      </div>
     {{else}}
       <p class="has-text-centered">No comments</p>
-    {{/if}}
+    {{/each}}
   </section>
 </div>
 

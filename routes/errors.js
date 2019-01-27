@@ -27,37 +27,7 @@ class APIErr extends Error {
   }
 }
 
-class BadMethodErr extends APIErr {
-  /**
-   * @param {String} action
-   * @param {String} suggestedMethod
-   */
-  constructor(action, suggestedMethod) {
-    super(`to ${action} use ${suggestedMethod.toUpperCase()}`, 405);
-  }
-}
-
-class RecordExistsErr extends APIErr {
-  /**
-   *
-   * @param {String} tableName
-   * @param {Object<String, *>|Array<String>} [attrs]
-   */
-  constructor(tableName, attrs = {}) {
-    let msg = `found existing ${tableName.toLowerCase()}`;
-    if (Object.keys(attrs).length > 0) {
-      msg += ' with given ';
-      msg += (
-        Array.isArray(attrs)
-          ? attrs
-          : Object.keys(attrs)
-      ).join(', ');
-    }
-    super(msg, 409);
-  }
-}
-
-class NoSuchRecord extends APIErr {
+class NoSuchRecordErr extends APIErr {
   /**
    *
    * @param {String} tableName
@@ -77,12 +47,6 @@ class NoSuchRecord extends APIErr {
   }
 }
 
-class TypoErr extends APIErr {
-  constructor(suggestion) {
-    super(`did you mean '${suggestion}'?`, 400);
-  }
-}
-
 class InvalidRequestErr extends APIErr {
   /**
    * @param {String} table
@@ -90,6 +54,15 @@ class InvalidRequestErr extends APIErr {
    */
   constructor(table, attr) {
     super(`invalid request for ${table.toLowerCase()}'s ${attr}`, 400);
+  }
+}
+
+class RecordExists extends  APIErr {
+  /**
+   * @param {String} table
+   */
+  constructor(table) {
+    super(`${table} already exists`, 400);
   }
 }
 
@@ -113,25 +86,40 @@ class NotImplYetErr extends APIErr {
   }
 }
 
-class NotLoggedIn extends APIErr {
+class NotLoggedInErr extends APIErr {
   constructor() {
     super('not logged in', 403);
   }
 }
 
 class DeniedErr extends APIErr {
+  /**
+   * @param {String} action
+   */
   constructor(action) {
     super(`insufficient privileges to ${action}`, 403);
   }
 }
 
+class ValidationErr extends APIErr {
+  /**
+   * @param {String} what
+   * @param {String} [info]
+   */
+  constructor(what, info) {
+    if (info) super(`Validation failed on ${what}. ${info.slice(0, 1).toUpperCase()}${info.slice(1)}.`, 400);
+    else super(`Validation failed on ${what}`, 400);
+  }
+}
+
 module.exports = {
-  BadMethodErr,
   DeniedErr,
+  ValidationErr,
   InvalidRequestErr,
   MissingDataErr,
-  NotLoggedIn,
-  NoSuchRecord,
+  NotLoggedInErr,
+  NoSuchRecordErr,
   APIErr,
+  RecordExists,
   NotImplYetErr,
 };

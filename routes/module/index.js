@@ -1,22 +1,26 @@
 const express = require('express');
-const isLoggedIn = require('../lib').isLoggedIn;
 const router = express.Router();
 const {join} = require('path');
 
-const {NoSuchRecord} = require('../errors');
+const {NoSuchRecordErr} = require('../errors');
 const {Enrollment, Module, Lesson, Rating, sequelize, User} = require('../../database');
 
+router.get('/edit',
+  (req, res) => res.locals.loggedIn === undefined ?
+    res.status(403).redirect('/') :
+    res.render(join('module', 'edit')));
 
-router.get('/edit', isLoggedIn(),
-  (req, res) => res.render(join('module', 'edit')));
+router.get(['/search', '/'], (req, res) => res.render(join('module', 'search')));
 
-router.get('/search',
-  (req, res) => res.render(join('module', 'search')));
+router.get(['/view', '/learn'],
+  (req, res) => res.locals.loggedIn === undefined ?
+    res.status(403).redirect('/') :
+    res.render(join('module', 'learn')));
 
 router.get('/:id', async (req, res, next) => {
   let moduleId = req.params.id, id = req.params.id, rating = Promise.resolve(0), ratings = Promise.resolve([]);
   const module = await Module.findOne({where: {id}});
-  if (module === null) return next(new NoSuchRecord('Module', {id}));
+  if (module === null) return next(new NoSuchRecordErr('Module', {id}));
   const moduleInfo = module.dataValues;
   const lessons = Lesson.findAll({where: {moduleId}}).then(ls => ls.map(l => l.dataValues));
   const author = User.findOne({where: {id: moduleInfo.authorId}}).then(a => a.dataValues);
@@ -60,7 +64,5 @@ router.get('/:id', async (req, res, next) => {
 
   return res.render(join('module', 'view'), {module: moduleInfo});
 });
-
-router.get('/', (req, res) => res.redirect('/module/search'));
 
 module.exports = router;
