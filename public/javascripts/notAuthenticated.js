@@ -15,7 +15,6 @@ if (location.pathname.includes('/user/register')) {
     const password = document.getElementById('layout-input-password').value;
     const logInRes = await fetch('/api/user/login', {
       method: 'POST',
-      redirect: 'follow',
       cache: 'no-cache',
       credentials: 'include',
       headers: {'Content-Type': 'application/json'},
