@@ -37,7 +37,17 @@
   <section class="content" style="margin-top: 40px;">
     <strong>Author</strong> <a href="/user/{{module.author.id}}">{{module.author.email}}</a>
     <br>
-    <strong>Rating</strong> <span id="module-rating">{{module.rating}}/5</span>
+    {{#if module.rating}}
+      <strong>Rating</strong> <span id="module-rating">{{module.rating}}</span>
+      <script>
+        document.getElementById('module-rating').innerHTML = Array(
+          Math.round(eval(
+            document.getElementById('module-rating').innerText.trim()))).fill(`
+              <span class="icon">
+                <i class="fas fa-star"></i>
+              </span>`).join('');
+      </script>
+    {{/if}}
   </section>
   <section class="is-medium" style="margin-bottom: 30px;">
     <h2 class="title is-medium" style="margin-bottom: 20px;">Summary</h2>
@@ -58,10 +68,15 @@
               data-id="{{id}}"
               data-name="{{name}}"
               data-created-at="{{createdAt}}"
-              data-summary="{{summary}}"
               style="border: none; padding-left: 0;"
               data-updated-at="{{updatedAt}}">
-            <p data-id="{{id}}">{{name}}</p>
+            <p data-id="{{id}}">
+              {{#if name}}
+                {{name}}
+              {{else}}
+                unnamed #{{id}}
+              {{/if}}
+            </p>
           </li>
         {{/each}}
       </ol>
