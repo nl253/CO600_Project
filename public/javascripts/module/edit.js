@@ -702,14 +702,16 @@ function destroyAttach(id, lessonId) {
 document.getElementById('module-edit-btn-module-create').onclick = async function createMod(e) {
   e.preventDefault();
   lockBtns();
+  showSpinner('Module');
   try {
-    return appendMod(await create('Module'));
+    appendMod(await create('Module'));
   } catch (e) {
     console.error(e);
     alert('Your session expired.');
     location.pathname = '/';
   } finally {
     unlockBtns();
+    return hideSpinner('Module');
   }
 };
 
@@ -722,8 +724,9 @@ document.getElementById('module-edit-btn-lesson-create').onclick = async functio
   e.preventDefault();
   const moduleId = getSelId('Module');
   if (!moduleId) return alert('Module must be selected.');
+  showSpinner('Module');
+  lockBtns();
   try {
-    lockBtns();
     await appendLess(await create('Lesson', JSON.stringify({moduleId} )));
   } catch (e) {
     console.error(e);
@@ -731,6 +734,7 @@ document.getElementById('module-edit-btn-lesson-create').onclick = async functio
     location.pathname = '/';
   } finally {
     unlockBtns();
+    return hideSpinner('Module');
   }
 };
 
@@ -743,6 +747,8 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
   e.preventDefault();
   const moduleId = getSelId('Module');
   if (!moduleId) return alert('Module must be selected.');
+  showSpinner('Question');
+  lockBtns();
   try {
     await appendQuest(await create('Question', JSON.stringify({moduleId})));
   } catch (e) {
@@ -751,6 +757,7 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
     location.pathname = '/';
   } finally {
     unlockBtns();
+    return hideSpinner('Module');
   }
 };
 
