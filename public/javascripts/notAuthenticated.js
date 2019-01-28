@@ -30,15 +30,13 @@ if (location.pathname.includes('/user/register')) {
         const msg = err.msg || err.message || err.toString();
         console.error(msg);
         alert(msg);
-        return;
       } catch (e) {
         const msg = 'could not log in';
         console.error(msg);
         console.error(e);
         alert(msg);
-        sessionStorage.clear();
-        return;
       }
+      return;
     }
 
     try {
@@ -49,10 +47,9 @@ if (location.pathname.includes('/user/register')) {
         ? '/user/home'
         : location.pathname;
     } catch (e) {
+      hideModal();
       console.error(e);
       alert(e.message);
-      sessionStorage.clear();
-      hideModal();
     }
   };
 })();

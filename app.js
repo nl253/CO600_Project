@@ -50,9 +50,10 @@ app.use(express.urlencoded({extended: false}));
 let requestCount = 0;
 
 function cleanupSess() {
-  if (requestCount > 100) {
+  if (requestCount > 1000) {
     requestCount = 0;
-    Session.findOne({where: {updatedAt: {[Sequelize.Op.lt]: new Date()}}}).then(s => s.destroy());
+    log.debug('session clean-up');
+    Session.findOne({where: {updatedAt: {[Sequelize.Op.lt]: new Date(Date.now() + parseInt(process.env.SESSION_TIME))}}}).then(s => s.destroy());
   }
 }
 

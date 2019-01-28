@@ -117,7 +117,7 @@ async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'A
         </h2>
         <div id="module-edit-name" class="has-background-light"
              contenteditable="true" 
-             style="border-radius: 18px; border: none; padding-top: 5px; padding-bottom: 5px; padding-left: 10px; font-size: 1.2rem;">
+             style="border-radius: 18px; border: none; padding-top: 5px; padding-bottom: 5px; padding-left: 10px; font-size: 1.2rem; min-height: 30px;">
           ${name ? name : ''}
         </div>
         <h3 class="subtitle" style="margin: 25px 0 0 0;">
