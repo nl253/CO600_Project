@@ -8,6 +8,7 @@
   src: local('Roboto'), local('Roboto-Regular'), url(https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu7GxKOzY.woff2) format('woff2');
   unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
+
 /* latin */
 @font-face {
   font-family: 'Roboto';
@@ -25,6 +26,7 @@
     opacity: 1;
   }
 }
+
 @keyframes slide-up {
   0% {
     opacity: 0;
@@ -35,9 +37,14 @@
     transform: translateY(0);
   }
 }
-@keyframes spin { 100% { transform:rotate(360deg); } }
 
-li[data-id], .animate-ease-in {
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-ease-in {
   animation: slide-up 0.4s ease;
 }
 
@@ -45,7 +52,7 @@ li[data-id], .animate-ease-in {
   animation: appear 0.2s ease;
 }
 
-$link: #00B7FF;
+$link: #00b7ff;
 $fancy-font: Roboto, Arial, sans;
 
 .fancy-font {
@@ -53,7 +60,7 @@ $fancy-font: Roboto, Arial, sans;
 }
 
 .spinner {
-  animation:spin 3s linear infinite;
+  animation: spin 3s linear infinite;
 }
 
 .subtitle {
@@ -170,4 +177,5 @@ li[disabled] {
     color: $white;
   }
 }
+
 /*# sourceMappingURL=style.css.map */

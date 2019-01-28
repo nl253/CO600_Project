@@ -6,6 +6,23 @@ const COOKIE_OPTS = {
 };
 
 /**
+ * Shows modal.
+ *
+ * @param {?String} [msg]
+ */
+function showModal(msg) {
+  document.getElementById('popup-msg').classList.add('is-active');
+  if (msg) document.getElementById('popup-msg-info').innerText = msg;
+}
+
+/**
+ * Hides modal.
+ */
+function hideModal() {
+  document.getElementById('popup-msg').classList.remove('is-active');
+}
+
+/**
  * Logs the user out by sending a logout request.
  */
 async function logOut() {

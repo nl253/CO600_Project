@@ -6,7 +6,7 @@ const PANE = document.getElementById('module-edit-pane');
 const USER_ID = JSON.parse(sessionStorage.getItem('loggedIn')).id;
 const LIST_MOD = document.getElementById('module-edit-list-module');
 const LIST_LESS = document.getElementById('module-edit-list-lesson');
-const LIST_QUEST = document.getElementById('module-edit-list-question');
+// const LIST_QUEST = document.getElementById('module-edit-list-question');
 
 /**
  * Shows a spinner for specified section.
@@ -111,7 +111,7 @@ function getSelId(what) {
 async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology']) {
   try {
     return PANE.innerHTML = `
-      <div class="animate-ease-in">
+      <div class="">
         <h2 class="title" style="margin-bottom: 10px;">
           Name
         </h2>
@@ -123,35 +123,12 @@ async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'A
         <h3 class="subtitle" style="margin: 25px 0 0 0;">
           Topic
         </h3>
-        <div class="dropdown" 
-             onmouseover="this.classList.add('is-active')"
-             onmouseout="this.classList.remove('is-active')">
-          <div class="dropdown-trigger">
-            <button class="button has-background-light" aria-haspopup="true" 
-                    aria-controls="dropdown-menu" style="border: none;">
-              <span id="module-edit-topic" style="min-width: 150px;">${topic ? topic : ''}</span>
-              <span class="icon is-small">
-                <i class="fas fa-angle-down" aria-hidden="true"></i>
-              </span>
-            </button>
-          </div>
-          <div class="dropdown-menu" id="dropdown-menu" role="menu" style="margin-bottom: 30px;">
-            <div class="dropdown-content">
-              ${topics.map(t => "<a class='dropdown-item' onclick='document.getElementById(\"module-edit-topic\").innerText = this.innerText.trim()'>" + t + "</a>")}
-              <hr class="dropdown-divider">
-              <span class="dropdown-item" style="font-weight: bold;">
-                Other
-              </span>
-              <a class="dropdown-item" 
-                 onmouseout="document.getElementById('module-edit-topic').innerText = this.innerText.trim()" 
-                 id="module-edit-topic-other" 
-                 contenteditable="true"
-                 style="margin: 5px 10px; max-width: 90%;">
-                ${topic ? topic : ''}
-              </a>
-            </div>
-          </div>
-        </div>
+        <form action="" onsubmit="e.preventDefault();">
+          <input type="search" value="${topic ? topic : ''}" placeholder="start typing ..." id="module-edit-topic" style="min-width: 150px;" oninput="document.getElementById('dropdown-menu').querySelectorAll('li').forEach(el => el.style.display = el.querySelector('a').innerText.trim().toLowerCase().indexOf(this.value.trim().toLowerCase()) >= 0 ? 'block' : 'none'); document.getElementById('dropdown-menu').classList.remove('is-hidden');" autocomplete="on" autocapitalize="words">
+        </form>
+        <ol id="dropdown-menu" role="menu" onmouseleave="this.classList.add('is-hidden')" class="has-background-white is-hidden" style="margin-bottom: 30px; margin-top: 15px; list-style-type: none; padding: 5px 40px; position: absolute; box-shadow: 0 2px 3px rgba(10,10,10,0.1), 0 0 0 1px rgba(10,10,10,0.1);">
+          ${topics.map(t => "<li style='margin-bottom: 10px;'><a onclick='document.getElementById(\"module-edit-topic\").value = this.innerText.trim(); this.parentElement.parentElement.classList.add(\"is-hidden\")'>" + t + "</a></li>").join('\n')}
+        </ol>
         <section class="content" style="margin-top: 40px;">
           <strong>Author</strong>   
           <a href="/user/${authorId}">
@@ -207,7 +184,7 @@ async function showLess({id, name, summary, content}, attachments = []) {
     <form enctype="multipart/form-data"
           id="module-edit-form-lesson"
           disabled="true"
-          class="lesson-edit-form column is-10-desktop is-full-tablet is-full-mobile animate-ease-in"
+          class="lesson-edit-form column is-10-desktop is-full-tablet is-full-mobile"
           style="display: flex; flex-direction: column; justify-content: space-around; align-items: flex-start; margin-top: -15px;">
       <h2 class="title is-3">Name</h2>
       <input name="name" value="${name ? name : ''}" 
@@ -277,19 +254,19 @@ async function showLess({id, name, summary, content}, attachments = []) {
  */
 function showQuest({id, name, correctAnswer, badAnswer1, badAnswer2, badAnswer3}) {
   return PANE.innerHTML = `
-    <div class="animate-ease-in">
+    <div class="">
       <h1 class="title is-3" style="margin-bottom: 10px;">Question</h1>
       <p><strong>Note:</strong> Save the current question before editing another one</p>
       <br>
-      <a id="module-edit-question-name" class="button is-light has-background-light is-block has-text-left" contenteditable="true" style="padding: 3px 15px">
+      <div id="module-edit-question-name" class="button is-light has-background-light is-block has-text-left" contenteditable="true" style="padding: 3px 15px">
         ${name ? name : ''}
-      </a>
+      </div>
       <br>
 
       <h2 class="title is-3" style="margin-bottom: 10px;">Correct Answer</h2>
-      <a id="module-edit-question-answer" class="button is-light is-block has-text-left" contenteditable="true" style="padding: 3px 15px;">
+      <div id="module-edit-question-answer" class="button is-light is-block has-text-left" contenteditable="true" style="padding: 3px 15px;">
         ${correctAnswer ? correctAnswer : ''}
-      </a>
+      </div>
       
       <h3 class="title is-3" style="margin: 30px 0 10px 0;">Other Answers</h3>
 
@@ -297,17 +274,17 @@ function showQuest({id, name, correctAnswer, badAnswer1, badAnswer2, badAnswer3}
 
       <br>
 
-      <a id="module-edit-question-bad-answer-1" class="button is-light has-text-left" contenteditable="true" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;">
+      <div id="module-edit-question-bad-answer-1" class="button is-light has-text-left" contenteditable="true" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;">
         ${badAnswer1 ? badAnswer1 : ''}
-      </a>
+      </div>
 
-      <a id="module-edit-question-bad-answer-2" class="button is-light has-text-left" contenteditable="true" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;">
+      <div id="module-edit-question-bad-answer-2" class="button is-light has-text-left" contenteditable="true" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;">
         ${badAnswer2 ? badAnswer2 : ''}
-      </a>
+      </div>
       
-      <a id="module-edit-question-bad-answer-3" class="button is-light has-text-left" contenteditable="true" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;">
+      <div id="module-edit-question-bad-answer-3" class="button is-light has-text-left" contenteditable="true" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;">
         ${badAnswer3 ? badAnswer3 : ''}
-      </a>
+      </div>
       
       <div class="columns is-center is-multiline is-narrow" style="max-width: 400px; margin-left: auto; margin-right: auto;">
         <div class="is-block column is-6-fullhd is-6-desktop is-6-tablet is-12-mobile">
@@ -352,6 +329,7 @@ async function toggleMod(id) {
   unSelect('Question');
 
   if (focusedMod !== id) {
+    clearPane();
     // selected *different* module
     clearList('Lesson');
     clearList('Question');
@@ -403,6 +381,7 @@ async function toggleLesson(id) {
   const focusedLessId = getSelId('Lesson');
   if (id === focusedLessId) return;
   lockBtns();
+  clearPane();
   showSpinner('Pane');
   unSelect(focusedLessId === null ? 'Question' : 'Lesson');
   select('Lesson', id);
@@ -421,6 +400,7 @@ async function toggleQuest(id) {
   if (!document.querySelector(`#module-edit-list-question > li[data-id='${id}']`)) return;
   if (id === getSelId('Question')) return;
   lockBtns();
+  clearPane();
   showSpinner('Pane');
   unSelect('Question');
   unSelect('Lesson');
@@ -440,10 +420,6 @@ function appendMod({id, name}) {
   modEl.innerHTML = `
     <a onclick="toggleMod(${id})" style="min-width: 100px; padding: 10px; margin-right: 5px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
       <span>${name ? name : 'unnamed #' + id.toString()}</span>
-      <button class="button is-danger is-small" style="width: 20px; height: 23px;" 
-              onclick="if (confirm('Delete module?')) destroyMod(${id});">
-        <i class="fas fa-times fa-xs" style="margin: initial;"></i>
-      </button>
     </a>`;
   return LIST_MOD.appendChild(modEl);
 }
@@ -461,12 +437,6 @@ function appendLess({id, moduleId, name}) {
   lessonEl.innerHTML = `
     <a onclick="toggleLesson(${id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
       <span>${name ? name : 'unnamed #' + id}</span>
-      <div style="display: flex; flex-direction: row; justify-content: space-between;">
-        <button class="button is-small is-danger" 
-                onclick="if (confirm('Delete lesson?')) destroyLess(${id});" style="width: 20px; height: 23px;">
-          <i class="fas fa-times fa-xs" style="margin: initial;"></i>
-        </button>
-      </div>
     </a>`;
   return LIST_LESS.appendChild(lessonEl);
 }
@@ -483,13 +453,6 @@ function appendQuest({id, name, moduleId}) {
   questEl.innerHTML = `
     <a class="has-text-dark" onclick="toggleQuest(${id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
       <span>${name ? name : 'unnamed #' + id}</span>
-      <div style="display: flex; flex-direction: row; justify-content: space-between;">
-        <button class="button is-small is-danger" 
-                onclick="if (confirm('Delete question?')) destroyQuest(${id});" 
-                style="width: 20px; height: 23px;">
-          <i class="fas fa-times fa-xs" style="margin: initial;"></i>
-        </button>
-      </div>
     </a>
   `;
   return document.querySelector(`#module-edit-list-question`).appendChild(questEl);
@@ -502,8 +465,6 @@ function appendQuest({id, name, moduleId}) {
  * @return {void}
  */
 async function appendAttachment({id, name, lessonId}) {
-  console.log('attachment ...');
-  console.log({id, name, lessonId});
   try {
     // after sending you don't have the ids (assigned by the DBMS)
     if (id === undefined) {
@@ -571,6 +532,8 @@ function unsetLessContent() {
  * @return {Promise<void>}
  */
 async function updateMod() {
+  showModal('Updating module');
+  lockBtns();
   const maybeName = PANE.querySelector('#module-edit-name').innerText;
   const maybeTopic = PANE.querySelector('#module-edit-topic').innerText;
   const maybeSummary = PANE.querySelector('#module-edit-summary').value;
@@ -589,8 +552,11 @@ async function updateMod() {
     const msg = e.msg || e.message || e.toString();
     console.error(e);
     return alert(msg);
+  } finally {
+    hideModal();
   }
-  return document.querySelector(`#module-edit-list-module li[data-id='${moduleId}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${moduleId}`;
+  document.querySelector(`#module-edit-list-module li[data-id='${moduleId}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${moduleId}`;
+  return unlockBtns();
 }
 
 /**
@@ -600,6 +566,8 @@ async function updateMod() {
  */
 async function updateLess() {
   try {
+    lockBtns();
+    showModal('Updating lesson');
     const id = getSelId('Lesson');
     const form = PANE.querySelector('form');
     const formData = new FormData();
@@ -607,12 +575,14 @@ async function updateLess() {
     const hasLessCont = lessonInput.files.length > 0;
     if (hasLessCont)  {
       if (!lessonInput.files[0].name.match(/\.x?html?$/i)) {
+        hideModal();
         return alert('Lesson must be an HTML file.');
       } else formData.append('lesson', lessonInput.files[0], 'lesson.html');
     }
     const attachments = form.querySelector('input[type=file][multiple]').files;
     for (const f of attachments) {
       if (!f.name.match(/\.((pn|jp)g|gif|mp[34g])$/i)) {
+        hideModal();
         return alert(`Invalid attachment file type ${f.name}.`);
       } else formData.append(f.name, f);
     }
@@ -620,7 +590,6 @@ async function updateLess() {
     formData.append('name', maybeName);
     formData.append('summary', form.querySelector('textarea[name=summary]').value.trim());
     // DO NOT SET CONTENT-TYPE
-    console.debug([...formData.entries()]);
     await update('Lesson', id, formData, null);
     if (hasLessCont) setLessContent(id);
     await Promise.all(Array.from(attachments).sort((a1, a2) => {
@@ -637,10 +606,12 @@ async function updateLess() {
     document.querySelector(`#module-edit-list-lesson li[data-id='${id}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${id}`;
     unSelect('Lesson');
     clearPane();
-    return toggleLesson(id);
+    await toggleLesson(id);
   } catch (e) {
-    console.error(e);
-    return alert(e.msg || e.message || e.toString());
+    alert(e.msg || e.message || e.toString());
+  } finally {
+    unlockBtns();
+    return hideModal();
   }
 }
 
@@ -650,6 +621,7 @@ async function updateLess() {
  * @return {Promise<void>}
  */
 async function updateQuest() {
+  showModal('Updaing question');
   const id = getSelId('Question');
   const moduleId = getSelId('Module');
   const maybeName = PANE.querySelector('#module-edit-question-name').innerText;
@@ -669,7 +641,8 @@ async function updateQuest() {
   document.querySelector(`#module-edit-list-question li[data-id='${id}'] > a > span`).innerText = maybeName ? maybeName : `unnamed #${id}`;
   unSelect('Question');
   clearPane();
-  return toggleQuest(id);
+  await toggleQuest(id);
+  return hideModal();
 }
 
 /**
@@ -728,12 +701,15 @@ function destroyAttach(id, lessonId) {
  */
 document.getElementById('module-edit-btn-module-create').onclick = async function createMod(e) {
   e.preventDefault();
+  lockBtns();
   try {
     return appendMod(await create('Module'));
   } catch (e) {
     console.error(e);
     alert('Your session expired.');
     location.pathname = '/';
+  } finally {
+    unlockBtns();
   }
 };
 
@@ -747,11 +723,14 @@ document.getElementById('module-edit-btn-lesson-create').onclick = async functio
   const moduleId = getSelId('Module');
   if (!moduleId) return alert('Module must be selected.');
   try {
-    return appendLess(await create('Lesson', JSON.stringify({moduleId} )));
+    lockBtns();
+    await appendLess(await create('Lesson', JSON.stringify({moduleId} )));
   } catch (e) {
     console.error(e);
     alert('Your session expired.');
     location.pathname = '/';
+  } finally {
+    unlockBtns();
   }
 };
 
@@ -765,11 +744,13 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
   const moduleId = getSelId('Module');
   if (!moduleId) return alert('Module must be selected.');
   try {
-    return appendQuest(await create('Question', JSON.stringify({moduleId})));
+    await appendQuest(await create('Question', JSON.stringify({moduleId})));
   } catch (e) {
     console.error(e);
     alert('Your session expired.');
     location.pathname = '/';
+  } finally {
+    unlockBtns();
   }
 };
 
@@ -781,17 +762,20 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
 (async function initModEditPage() {
   try {
     showSpinner('Module');
+    showModal('Loading');
     await get('Module', {authorId: USER_ID}).then(ms => Promise.all(ms.sort((m1, m2) => {
       if (!m1.name && m2.name) return -1;
       else if (m1.name && !m2.name) return 1;
       else if (!m1.name && !m2.name) return 0;
       else return m1.name.localeCompare(m2.name);
     }).map(m => appendMod(m))));
-    return hideSpinner('Module');
+    hideSpinner('Module');
   } catch(e) {
     const msg = e.msg || e.message || e.toString();
     console.error(e);
     alert(msg);
     location.pathname = '/user/home';
+  } finally {
+    hideModal();
   }
 })();

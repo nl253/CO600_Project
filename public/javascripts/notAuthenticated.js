@@ -8,6 +8,8 @@ if (location.pathname.includes('/user/register')) {
   if (!btn) return;
   btn.onclick = async (event) => {
 
+    showModal('Logging in');
+
     // don't send the HTML form
     event.preventDefault();
 
@@ -22,18 +24,20 @@ if (location.pathname.includes('/user/register')) {
     });
 
     if (logInRes.status >= 400) {
+      hideModal();
       try {
         const err = await logInRes.json();
         const msg = err.msg || err.message || err.toString();
         console.error(msg);
-        return alert(msg);
+        alert(msg);
+        return;
       } catch (e) {
         const msg = 'could not log in';
         console.error(msg);
         console.error(e);
         alert(msg);
         sessionStorage.clear();
-        return location.pathname = location.pathname;
+        return;
       }
     }
 
@@ -48,7 +52,7 @@ if (location.pathname.includes('/user/register')) {
       console.error(e);
       alert(e.message);
       sessionStorage.clear();
-      return location.pathname = location.pathname;
+      hideModal();
     }
   };
 })();

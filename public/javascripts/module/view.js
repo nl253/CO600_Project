@@ -1,5 +1,5 @@
 /**
- * @param {Number} moduleId
+ * @param {!Number} moduleId
  * @returns {Promise<*>}
  */
 async function unEnroll(moduleId) {
@@ -31,7 +31,7 @@ async function unEnroll(moduleId) {
 }
 
 /**
- * @param {Number} moduleId
+ * @param {!Number} moduleId
  * @returns {Promise<void>}
  */
 async function enroll(moduleId) {
@@ -79,4 +79,3 @@ for (const lesson of document.querySelectorAll('#module-lessons li a')) {
 }
 
 document.querySelector('pre').innerHTML = document.querySelector('pre').innerHTML.trim();
-

@@ -1,9 +1,9 @@
-if (sessionStorage.getItem('loggedIn') === undefined || document.cookie.indexOf('token') < 0) {
+if (!sessionStorage.getItem('loggedIn') || document.cookie.indexOf('token') < 0) {
   logOut().then(ok => {
-    location.pathname = '/';
+    location.pathname = '/user/register';
   }).catch(err => {
     console.error(err);
-    location.pathname = '/';
+    location.pathname = '/user/register';
   });
 }
 
@@ -13,6 +13,7 @@ document.getElementById('navbar-auth-btn-log-out').onclick = async function init
     logOut();
   } catch (e) {
     console.error(e);
+  } finally {
+    location.pathname = '/';
   }
-  location.pathname = '/';
 };
