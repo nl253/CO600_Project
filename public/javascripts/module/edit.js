@@ -724,7 +724,7 @@ document.getElementById('module-edit-btn-lesson-create').onclick = async functio
   e.preventDefault();
   const moduleId = getSelId('Module');
   if (!moduleId) return alert('Module must be selected.');
-  showSpinner('Module');
+  showSpinner('Lesson');
   lockBtns();
   try {
     await appendLess(await create('Lesson', JSON.stringify({moduleId} )));
@@ -734,7 +734,7 @@ document.getElementById('module-edit-btn-lesson-create').onclick = async functio
     location.pathname = '/';
   } finally {
     unlockBtns();
-    return hideSpinner('Module');
+    return hideSpinner('Lesson');
   }
 };
 
@@ -757,7 +757,7 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
     location.pathname = '/';
   } finally {
     unlockBtns();
-    return hideSpinner('Module');
+    return hideSpinner('Question');
   }
 };
 
