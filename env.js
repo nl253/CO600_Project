@@ -17,7 +17,7 @@ const APP_ENV = {
   LOGGING_TESTS: 'info',
   TOKEN_LEN: 18,
   SECRET: 'U\x0bQ*kf\x1bb$Z\x13\x03\x15w\'- f\x0fn1\x0f\\\x106V\'M~\x07',
-  SESSION_TIME: 20 * MINUTE,
+  SESSION_TIME: 10 * MINUTE,
   ROOT: resolve(__dirname),
   DB_PATH: join(__dirname, 'database', 'db'),
   LOG_PATH: join(__dirname, 'logs'),
