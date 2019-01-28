@@ -16,7 +16,7 @@ async function logOut() {
     //   cache: 'no-cache',
     //   credentials: 'include',
     // });
-    // sessionStorage.clear();
+    sessionStorage.clear();
     // if (res.status >= 400) {
     //   throw new Error('logging out failed');
     // }
@@ -204,6 +204,13 @@ async function destroy(model, id) {
       redirect: 'follow',
       cache: 'no-cache',
     });
+    if (document.cache !== undefined)  {
+      for (const m of Object.keys(document.cache)) {
+        if (m.toLowerCase().startsWith(model.toLowerCase())) {
+          delete document.cache[m];
+        }
+      }
+    }
     return (await res.json()).msg;
   } catch (e) {
     console.error(e);

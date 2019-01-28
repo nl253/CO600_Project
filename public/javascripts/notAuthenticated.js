@@ -33,7 +33,7 @@ if (location.pathname.includes('/user/register')) {
         console.error(e);
         alert(msg);
         sessionStorage.clear();
-        location.pathname = location.pathname;
+        return location.pathname = location.pathname;
       }
     }
 
@@ -48,7 +48,7 @@ if (location.pathname.includes('/user/register')) {
       console.error(e);
       alert(e.message);
       sessionStorage.clear();
-      location.pathname = location.pathname;
+      return location.pathname = location.pathname;
     }
   };
 })();
