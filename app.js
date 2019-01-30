@@ -59,6 +59,9 @@ function cleanupSess() {
 }
 
 app.use(async (req, res, next) => {
+  if (req.originalUrl.match(/^\/(javascript|stylesheet|image)s\//)) {
+    return next();
+  }
   requestCount++;
   if (!req.cookies.token) {
     if (!req.originalUrl.match(/^\/(api|javascripts|stylesheets|images)\//)) {
@@ -74,20 +77,24 @@ app.use(async (req, res, next) => {
       token = decrypt(decodeURIComponent(req.cookies.token));
     } catch (e) {
       log.debug(`token sent could not be decrypted`);
+      res.set('Set-Cookie', `token=; HttpOnly; Max-Age=0; SameSite=Strict; Path=/`);
       return next();
     }
     try {
       sess = await Session.findOne({where: {token}});
     } catch (e) {
       log.debug(`token sent could not be decrypted`);
+      res.set('Set-Cookie', `token=; HttpOnly; Max-Age=0; SameSite=Strict; Path=/`);
       return next();
     }
     if (sess === null) {
       log.debug(`token sent does not correspond to a session`);
+      res.set('Set-Cookie', `token=; HttpOnly; Max-Age=0; SameSite=Strict; Path=/`);
       return next();
     } else if ((Date.now() - sess.updatedAt) >= parseInt(process.env.SESSION_TIME)) {
       log.debug(`token sent is stale, destroying associated session`);
       sess.destroy();
+      res.set('Set-Cookie', `token=; HttpOnly; Max-Age=0; SameSite=Strict; Path=/`);
       return next();
     }
     // log.debug(`valid token sent, refreshing it`);

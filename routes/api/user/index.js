@@ -59,19 +59,20 @@ router.post(['/login', '/authenticate'],
  * Requires a session token to be passed in cookies.
  */
 router.get(['/logout', '/unauthenticate'],
-  isLoggedIn(),
-  async (req, res, next) => {
-    try {
-      const sess = await Session.findOne({
-        where: {token: decrypt(decodeURIComponent(req.cookies.token))},
-      });
-      await sess.destroy();
-      res.set("Clear-Site-Data", '"cookies", "storage"');
-      res.set('Set-Cookie', `token=; HttpOnly; Max-Age=0; SameSite=Strict; Path=/`);
-      return res.json(msg('successfully logged out'));
-    } catch (e) {
-      return next(e);
+  async (req, res) => {
+    if (req.cookies.token) {
+      let token = '';
+      try {
+        token = decrypt(decodeURIComponent(req.cookies.token))
+      } catch (e) {
+        return next(e);
+      }
+      await Session.findOne({
+        where: {token},
+      }).then(s => s ? s.destroy() : null);
     }
+    res.set('Set-Cookie', 'token=; HttpOnly; Max-Age=0; SameSite=Strict; Path=/');
+    return res.json(msg('successfully logged out'));
   }
 );
 

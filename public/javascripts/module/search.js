@@ -64,18 +64,21 @@ document.querySelector(
 
 function appendMod({id, name, summary, avg}) {
   const newEl = document.createElement('div');
-  let str = '';
   newEl.classList.add('box');
   newEl.onclick = () => location.href = `/module/${id}`;
-  str = `<div class="media-content">  
-           <div class="content">
-             <p class="is-size-6">
-               <a href="/module/${id}"><strong>${name ? name : 'Unnamed #' + id.toString()}</strong></a>`;
-  if (summary)  str += `<br>${summary}`;
-  str += `   </p>
-           </div>
-         </div>`;
-  if (avg) str += `<br><i class="fas fa-star">${avg}`;
+  let str = `<div class="media-content">  
+               <div class="content">
+                 <p class="is-size-6">
+                   <a href="/module/${id}"><strong>${name ?
+    name :
+    'Unnamed #' + id.toString()}</strong></a>`;
+  if (summary) str += `
+                   <br>${summary}`;
+  str += `       </p>
+               </div>
+             </div>`;
+  if (avg) str += `
+             <br><i class="fas fa-star">${avg}`;
   newEl.innerHTML = str;
   LIST_MODS.appendChild(newEl);
 }

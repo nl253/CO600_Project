@@ -7,13 +7,13 @@ if (sessionStorage.getItem('loggedIn') === undefined) {
   });
 }
 
-document.getElementById('navbar-auth-btn-log-out').onclick = async function initLogOutBtn(event){
+document.getElementById('navbar-auth-btn-log-out').onclick = async function initLogOutBtn(event) {
   event.preventDefault();
   try {
-    logOut();
+    await logOut();
   } catch (e) {
     console.error(e);
   } finally {
-    location.pathname = '/';
+    return location.pathname = '/user/register';
   }
 };
