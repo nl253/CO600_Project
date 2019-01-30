@@ -27,12 +27,12 @@ function hideModal() {
  */
 async function logOut() {
   try {
-    clearCookie('token');
-    // const res = await fetch('/api/user/logout', {
-    //   redirect: 'follow',
-    //   cache: 'no-cache',
-    //   credentials: 'include',
-    // });
+    // clearCookie('token');
+    const res = await fetch('/api/user/logout', {
+      redirect: 'follow',
+      cache: 'no-cache',
+      credentials: 'include',
+    });
     sessionStorage.clear();
     // if (res.status >= 400) {
     //   throw new Error('logging out failed');

@@ -43,7 +43,10 @@ router.post(['/login', '/authenticate'],
         defaults: {email, token: newToken},
       }).spread((s, created) => created ? s : s.update({token: newToken}));
       delete user.dataValues.password;
+      delete user.dataValues.info;
+      delete user.dataValues.isAdmin;
       const token = encodeURIComponent(encrypt(sess.token));
+      res.set('Set-Cookie', `token=${token}; HttpOnly; Max-Age=${parseInt(process.env.SESSION_TIME) / 1000}; SameSite=Strict; Path=/`);
       return res.json(msg(`successfully authenticated ${req.body.email}`, Object.assign(user.dataValues, {token})));
     } catch (e) {
       return next(e);
@@ -64,6 +67,7 @@ router.get(['/logout', '/unauthenticate'],
       });
       await sess.destroy();
       res.set("Clear-Site-Data", '"cookies", "storage"');
+      res.set('Set-Cookie', `token=; HttpOnly; Max-Age=0; SameSite=Strict; Path=/`);
       return res.json(msg('successfully logged out'));
     } catch (e) {
       return next(e);

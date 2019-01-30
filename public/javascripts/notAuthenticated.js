@@ -42,7 +42,7 @@ if (location.pathname.includes('/user/register')) {
     try {
       const user = (await logInRes.json()).result;
       sessionStorage.setItem('loggedIn', JSON.stringify(user));
-      setCookie('token', user.token);
+      // setCookie('token', user.token);
       location.pathname = location.pathname.includes('/register')
         ? '/user/home'
         : location.pathname;

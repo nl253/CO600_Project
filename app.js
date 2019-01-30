@@ -50,18 +50,21 @@ app.use(express.urlencoded({extended: false}));
 let requestCount = 0;
 
 function cleanupSess() {
-  if (requestCount > 1000) {
+  if (requestCount > 100) {
     requestCount = 0;
     log.debug('session clean-up');
-    Session.findOne({where: {updatedAt: {[Sequelize.Op.lt]: new Date(Date.now() + parseInt(process.env.SESSION_TIME))}}}).then(s => s.destroy());
+    Session.findAll({where: {updatedAt: {[Sequelize.Op.lt]: new Date()}}})
+      .then(ss => ss.forEach(s => s.destroy()));
   }
 }
 
 app.use(async (req, res, next) => {
   requestCount++;
   if (!req.cookies.token) {
-    log.debug(`token not sent in cookies`);
-    cleanupSess();
+    if (!req.originalUrl.match(/^\/(api|javascripts|stylesheets|images)\//)) {
+      log.debug(`token not sent in cookies`);
+      cleanupSess();
+    }
     return next();
   }
   try {
@@ -87,8 +90,8 @@ app.use(async (req, res, next) => {
       sess.destroy();
       return next();
     }
-    log.debug(`valid token sent, refreshing it`);
-    sess.update({email: sess.email});
+    // log.debug(`valid token sent, refreshing it`);
+    // sess.update({email: sess.email});
     res.locals.loggedIn = await User.findOne({
       where: {email: sess.email},
       attributes: {exclude: ['password']},

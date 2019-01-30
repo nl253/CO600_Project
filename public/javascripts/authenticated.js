@@ -1,4 +1,4 @@
-if (!sessionStorage.getItem('loggedIn') || document.cookie.indexOf('token') < 0) {
+if (sessionStorage.getItem('loggedIn') === undefined) {
   logOut().then(ok => {
     location.pathname = '/user/register';
   }).catch(err => {
