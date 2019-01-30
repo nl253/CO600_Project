@@ -535,7 +535,7 @@ async function updateMod() {
   showModal('Updating module');
   lockBtns();
   const maybeName = PANE.querySelector('#module-edit-name').innerText;
-  const maybeTopic = PANE.querySelector('#module-edit-topic').innerText;
+  const maybeTopic = PANE.querySelector('#module-edit-topic').value;
   const maybeSummary = PANE.querySelector('#module-edit-summary').value;
   const moduleId = getSelId('Module');
   try {
