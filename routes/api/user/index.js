@@ -30,7 +30,8 @@ router.post(['/login', '/authenticate'],
   async (req, res, next) => {
     try {
       const {email, password} = req.body;
-      const user = await User.findOne({where: {
+      const user = await User.findOne({
+        where: {
           email,
           password: sha256(password),
         }});
@@ -41,13 +42,16 @@ router.post(['/login', '/authenticate'],
       const sess = await Session.findOrCreate({
         where: {email},
         defaults: {email, token: newToken},
-      }).spread((s, created) => created ? s : s.update({token: newToken}));
+      }).spread((s, created) =>
+        created
+        ? s
+        : s.update({token: newToken}));
+      console.log(sess.dataValues);
       delete user.dataValues.password;
       delete user.dataValues.info;
       delete user.dataValues.isAdmin;
-      const token = encodeURIComponent(encrypt(sess.token));
-      res.set('Set-Cookie', `token=${token}; HttpOnly; Max-Age=${parseInt(process.env.SESSION_TIME) / 1000}; SameSite=Strict; Path=/`);
-      return res.json(msg(`successfully authenticated ${req.body.email}`, Object.assign(user.dataValues, {token})));
+      res.set('Set-Cookie', `token=${encodeURIComponent(encrypt(sess.token))}; HttpOnly; Max-Age=${parseInt(process.env.SESSION_TIME) / 1000}; SameSite=Strict; Path=/`);
+      return res.json(msg(`successfully authenticated ${req.body.email}`, user.dataValues));
     } catch (e) {
       return next(e);
     }

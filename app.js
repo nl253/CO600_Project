@@ -53,7 +53,7 @@ function cleanupSess() {
   if (requestCount > 100) {
     requestCount = 0;
     log.debug('session clean-up');
-    Session.findAll({where: {updatedAt: {[Sequelize.Op.lt]: new Date()}}})
+    Session.findAll({where: {updatedAt: {[Sequelize.Op.lt]: new Date(Date.now() - parseInt(process.env.SESSION_TIME))}}})
       .then(ss => ss.forEach(s => s.destroy()));
   }
 }

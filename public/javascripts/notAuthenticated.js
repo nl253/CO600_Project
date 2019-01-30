@@ -6,8 +6,7 @@ if (location.pathname.includes('/user/register')) {
 (function initLogInBtn() {
   let btn = document.getElementById('layout-btn-log-in');
   if (!btn) return;
-  btn.onclick = async (event) => {
-
+  btn.onclick = async function logIn(event) {
     showModal('Logging in');
 
     // don't send the HTML form
@@ -40,14 +39,9 @@ if (location.pathname.includes('/user/register')) {
     }
 
     try {
-      const user = (await logInRes.json()).result;
-      sessionStorage.setItem('loggedIn', JSON.stringify(user));
-      // setCookie('token', user.token);
-      location.pathname = location.pathname.includes('/register')
-        ? '/user/home'
-        : location.pathname;
+      sessionStorage.setItem('loggedIn', JSON.stringify((await logInRes.json()).result));
+      return setTimeout(() => location.pathname = location.pathname, 200);
     } catch (e) {
-      hideModal();
       console.error(e);
       alert(e.message);
     }
