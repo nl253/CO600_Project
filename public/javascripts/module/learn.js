@@ -212,9 +212,7 @@ async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'A
 
       <h4 class="subtitle" style="margin-bottom: 10px; margin-top: 20px;">Comment (optional)</h2>
       
-      <textarea id="module-learn-comment">
-        ${myRating.comment ? myRating.comment.trim() : ''}
-      </textarea>
+      <textarea id="module-learn-comment" wrap="soft" placeholder="I thought the module was ..." spellcheck="true" style="padding: 10px;">${myRating.comment ? myRating.comment.trim() : ''}</textarea>
 
       <div class="field is-grouped" style="margin-top: 20px;">
         <p class="control">

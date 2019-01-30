@@ -14,15 +14,13 @@ router.post('/create',
   isLoggedIn(),
   async (req, res, next) => {
     try {
-      const vars = Object.assign({studentId: res.locals.loggedIn.id}, req.body);
-      if ((await Enrollment.findOne({where: {
-          studentId: res.locals.loggedIn.id,
-          moduleId: req.body.moduleId,
-        }})) !== null)  {
+      const {id} = res.locals.loggedIn;
+      const {moduleId} = req.body;
+      const vars = Object.assign({studentId: id}, req.body);
+      if ((await Enrollment.findOne({where: {studentId: id, moduleId}})) !== null)  {
         throw new ValidationErr('create another enrollment for the same module');
       }
-      const enrollment = await Enrollment.create(vars);
-      return res.json(msg('successfully enrolled', enrollment.dataValues));
+      return res.json(msg('successfully enrolled', (await Enrollment.create(vars)).dataValues));
     } catch (e) {
       return next(e);
     }
@@ -30,10 +28,10 @@ router.post('/create',
 
 router.delete(['/:id', '/:id/delete', '/:id/remove'],
   isLoggedIn(),
-  (req, res, next) => Enrollment.findOne({
-    id: req.params.id,
-    studentId: res.locals.loggedIn.id,
-  }).then(enrollment => enrollment.destroy())
+  (req, res, next) => Enrollment.findOne({where: {
+      id: req.params.id,
+      studentId: res.locals.loggedIn.id,
+    }}).then(enrollment => enrollment.destroy())
     .then(() => res.json(msg('successfully un-enrolled')))
     .catch(err => next(err)));
 
