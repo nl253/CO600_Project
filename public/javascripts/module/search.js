@@ -63,7 +63,6 @@ document.querySelector(
 };
 
 function appendMod({id, name, summary, avg}) {
-  console.log(`got new module to show { id: ${id}, name: ${name} } ...`)
   const newEl = document.createElement('div');
   let str = '';
   newEl.classList.add('box');
@@ -84,7 +83,6 @@ function appendMod({id, name, summary, avg}) {
 async function getRating(moduleId) {
   const ratings = await get('Rating', {moduleId});
   if (ratings.length === 0) {
-    console.log(`No rating for module ${moduleId}`);
     return null;
   }
   let n = 0;
@@ -94,7 +92,6 @@ async function getRating(moduleId) {
     total += r.stars;
   }
   const avg = Math.round(total / n);
-  console.log(`Rating for module: ${avg}`);
   return avg;
 }
 
@@ -103,7 +100,7 @@ document.querySelector(
   showModal('Searching For Modules');
   LIST_MODS.innerHTML = '';
   try {
-    const query = SEARCH_BAR.value;
+    const query = SEARCH_BAR.value.trim();
     const topic = TOPIC_DROPDOWN.value;
     const dateScheme = BTN_CREATED.classList.contains('is-active')
       ? 'createdAt'
@@ -111,7 +108,7 @@ document.querySelector(
     let stars = 1;
     for (let i = 1; i <= 5; i++) {
       const starBtn = document.querySelector(
-        `.panel .button.is-small.is-block:nth-of-type(${i})`);
+        `.panel .button.is-small.is-block.is-light:nth-of-type(${i})`);
       if (starBtn.classList.contains('is-warning')) {
         stars = i;
         break;
@@ -143,15 +140,10 @@ document.querySelector(
       name: query,
       topic,
       [dateScheme]: date.toISOString(),
-    }).then(async modules =>
-      Promise.all(modules.map(m => {
-        getRating(m.id).then(r => {
-          if (r === null || r <= stars) {
-            console.log(`appending module ${m.id}`);
-            appendMod(m);
-          }
-        });
-      })));
+    }).then(modules => Promise.all(
+      modules.map(m => getRating(m.id).then(avg => {
+        if (avg === null || avg >= stars) appendMod(m);
+      }))));
   } catch (e) {
     console.error(e);
   }
