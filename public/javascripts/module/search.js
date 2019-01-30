@@ -71,7 +71,7 @@ function appendMod({id, name, summary, avg}) {
   str = `<div class="media-content">  
            <div class="content">
              <p class="is-size-6">
-               <a href="/module/${id}"><strong>${name}</strong></a>`;
+               <a href="/module/${id}"><strong>${name ? name : 'Unnamed #' + id.toString()}</strong></a>`;
   if (summary)  str += `<br>${summary}`;
   str += `   </p>
            </div>
@@ -100,6 +100,7 @@ async function getRating(moduleId) {
 
 document.querySelector(
   '.button.is-link[type=submit]').onclick = async function runSearch() {
+  showModal('Searching For Modules');
   LIST_MODS.innerHTML = '';
   try {
     const query = SEARCH_BAR.value;
@@ -138,7 +139,7 @@ document.querySelector(
       }
     }
 
-    return await get('Module', {
+    await get('Module', {
       name: query,
       topic,
       [dateScheme]: date.toISOString(),
@@ -154,4 +155,5 @@ document.querySelector(
   } catch (e) {
     console.error(e);
   }
+  return hideModal();
 };
