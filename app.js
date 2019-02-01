@@ -52,7 +52,7 @@ let requestCount = 0;
 function cleanupSess() {
   if (requestCount > 100) {
     requestCount = 0;
-    log.debug('session clean-up');
+    log.warn('session clean-up');
     Session.findAll({where: {updatedAt: {[Sequelize.Op.lt]: new Date(Date.now() - parseInt(process.env.SESSION_TIME))}}})
       .then(ss => ss.forEach(s => s.destroy()));
   }
@@ -91,7 +91,7 @@ app.use(async (req, res, next) => {
       log.debug(`token sent does not correspond to a session`);
       res.set('Set-Cookie', `token=; HttpOnly; Max-Age=0; SameSite=Strict; Path=/`);
       return next();
-    } else if (sess.updatedAt <= (Date.now() - parseInt(process.env.SESSION_TIME))) {
+    } else if (sess.updatedAt <= new Date((Date.now() - parseInt(process.env.SESSION_TIME)))) {
       log.debug(`token sent is stale, destroying associated session`);
       sess.destroy();
       res.set('Set-Cookie', `token=; HttpOnly; Max-Age=0; SameSite=Strict; Path=/`);

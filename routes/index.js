@@ -3,9 +3,10 @@ const {join, resolve} = require('path');
 const {existsSync} = require('fs');
 const router = express.Router();
 
-router.get(['/manual', '/help'], (req, res) => {
-  return res.render(join('manual','help'));
+router.get(['/manual', '/help', '/manual/index'], (req, res) => {
+  return res.render(join('manual', 'index'));
 });
+
 router.get(['/manual/:page', '/help/:page'], (req, res) => {
   return res.render(join('manual', req.params.page));
 });

@@ -1,10 +1,3 @@
-const COOKIE_OPTS = {
-  httpOnly: false,
-  path: '/',
-  sameSite: 'Strict',
-  signed: false,
-};
-
 /**
  * Shows modal.
  *
@@ -36,43 +29,6 @@ async function logOut() {
     console.error(e);
   }
 }
-
-/**
- * Sets the value of a cookie.
- *
- * @param {!String} name
- * @param {!String} value
- * @param {{path: !String, sameSite: 'Strict' | 'Lax', httpOnly: ?Boolean, signed: ?Boolean}} [opts]
- */
-function setCookie(name, value, opts = {}) {
-  console.warn(`setting cookie ${name} to ${value}`);
-  const options = Object.assign(COOKIE_OPTS, opts);
-  let cookieStr = [
-    [name, encodeURIComponent(value)],
-    ['Path', options.path],
-  ].map((pair) => pair.join('=')).join('; ');
-  if (options.httpOnly) cookieStr += '; HttpOnly';
-  if (options.sameSite) cookieStr += `; SameSite=${options.sameSite}`;
-  if (options.signed) cookieStr += '; Signed';
-  console.warn(cookieStr);
-  document.cookie = cookieStr;
-}
-
-function clearCookie(name, opts = {}) {
-  console.warn(`clearing cookie ${name}`);
-  const options = Object.assign(COOKIE_OPTS, opts);
-  let cookieStr = [
-    [name, ''],
-    ['Expires', new Date().toString().replace(/GMT.*/, 'GMT')],
-    ['Path', options.path],
-  ].map((pair) => pair.join('=')).join('; ');
-  if (options.httpOnly) cookieStr += '; HttpOnly';
-  if (options.sameSite) cookieStr += `; SameSite=${options.sameSite}`;
-  if (options.signed) cookieStr += '; Signed';
-  console.warn(cookieStr);
-  document.cookie = cookieStr;
-}
-
 
 /**
  * @private

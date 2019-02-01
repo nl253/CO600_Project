@@ -6,8 +6,11 @@
 const router = require('express').Router();
 const multer = require('multer');
 const upload = multer({
-  storage: multer.memoryStorage(),
   // DO NOT USE file filter
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: parseInt(process.env.MAX_FILE_SIZE),
+  },
 });
 
 // Project
