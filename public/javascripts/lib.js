@@ -1,66 +1,34 @@
-const COOKIE_OPTS = {
-  httpOnly: false,
-  path: '/',
-  sameSite: 'Strict',
-  signed: false,
-};
+/**
+ * Shows modal.
+ *
+ * @param {?String} [msg]
+ */
+function showModal(msg) {
+  document.getElementById('popup-msg').classList.add('is-active');
+  if (msg) document.getElementById('popup-msg-info').innerText = msg;
+}
+
+/**
+ * Hides modal.
+ */
+function hideModal() {
+  document.getElementById('popup-msg').classList.remove('is-active');
+}
 
 /**
  * Logs the user out by sending a logout request.
  */
 async function logOut() {
   try {
-    clearCookie('token');
-    // const res = await fetch('/api/user/logout', {
-    //   redirect: 'follow',
-    //   cache: 'no-cache',
-    //   credentials: 'include',
-    // });
-    // sessionStorage.clear();
-    // if (res.status >= 400) {
-    //   throw new Error('logging out failed');
-    // }
+    await fetch('/api/user/logout', {
+      redirect: 'follow',
+      cache: 'no-cache',
+      credentials: 'include',
+    });
   } catch (e) {
     console.error(e);
   }
 }
-
-/**
- * Sets the value of a cookie.
- *
- * @param {!String} name
- * @param {!String} value
- * @param {{path: !String, sameSite: 'Strict' | 'Lax', httpOnly: ?Boolean, signed: ?Boolean}} [opts]
- */
-function setCookie(name, value, opts = {}) {
-  console.warn(`setting cookie ${name} to ${value}`);
-  const options = Object.assign(COOKIE_OPTS, opts);
-  let cookieStr = [
-    [name, encodeURIComponent(value)],
-    ['Path', options.path],
-  ].map((pair) => pair.join('=')).join('; ');
-  if (options.httpOnly) cookieStr += '; HttpOnly';
-  if (options.sameSite) cookieStr += `; SameSite=${options.sameSite}`;
-  if (options.signed) cookieStr += '; Signed';
-  console.warn(cookieStr);
-  document.cookie = cookieStr;
-}
-
-function clearCookie(name, opts = {}) {
-  console.warn(`clearing cookie ${name}`);
-  const options = Object.assign(COOKIE_OPTS, opts);
-  let cookieStr = [
-    [name, ''],
-    ['Expires', new Date().toString().replace(/GMT.*/, 'GMT')],
-    ['Path', options.path],
-  ].map((pair) => pair.join('=')).join('; ');
-  if (options.httpOnly) cookieStr += '; HttpOnly';
-  if (options.sameSite) cookieStr += `; SameSite=${options.sameSite}`;
-  if (options.signed) cookieStr += '; Signed';
-  console.warn(cookieStr);
-  document.cookie = cookieStr;
-}
-
 
 /**
  * @private
@@ -204,6 +172,13 @@ async function destroy(model, id) {
       redirect: 'follow',
       cache: 'no-cache',
     });
+    if (document.cache !== undefined)  {
+      for (const m of Object.keys(document.cache)) {
+        if (m.toLowerCase().startsWith(model.toLowerCase())) {
+          delete document.cache[m];
+        }
+      }
+    }
     return (await res.json()).msg;
   } catch (e) {
     console.error(e);

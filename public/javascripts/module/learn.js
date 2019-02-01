@@ -88,10 +88,12 @@ function getSelId(what) {
   return maybe ? eval(maybe.getAttribute('data-id')) : null;
 }
 
+
 /**
  * Updates the rating for the selected module.
  */
 async function updateRating() {
+  showModal('Updating rating');
   lockBtns();
   const moduleId = getSelId('Module');
   const comment = document.getElementById('module-learn-comment').value.trim();
@@ -110,11 +112,9 @@ async function updateRating() {
     if (myRatings.length > 0) {
       await update('Rating', myRatings[0].id, JSON.stringify({comment: comment ? comment : null, stars}));
     } else await create('Rating', JSON.stringify({raterId: USER_ID, moduleId, comment: comment ? comment : null, stars}));
-    unSelect('Module');
-    PANE.innerHTML = '';
-    await toggleMod(moduleId);
   }
   unlockBtns();
+  hideModal();
 }
 
 /**
@@ -123,15 +123,18 @@ async function updateRating() {
  * @return {Promise<void>}
  */
 async function destroyRating() {
+  showModal('Deleting rating');
   lockBtns();
   const myRatings = await get('Rating', {moduleId: getSelId('Module'), raterId: USER_ID});
   if (myRatings.length > 0) {
     await destroy('Rating', myRatings[0].id);
-    unSelect('Module');
-    PANE.innerHTML = '';
-    await toggleMod(getSelId('Module'));
+    for (const star of document.querySelectorAll("[id^=module-learn-star][class*='is-warning']")) {
+      star.classList.remove('is-warning');
+    }
+    document.getElementById('module-learn-comment').value = '';
   }
   unlockBtns();
+  hideModal();
 }
 
 /**
@@ -209,21 +212,19 @@ async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'A
 
       <h4 class="subtitle" style="margin-bottom: 10px; margin-top: 20px;">Comment (optional)</h2>
       
-      <textarea id="module-learn-comment">
-        ${myRating.comment ? myRating.comment.trim() : ''}
-      </textarea>
+      <textarea id="module-learn-comment" wrap="soft" placeholder="I thought the module was ..." spellcheck="true" style="padding: 10px;">${myRating.comment ? myRating.comment.trim() : ''}</textarea>
 
       <div class="field is-grouped" style="margin-top: 20px;">
         <p class="control">
           <button type="submit" onclick="updateRating()" class="button is-success is-block" style="margin: 7px auto; width: 100%;">
             <i class="fas fa-check" style="position: relative; top: 4px; left: 2px;"></i>
-            <span>Save</span>
+            <span>Submit Rating</span>
           </button>
         </p>
         <p class="control">
-          <button onclick="destroyRating()" class="button is-danger is-block" style="margin: 7px auto; width: 100%;">
+          <button onclick="if (confirm('Delete rating?')) destroyRating()" class="button is-danger is-block" style="margin: 7px auto; width: 100%;">
             <i class="fas fa-times" style="position: relative; top: 4px; left: 2px;"></i>
-            <span>Delete</span>
+            <span>Delete Rating</span>
           </button>
         </p>
       </div>
@@ -289,7 +290,7 @@ function checkAns() {
  *
  * @param {{id: !Number, moduleId: !Number, correctAnswer: ?String, badAnswer1: ?String, badAnswer2: ?String, badAnswer3: ?String}} question
  */
-async function showQuest({id, name, moduleId, correctAnswer, badAnswer1, badAnswer2, badAnswer3}) {
+async function showQuest({id, name, moduleId, correctAnswer, badAnswer1, badAnswer2, badAnswer3, badAnswer4, badAnswer5}) {
   function makeAns(ans = '', isCorrect = false) {
     const el = document.createElement('div');
     el.classList.add('field');
@@ -301,19 +302,17 @@ async function showQuest({id, name, moduleId, correctAnswer, badAnswer1, badAnsw
     return el;
   }
 
-  const answers = shuffle([
-    makeAns(correctAnswer, true),
-    makeAns(badAnswer1),
-    makeAns(badAnswer2),
-    makeAns(badAnswer3),
-  ]);
-
   PANE.innerHTML = `
     <h2 class="title is-3" style="margin-bottom: 30px;">
       ${name ? name : `unnamed #${id}`}
     </h2>`;
 
-  for (const a of answers) PANE.appendChild(a);
+  const answers = [makeAns(correctAnswer, true)];
+  for (const ans of [badAnswer1, badAnswer2, badAnswer3, badAnswer4, badAnswer5]){
+    if (ans && ans.trim() !== '') answers.push(makeAns(ans))
+  }
+  shuffle(answers);
+  for (const answer of answers) PANE.appendChild(answer);
 
   PANE.innerHTML += `
     <button type="submit" onclick="checkAns()"  class="button is-success is-block" style="margin: 7px auto;">
@@ -466,11 +465,9 @@ function appendQuest({id, name}) {
 }
 
 // Populate the page using AJAX
-/**
- * Try to recall last click.
- */
-(async function() {
+(async function initEnrollmentPage() {
   try {
+    showModal('Loading');
     SPINNER_MOD.classList.remove('is-invisible');
     const enrollments = await get('Enrollment', {studentId: USER_ID}, false, true);
     let modules = (await Promise.all(enrollments.map(({moduleId}) => get('Module', {id: moduleId}, false, true)))).map(xs => xs[0]);
@@ -493,6 +490,8 @@ function appendQuest({id, name}) {
   } catch (e) {
     const msg = e.msg || e.message || e.toString();
     console.error(e);
-    return alert(msg);
+    alert(msg);
+  } finally {
+    hideModal();
   }
 })();

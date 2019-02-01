@@ -30,7 +30,8 @@ router.post(['/login', '/authenticate'],
   async (req, res, next) => {
     try {
       const {email, password} = req.body;
-      const user = await User.findOne({where: {
+      const user = await User.findOne({
+        where: {
           email,
           password: sha256(password),
         }});
@@ -41,10 +42,16 @@ router.post(['/login', '/authenticate'],
       const sess = await Session.findOrCreate({
         where: {email},
         defaults: {email, token: newToken},
-      }).spread((s, created) => created ? s : s.update({token: newToken}));
+      }).spread((s, created) =>
+        created
+        ? s
+        : s.update({token: newToken, updatedAt: Date.now()}));
+      console.log(sess.dataValues);
       delete user.dataValues.password;
-      const token = encodeURIComponent(encrypt(sess.token));
-      return res.json(msg(`successfully authenticated ${req.body.email}`, Object.assign(user.dataValues, {token})));
+      delete user.dataValues.info;
+      delete user.dataValues.isAdmin;
+      res.set('Set-Cookie', `token=${encodeURIComponent(encrypt(sess.token))}; HttpOnly; Max-Age=${parseInt(process.env.SESSION_TIME) / 1000}; SameSite=Strict; Path=/`);
+      return res.json(msg(`successfully authenticated ${req.body.email}`, user.dataValues));
     } catch (e) {
       return next(e);
     }
@@ -56,18 +63,20 @@ router.post(['/login', '/authenticate'],
  * Requires a session token to be passed in cookies.
  */
 router.get(['/logout', '/unauthenticate'],
-  isLoggedIn(),
-  async (req, res, next) => {
-    try {
-      const sess = await Session.findOne({
-        where: {token: decrypt(decodeURIComponent(req.cookies.token))},
-      });
-      await sess.destroy();
-      res.set("Clear-Site-Data", '"cookies", "storage"');
-      return res.json(msg('successfully logged out'));
-    } catch (e) {
-      return next(e);
+  async (req, res) => {
+    if (req.cookies.token) {
+      let token = '';
+      try {
+        token = decrypt(decodeURIComponent(req.cookies.token))
+      } catch (e) {
+        return next(e);
+      }
+      await Session.findOne({
+        where: {token},
+      }).then(s => s ? s.destroy() : null);
     }
+    res.set('Set-Cookie', 'token=; HttpOnly; Max-Age=0; SameSite=Strict; Path=/');
+    return res.json(msg('successfully logged out'));
   }
 );
 

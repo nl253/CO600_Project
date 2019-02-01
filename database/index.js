@@ -49,7 +49,7 @@ const sequelize = new Sequelize({
     timestamps: true,
   },
 
-  logging: eval(`log.${process.env.LOGGING_DB}`),
+  logging: log.info,
 
   // similar for sync: you can define this to always force sync for models
   sync: {
@@ -135,7 +135,7 @@ const Session = sequelize.define('Session', {
     allowNull: false,
     references: {
       model: User,
-      key: 'email'
+      key: 'email',
     },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -322,89 +322,149 @@ const Question = sequelize.define('Question', {
   badAnswer1: STRING,
   badAnswer2: STRING,
   badAnswer3: STRING,
+  badAnswer4: STRING,
+  badAnswer5: STRING,
 });
 
 // Sync all models that aren't already in the database
 // NOTE this seems to delete * from all tables!
 // ONLY RUN ONCE AT THE BEGINNING
-if (process.env.DB_SYNC === '1' || (process.env.DB_PATH !== undefined && !existsSync(process.env.DB_PATH))) {
+if (process.env.DB_SYNC === '1' ||
+  (process.env.DB_PATH !== undefined && !existsSync(process.env.DB_PATH))) {
   log.warn(`syncing database to ${process.env.DB_PATH}`);
   sequelize.sync().then(async () => {
-    if (process.env.NODE_ENV === 'production') {
-      return console.error(`NODE_ENV set to production so DB_SYNC failed`);
-    } else console.warn(`generating mock data ...`);
+    const log = createLogger(
+      {label: 'MOCKS', logFileName: 'mocks', lvl: process.env.LOGGING_MOCKS});
+    if (process.env.NODE_ENV !== 'development') {
+      return log.error(
+        `NODE_ENV not in development so DB_SYNC (mock data generation) failed`);
+    } else {
+      log.warn(`generating mock data ...`);
+    }
     // write info about mock data to a separate file
-    const log = createLogger({label: 'MOCKS', logFileName: 'mocks'});
     const faker = require('faker');
     const {sha256} = require('../routes/lib');
-    const users = [];
-    const modules = [];
-    function randArrEl(arr) {return arr[faker.random.number(arr.length - 1)];}
-    function randUserId() {return randArrEl(users).id;}
-    function randModuleId() {return randArrEl(modules).id;}
-    function save(obj) {return log.warn(`${obj._modelOptions.name.singular} ${Object.entries(obj.dataValues).filter(pair => pair[1]).map(pair => pair[0] + ' = ' + pair[1].toString().slice(0, 30)).join(', ')}`);}
+    const topics = [
+      'AI',
+      'Anthropology',
+      'Archeology',
+      'Architecture',
+      'Arts',
+      'Biology',
+      'Chemistry',
+      'Computer Science',
+      'Design',
+      'Drama',
+      'Economics',
+      'Engineering',
+      'Geography',
+      'History',
+      'Humanities',
+      'Languages',
+      'Law',
+      'Linguistics',
+      'Literature',
+      'Mathematics',
+      'Medicine',
+      'Philosophy',
+      'Physics',
+      'Political Science',
+      'Psychology',
+      'Sciences',
+      'Social Sciences',
+      'Sociology',
+      'Theology'];
 
-    for (let i = 0; i < parseInt(process.env.NO_MOCKS); i++) {
-      const password = faker.internet.password();
-      const user = await User.create({
-        firstName: faker.name.firstName(),
-        lastName: faker.name.lastName(),
-        info: faker.random.words(10),
-        email: faker.internet.email(),
-        password: sha256(password),
-      });
-      delete user.dataValues.password;
-      user.dataValues.password = password;
-      save(user);
-      users.push(user.dataValues);
+    /**
+     * @param {sequelize.Model} obj
+     * @returns {Logger}
+     */
+    function logCreated(obj) {
+      log.info(
+        `${obj._modelOptions.name.singular} { ${Object
+          .entries(obj.dataValues)
+          .filter(pair => pair[1])
+          .map(pair => pair[0] + ' = ' + pair[1].toString().slice(0, 30))
+          .join(', ')} }`);
     }
 
-    for (let i = 0; i < parseInt(process.env.NO_MOCKS); i++) {
-      const module = await Module.create({
-        name: faker.random.words(3),
-        topic: faker.random.word(),
-        authorId: randUserId(),
-        summary: faker.random.words(20),
-      });
-      save(module);
-      modules.push(module.dataValues);
+    /**
+     * @param {!Number} min
+     * @param {!Number} max
+     * @returns {!Number}
+     */
+    function randNum(min = 0, max) {
+      if (!max) {
+        min = 0;
+        max = min;
+      }
+      return min + faker.random.number(max - min - 1);
     }
 
-    const lessons = Promise.all([...Array(parseInt(process.env.NO_MOCKS) * 3).keys()]
-      .map(ord =>
-        Lesson.create({
-          moduleId: randModuleId(),
-          summary: faker.random.words(10),
-          order: ord,
-          name: faker.random.words(3),
-          content: Buffer.from(faker.random.words(500)),
-        })));
+    // generate users
+    await Promise.all([...Array(parseInt(process.env.NO_MOCKS)).keys()]
+      .map(async () => {
+        const password = faker.internet.password();
+        const u = await User.create({
+          firstName: faker.name.firstName(),
+          lastName: faker.name.lastName(),
+          info: faker.random.words(randNum(10, 100)),
+          email: faker.internet.email(),
+          password: sha256(password),
+        });
+        delete u.dataValues.password;
+        u.dataValues.password = password;
+        logCreated(u);
 
-    const ratings =  Promise.all([...Array(parseInt(process.env.NO_MOCKS)).keys()]
-      .map(_ => Rating.create({
-        raterId: randUserId(),
-        moduleId: randModuleId(),
-        comment: faker.random.words(6),
-        stars: faker.random.number(1, 5),
-      })));
-
-    const questions = Promise.all([...Array(parseInt(process.env.NO_MOCKS) * 3).keys()]
-      .map(ord =>
-        Question.create({
-          correctAnswer: faker.random.words(2),
-          name: faker.random.words(10),
-          badAnswer1: faker.random.words(2),
-          badAnswer2: faker.random.words(3),
-          badAnswer3: faker.random.words(2),
-          moduleId: randModuleId(),
-          order: ord,
-        })));
-
-    for (const l of await lessons) save(l);
-    for (const r of await ratings) save(r);
-    for (const q of await questions) save(q);
+        // generate modules
+        await Promise.all([...Array(randNum(1, 5)).keys()]
+          .map(async () => {
+            const m = await Module.create({
+              name: faker.random.words(3),
+              topic: topics[randNum(0, topics.length)],
+              authorId: 1 + randNum(0, u.id),
+              summary: faker.random.words(randNum(20, 100)),
+            });
+            logCreated(m);
+            // generate ratings
+            if (faker.random.boolean()) {
+              logCreated(
+                await Rating.create({
+                  raterId: 1 + randNum(0, u.id),
+                  moduleId: 1 + randNum(0, m.id),
+                  comment: faker.random.words(faker.random.words(5, 20)),
+                  stars: randNum(1, 6),
+                }));
+            }
+            await Promise.all(
+              [...Array(randNum(3, 15)).keys()].map(async ord => {
+                logCreated(await Lesson.create({
+                  moduleId: 1 + randNum(0, m.id),
+                  summary: faker.random.words(randNum(10, 100)),
+                  order: ord,
+                  name: faker.random.words(randNum(2, 6)),
+                  content: Buffer.from(
+                    faker.random.words(randNum(500, 5000))),
+                }));
+                await Promise.all([...Array(randNum(5, 12)).keys()]
+                  .map(async ord => logCreated(await Question.create({
+                    correctAnswer: faker.random.words(randNum(1, 6)),
+                    name: faker.random.words(randNum(5, 15)) + '?',
+                    badAnswer1: faker.random.words(randNum(1, 6)),
+                    badAnswer2: faker.random.words(randNum(1, 6)),
+                    badAnswer3: faker.random.words(randNum(1, 6)),
+                    badAnswer4: faker.random.words(randNum(1, 6)),
+                    badAnswer5: faker.random.words(randNum(1, 6)),
+                    moduleId: 1 + randNum(0, m.id),
+                    order: ord,
+                  }))));
+              }));
+          }));
+      }));
+    log.warn('finished generating mock data');
   });
 }
+
 
 module.exports = {
   Enrollment,

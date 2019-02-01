@@ -16,9 +16,10 @@ router.get('/search', (req, res) => res.render(join('user', 'search')));
 /**
  * Registration page if not logged in, otherwise redirect to user home.
  */
-router.get(['/register', '/sign[-_]?up', 'create'], (req, res) => res.locals.loggedIn
-  ? res.redirect('/user/home')
-  : res.render(join('user', 'register')));
+router.get(['/register', '/sign[-_]?up', 'create'],
+  (req, res) => res.locals.loggedIn
+    ? res.redirect('/user/home')
+    : res.render(join('user', 'register')));
 
 router.get(['/edit', '/settings'],
   (req, res) => res.locals.loggedIn === undefined

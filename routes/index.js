@@ -3,6 +3,14 @@ const {join, resolve} = require('path');
 const {existsSync} = require('fs');
 const router = express.Router();
 
+router.get(['/manual', '/help', '/manual/index'], (req, res) => {
+  return res.render(join('manual', 'index'));
+});
+
+router.get(['/manual/:page', '/help/:page'], (req, res) => {
+  return res.render(join('manual', req.params.page));
+});
+
 router.get('/search', (req, res) => res.redirect('/module/search'));
 
 router.get([

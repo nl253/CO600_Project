@@ -6,7 +6,7 @@ const PANE = document.getElementById('module-edit-pane');
 const USER_ID = JSON.parse(sessionStorage.getItem('loggedIn')).id;
 const LIST_MOD = document.getElementById('module-edit-list-module');
 const LIST_LESS = document.getElementById('module-edit-list-lesson');
-const LIST_QUEST = document.getElementById('module-edit-list-question');
+// const LIST_QUEST = document.getElementById('module-edit-list-question');
 
 /**
  * Shows a spinner for specified section.
@@ -111,47 +111,24 @@ function getSelId(what) {
 async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology']) {
   try {
     return PANE.innerHTML = `
-      <div class="animate-ease-in">
+      <form onsubmit="e.preventDefault(); disabled="true"">
+          
         <h2 class="title" style="margin-bottom: 10px;">
           Name
         </h2>
-        <div id="module-edit-name" class="has-background-light"
-             contenteditable="true" 
-             style="border-radius: 18px; border: none; padding-top: 5px; padding-bottom: 5px; padding-left: 10px; font-size: 1.2rem;">
-          ${name ? name : ''}
-        </div>
+        <input id="module-edit-name" class="has-background-light"
+               value="${name ? name : ''}"
+               autocapitalize="words"
+               autocomplete="on"
+               spellcheck="true"
+               style="border-radius: 18px; border: none; padding-top: 5px; padding-bottom: 5px; padding-left: 10px; font-size: 1.2rem; min-height: 30px;">
         <h3 class="subtitle" style="margin: 25px 0 0 0;">
           Topic
         </h3>
-        <div class="dropdown" 
-             onmouseover="this.classList.add('is-active')"
-             onmouseout="this.classList.remove('is-active')">
-          <div class="dropdown-trigger">
-            <button class="button has-background-light" aria-haspopup="true" 
-                    aria-controls="dropdown-menu" style="border: none;">
-              <span id="module-edit-topic" style="min-width: 150px;">${topic ? topic : ''}</span>
-              <span class="icon is-small">
-                <i class="fas fa-angle-down" aria-hidden="true"></i>
-              </span>
-            </button>
-          </div>
-          <div class="dropdown-menu" id="dropdown-menu" role="menu" style="margin-bottom: 30px;">
-            <div class="dropdown-content">
-              ${topics.map(t => "<a class='dropdown-item' onclick='document.getElementById(\"module-edit-topic\").innerText = this.innerText.trim()'>" + t + "</a>")}
-              <hr class="dropdown-divider">
-              <span class="dropdown-item" style="font-weight: bold;">
-                Other
-              </span>
-              <a class="dropdown-item" 
-                 onmouseout="document.getElementById('module-edit-topic').innerText = this.innerText.trim()" 
-                 id="module-edit-topic-other" 
-                 contenteditable="true"
-                 style="margin: 5px 10px; max-width: 90%;">
-                ${topic ? topic : ''}
-              </a>
-            </div>
-          </div>
-        </div>
+        <input type="search" value="${topic ? topic : ''}" placeholder="e.g. Biology" id="module-edit-topic" style="min-width: 150px; padding-top: 10px; padding-bottom: 10px;" oninput="document.getElementById('dropdown-menu').querySelectorAll('li').forEach(el => el.style.display = el.querySelector('a').innerText.trim().toLowerCase().indexOf(this.value.trim().toLowerCase()) >= 0 ? 'block' : 'none'); document.getElementById('dropdown-menu').classList.remove('is-hidden');" autocomplete="off" autocapitalize="words" spellcheck="true">
+        <ol id="dropdown-menu" role="menu" onmouseleave="this.classList.add('is-hidden')" class="list has-background-white is-hidden" style="margin-bottom: 30px; margin-top: 15px; list-style-type: none; position: absolute; box-shadow: 0 2px 3px rgba(10,10,10,0.1), 0 0 0 1px rgba(10,10,10,0.1);">
+          ${topics.map(t => "<li class='list-item' style='margin-bottom: 5px; margin-top: 5px; vertical-align: center;'><a style='width: 100%; margin-top: auto; margin-bottom: auto;' class='is-block' onclick='document.getElementById(\"module-edit-topic\").value = this.innerText.trim(); this.parentElement.parentElement.classList.add(\"is-hidden\")'>" + t + "</a></li>").join('\n')}
+        </ol>
         <section class="content" style="margin-top: 40px;">
           <strong>Author</strong>   
           <a href="/user/${authorId}">
@@ -167,13 +144,13 @@ async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'A
         </section>
         <section class="is-medium" style="margin-bottom: 30px;">
           <h2 class="title is-medium" style="margin-bottom: 10px;">Summary</h2>
-          <textarea id="module-edit-summary"
+          <textarea id="module-edit-summary" autocomplete="on" spellcheck="true" autocapitalize="sentences" placeholder="The lesson covers ..."
                     style="word-wrap: break-word;">${summary ? summary : ''}</textarea>
         </section>
         <div class="columns is-center is-multiline is-narrow" 
              style="max-width: 400px; margin-left: auto; margin-right: auto;">
           <div class="is-block column is-6-fullhd is-6-desktop is-6-tablet is-12-mobile">
-            <button type="submit" onclick="event.preventDefault(); updateMod()" 
+            <button type="submit" onsubmit="e.preventDefault()" onclick="event.preventDefault(); updateMod()" 
                     class="button is-success is-block" 
                     style="margin: 7px auto; max-width: 120px;">
               <i class="fas fa-check" style="position: relative; top: 4px; left: 2px;"></i>
@@ -181,7 +158,7 @@ async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'A
             </button>
           </div>
           <div class="is-block column is-6-fullhd is-6-desktop is-6-tablet is-12-mobile">
-            <button onclick="if (confirm('Delete module?')) destroyMod(${id})" 
+            <button onsubmit="e.preventDefault()" onclick="e.preventDefault(); if (confirm('Delete module?')) destroyMod(${id})" 
                     class="button is-danger is-block" style="margin: 7px auto; max-width: 120px;">
               <i class="fas fa-times" style="position: relative; top: 4px; left: 2px;"></i>
               <span>Delete</span>
@@ -189,7 +166,7 @@ async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'A
           </div>
         </div>
       </div>
-    `;
+    </form>`;
   } catch (e) {
     console.error(e);
     return alert(e.msg || e.message || e.toString());
@@ -205,17 +182,19 @@ async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'A
 async function showLess({id, name, summary, content}, attachments = []) {
   PANE.innerHTML = `
     <form enctype="multipart/form-data"
+          onsubmit="e.preventDefault()"
           id="module-edit-form-lesson"
           disabled="true"
-          class="lesson-edit-form column is-10-desktop is-full-tablet is-full-mobile animate-ease-in"
+          class="lesson-edit-form column is-10-desktop is-full-tablet is-full-mobile"
           style="display: flex; flex-direction: column; justify-content: space-around; align-items: flex-start; margin-top: -15px;">
       <h2 class="title is-3">Name</h2>
       <input name="name" value="${name ? name : ''}" 
              class="has-background-light"
+             spellcheck="true"
              autocomplete="on" placeholder="e.g. Introduction to AI"
              style="padding: 5px 10px; border: none; border-radius: 18px; font-size: 1.2rem;">
       <h2 class="title is-3" style="margin-top: 20px;">Summary</h2>
-      <textarea name="summary" autocomplete="on"
+      <textarea name="summary" autocomplete="on" spellcheck="true" autocapitalize="sentences" placeholder="The lessons covers ..." 
                 class="has-background-light"
                 style="padding: 5px; min-height: 50px; max-height: 400px; border: none; border-radius: 18px;">${summary ? summary : ''}</textarea>
       <h2 class="title is-3" style="margin-top: 20px;">Content</h2>
@@ -241,7 +220,7 @@ async function showLess({id, name, summary, content}, attachments = []) {
       <div class="columns is-center is-multiline is-narrow" 
            style="max-width: 400px; margin-left: auto; margin-right: auto;">
         <div class="is-block column is-6-fullhd is-6-desktop is-6-tablet is-12-mobile">
-          <button type="submit" onclick="event.preventDefault(); updateLess()" 
+          <button type="submit" onclick="event.preventDefault(); updateLess()"  onsubmit="e.preventDefault()"
                   class="button is-block is-success" 
                   style="margin: 7px auto; max-width: 120px;">
             <i class="fas fa-check" style="position: relative; top: 4px; left: 2px;"></i>
@@ -249,7 +228,7 @@ async function showLess({id, name, summary, content}, attachments = []) {
           </button>
         </div>
         <div class="is-block column is-6-fullhd is-6-desktop is-6-tablet is-12-mobile">
-          <button onclick="event.preventDefault(); if (confirm('Delete lesson?')) destroyLess(${id})" 
+          <button onsubmit="e.preventDefault()" onclick="event.preventDefault(); if (confirm('Delete lesson?')) destroyLess(${id})" 
                   class="button is-block is-danger" style="margin: 7px auto; max-width: 120px;">
             <i class="fas fa-times" style="position: relative; top: 4px; left: 2px;"></i>
             <span>Delete</span>
@@ -275,58 +254,48 @@ async function showLess({id, name, summary, content}, attachments = []) {
  *
  * @param {{id: !Number, moduleId: !Number, correctAnswer: ?String, badAnswer1: ?String, badAnswer2: ?String, badAnswer3: ?String}} question
  */
-function showQuest({id, name, correctAnswer, badAnswer1, badAnswer2, badAnswer3}) {
+function showQuest({id, name, correctAnswer, badAnswer1, badAnswer2, badAnswer3, badAnswer4, badAnswer5}) {
   return PANE.innerHTML = `
-    <div class="animate-ease-in">
+    <form onsubmit="e.preventDefault()" disabled="true">
       <h1 class="title is-3" style="margin-bottom: 10px;">Question</h1>
+      
       <p><strong>Note:</strong> Save the current question before editing another one</p>
       <br>
-      <a id="module-edit-question-name" class="button is-light has-background-light is-block has-text-left" contenteditable="true" style="padding: 3px 15px">
-        ${name ? name : ''}
-      </a>
+      <input id="module-edit-question-name" class="button is-light has-background-light is-block has-text-left" style="padding: 3px 15px" value="${name ? name : ''}" autocomplete="true" required spellcheck="true">
       <br>
 
       <h2 class="title is-3" style="margin-bottom: 10px;">Correct Answer</h2>
-      <a id="module-edit-question-answer" class="button is-light is-block has-text-left" contenteditable="true" style="padding: 3px 15px;">
-        ${correctAnswer ? correctAnswer : ''}
-      </a>
+      
+      <input id="module-edit-question-answer" class="button is-light is-block has-text-left" style="padding: 3px 15px;" value="${correctAnswer ? correctAnswer : ''}" spellcheck="true" autocomplete="true" required>
       
       <h3 class="title is-3" style="margin: 30px 0 10px 0;">Other Answers</h3>
 
       <p><strong>Note:</strong> Include other answers which are wrong</p>
-
       <br>
 
-      <a id="module-edit-question-bad-answer-1" class="button is-light has-text-left" contenteditable="true" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;">
-        ${badAnswer1 ? badAnswer1 : ''}
-      </a>
-
-      <a id="module-edit-question-bad-answer-2" class="button is-light has-text-left" contenteditable="true" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;">
-        ${badAnswer2 ? badAnswer2 : ''}
-      </a>
-      
-      <a id="module-edit-question-bad-answer-3" class="button is-light has-text-left" contenteditable="true" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;">
-        ${badAnswer3 ? badAnswer3 : ''}
-      </a>
+      <input id="module-edit-question-bad-answer-1" class="button is-light has-text-left" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;" value="${badAnswer1 ? badAnswer1 : ''}" required spellcheck="true" autocomplete="true">
+      <input id="module-edit-question-bad-answer-2" class="button is-light has-text-left" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;" value="${badAnswer2 ? badAnswer2 : ''}" spellcheck="true" autocomplete="true">
+      <input id="module-edit-question-bad-answer-3" class="button is-light has-text-left" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;" value="${badAnswer3 ? badAnswer3 : ''}" spellcheck="true" autocomplete="true">
+      <input id="module-edit-question-bad-answer-4" class="button is-light has-text-left" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;" value="${badAnswer4 ? badAnswer4 : ''}" spellcheck="true" autocomplete="true">
+      <input id="module-edit-question-bad-answer-5" class="button is-light has-text-left" style="width: 100%; padding: 3px 15px; margin-bottom: 20px;" value="${badAnswer5 ? badAnswer5 : ''}" spellcheck="true" autocomplete="true">
       
       <div class="columns is-center is-multiline is-narrow" style="max-width: 400px; margin-left: auto; margin-right: auto;">
         <div class="is-block column is-6-fullhd is-6-desktop is-6-tablet is-12-mobile">
-          <button type="submit" onclick="updateQuest()" class="button is-block is-success" 
+          <button type="submit" onsubmit="e.preventDefault()" onclick="event.preventDefault(); updateQuest()" class="button is-block is-success" 
                   style="margin: 7px auto; max-width: 120px;">
             <i class="fas fa-check" style="position: relative; top: 4px; left: 2px;"></i>
             <span>Save</span>
           </button>
         </div>
         <div class="is-block column is-6-fullhd is-6-desktop is-6-tablet is-12-mobile">
-          <button onclick="if (confirm('Delete question?')) destroyQuest(${id})" 
+          <button onsubmit="e.preventDefault()" onclick="event.preventDefault(); if (confirm('Delete question?')) destroyQuest(${id})" 
                   class="button is-block is-danger" style="margin: 7px auto; max-width: 120px;">
             <i class="fas fa-times" style="position: relative; top: 4px; left: 2px;"></i>
             <span>Delete</span>
           </button>
         </div>
       </div>
-    </div>
-  `;
+    </form>`;
 }
 
 /**
@@ -352,6 +321,7 @@ async function toggleMod(id) {
   unSelect('Question');
 
   if (focusedMod !== id) {
+    clearPane();
     // selected *different* module
     clearList('Lesson');
     clearList('Question');
@@ -398,11 +368,12 @@ async function toggleMod(id) {
  * @param {!Number} id
  * @return {Promise<void>}
  */
-async function toggleLesson(id) {
+async function toggleLess(id) {
   if (!document.querySelector(`#module-edit-list-lesson > li[data-id='${id}']`)) return;
   const focusedLessId = getSelId('Lesson');
   if (id === focusedLessId) return;
   lockBtns();
+  clearPane();
   showSpinner('Pane');
   unSelect(focusedLessId === null ? 'Question' : 'Lesson');
   select('Lesson', id);
@@ -421,6 +392,7 @@ async function toggleQuest(id) {
   if (!document.querySelector(`#module-edit-list-question > li[data-id='${id}']`)) return;
   if (id === getSelId('Question')) return;
   lockBtns();
+  clearPane();
   showSpinner('Pane');
   unSelect('Question');
   unSelect('Lesson');
@@ -440,10 +412,6 @@ function appendMod({id, name}) {
   modEl.innerHTML = `
     <a onclick="toggleMod(${id})" style="min-width: 100px; padding: 10px; margin-right: 5px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
       <span>${name ? name : 'unnamed #' + id.toString()}</span>
-      <button class="button is-danger is-small" style="width: 20px; height: 23px;" 
-              onclick="if (confirm('Delete module?')) destroyMod(${id});">
-        <i class="fas fa-times fa-xs" style="margin: initial;"></i>
-      </button>
     </a>`;
   return LIST_MOD.appendChild(modEl);
 }
@@ -459,14 +427,8 @@ function appendLess({id, moduleId, name}) {
   lessonEl.setAttribute('data-module-id', moduleId);
   lessonEl.setAttribute('data-id', id);
   lessonEl.innerHTML = `
-    <a onclick="toggleLesson(${id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+    <a onclick="toggleLess(${id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
       <span>${name ? name : 'unnamed #' + id}</span>
-      <div style="display: flex; flex-direction: row; justify-content: space-between;">
-        <button class="button is-small is-danger" 
-                onclick="if (confirm('Delete lesson?')) destroyLess(${id});" style="width: 20px; height: 23px;">
-          <i class="fas fa-times fa-xs" style="margin: initial;"></i>
-        </button>
-      </div>
     </a>`;
   return LIST_LESS.appendChild(lessonEl);
 }
@@ -483,13 +445,6 @@ function appendQuest({id, name, moduleId}) {
   questEl.innerHTML = `
     <a class="has-text-dark" onclick="toggleQuest(${id})" style="padding: 5px 10px; display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
       <span>${name ? name : 'unnamed #' + id}</span>
-      <div style="display: flex; flex-direction: row; justify-content: space-between;">
-        <button class="button is-small is-danger" 
-                onclick="if (confirm('Delete question?')) destroyQuest(${id});" 
-                style="width: 20px; height: 23px;">
-          <i class="fas fa-times fa-xs" style="margin: initial;"></i>
-        </button>
-      </div>
     </a>
   `;
   return document.querySelector(`#module-edit-list-question`).appendChild(questEl);
@@ -502,32 +457,25 @@ function appendQuest({id, name, moduleId}) {
  * @return {void}
  */
 async function appendAttachment({id, name, lessonId}) {
-  console.log('attachment ...');
-  console.log({id, name, lessonId});
-  try {
-    // after sending you don't have the ids (assigned by the DBMS)
-    if (id === undefined) {
-      id = await get('File', {lessonId,  name}).then(fs => fs[0].id);
-    }
-    return document.getElementById('module-edit-list-attachments').innerHTML += `
-      <li class="has-text-black has-background-light"
-          data-name="${name}"
-          data-id="${id}"
-          style="padding: 10px; margin-bottom: 10px; width: 100%;">
-        <p style="margin-bottom: auto; margin-top: auto; float: left; position: relative; top: 4px;">${name}</p>
-        <div style="margin-bottom: auto; margin-top: auto; float: right;">
-          <a href="/file/${id}" class="button is-link is-small has-text-white" download="${name}" style="">
-            Download
-          </a>
-          <a onclick="destroyAttach(${id}, ${lessonId})" class="button is-small is-danger" style="">
-            Delete
-          </a>
-        </div>
-      </li>`;
-  } catch (e) {
-    console.error(e);
-    return alert(e.message || e.toString());
+  // after sending you don't have the ids (assigned by the DBMS)
+  if (id === undefined) {
+    id = await get('File', {lessonId,  name}).then(fs => fs[0].id);
   }
+  return document.getElementById('module-edit-list-attachments').innerHTML += `
+    <li class="has-text-black has-background-light"
+        data-name="${name}"
+        data-id="${id}"
+        style="padding: 10px; margin-bottom: 10px; width: 100%;">
+      <p style="margin-bottom: auto; margin-top: auto; float: left; position: relative; top: 4px;">${name}</p>
+      <div style="margin-bottom: auto; margin-top: auto; float: right;">
+        <a href="/file/${id}" class="button is-link is-small has-text-white" download="${name}" style="">
+          Download
+        </a>
+        <a onclick="destroyAttach(${id}, ${lessonId})" class="button is-small is-danger" style="">
+          Delete
+        </a>
+      </div>
+    </li>`;
 }
 
 function setLessContent() {
@@ -571,8 +519,10 @@ function unsetLessContent() {
  * @return {Promise<void>}
  */
 async function updateMod() {
-  const maybeName = PANE.querySelector('#module-edit-name').innerText;
-  const maybeTopic = PANE.querySelector('#module-edit-topic').innerText;
+  showModal('Updating module');
+  lockBtns();
+  const maybeName = PANE.querySelector('#module-edit-name').value;
+  const maybeTopic = PANE.querySelector('#module-edit-topic').value;
   const maybeSummary = PANE.querySelector('#module-edit-summary').value;
   const moduleId = getSelId('Module');
   try {
@@ -589,8 +539,11 @@ async function updateMod() {
     const msg = e.msg || e.message || e.toString();
     console.error(e);
     return alert(msg);
+  } finally {
+    hideModal();
   }
-  return document.querySelector(`#module-edit-list-module li[data-id='${moduleId}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${moduleId}`;
+  document.querySelector(`#module-edit-list-module li[data-id='${moduleId}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${moduleId}`;
+  return unlockBtns();
 }
 
 /**
@@ -599,48 +552,57 @@ async function updateMod() {
  * @return {Promise<void>}
  */
 async function updateLess() {
+  lockBtns();
+  showModal('Updating lesson');
+  const id = getSelId('Lesson');
   try {
-    const id = getSelId('Lesson');
     const form = PANE.querySelector('form');
     const formData = new FormData();
     const lessonInput  = form.querySelector('input[type=file]:not([multiple])');
     const hasLessCont = lessonInput.files.length > 0;
     if (hasLessCont)  {
       if (!lessonInput.files[0].name.match(/\.x?html?$/i)) {
+        hideModal();
         return alert('Lesson must be an HTML file.');
       } else formData.append('lesson', lessonInput.files[0], 'lesson.html');
     }
     const attachments = form.querySelector('input[type=file][multiple]').files;
     for (const f of attachments) {
       if (!f.name.match(/\.((pn|jp)g|gif|mp[34g])$/i)) {
+        hideModal();
         return alert(`Invalid attachment file type ${f.name}.`);
-      } else formData.append(f.name, f);
+      }
+      formData.append(f.name, f);
     }
     let maybeName = form.querySelector('input[name=name]').value.trim();
     formData.append('name', maybeName);
     formData.append('summary', form.querySelector('textarea[name=summary]').value.trim());
     // DO NOT SET CONTENT-TYPE
-    console.debug([...formData.entries()]);
     await update('Lesson', id, formData, null);
     if (hasLessCont) setLessContent(id);
-    await Promise.all(Array.from(attachments).sort((a1, a2) => {
-      if (!a1.name && a2.name) return -1;
-      else if (a1.name && !a2.name) return 1;
-      else if (!a1.name && !a2.name) return 0;
-      else return a1.name.localeCompare(a2.name);
-    }).map(f => appendAttachment({id: f.id, name: f.name, lessonId: id})));
+    await Promise.all(Array
+      .from(attachments)
+      .sort((a1, a2) => {
+        if (!a1.name && a2.name) return -1;
+        else if (a1.name && !a2.name) return 1;
+        else if (!a1.name && !a2.name) return 0;
+        else return a1.name.localeCompare(a2.name);
+      }).map(f => appendAttachment({id: f.id, name: f.name, lessonId: id})));
     maybeName = form.querySelector('input[name=name]').value.trim();
     // a way to clear files
     form.querySelector('input[type=file][multiple]').outerHTML = `
-      <input type="file" name="attachments" class="is-paddingless" multiple style="display: block">
-    `;
+      <input type="file" name="attachments" class="is-paddingless" multiple style="display: block">`;
     document.querySelector(`#module-edit-list-lesson li[data-id='${id}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${id}`;
     unSelect('Lesson');
     clearPane();
-    return toggleLesson(id);
+    await toggleLess(id);
   } catch (e) {
-    console.error(e);
-    return alert(e.msg || e.message || e.toString());
+    alert(e.msg || e.message || e.toString());
+  } finally {
+    unlockBtns();
+    clearPane();
+    await toggleLess(id);
+    return hideModal();
   }
 }
 
@@ -650,13 +612,16 @@ async function updateLess() {
  * @return {Promise<void>}
  */
 async function updateQuest() {
+  showModal('Updating question');
   const id = getSelId('Question');
   const moduleId = getSelId('Module');
-  const maybeName = PANE.querySelector('#module-edit-question-name').innerText;
-  const maybeA = PANE.querySelector('#module-edit-question-answer').innerText;
-  const maybeBadA1 = PANE.querySelector('#module-edit-question-bad-answer-1').innerText;
-  const maybeBadA2 = PANE.querySelector('#module-edit-question-bad-answer-2').innerText;
-  const maybeBadA3 = PANE.querySelector('#module-edit-question-bad-answer-3').innerText;
+  const maybeName = PANE.querySelector('#module-edit-question-name').value;
+  const maybeA = PANE.querySelector('#module-edit-question-answer').value;
+  const maybeBadA1 = PANE.querySelector('#module-edit-question-bad-answer-1').value;
+  const maybeBadA2 = PANE.querySelector('#module-edit-question-bad-answer-2').value;
+  const maybeBadA3 = PANE.querySelector('#module-edit-question-bad-answer-3').value;
+  const maybeBadA4 = PANE.querySelector('#module-edit-question-bad-answer-4').value;
+  const maybeBadA5 = PANE.querySelector('#module-edit-question-bad-answer-5').value;
   await update('Question', id, JSON.stringify({
     id,
     moduleId,
@@ -664,12 +629,15 @@ async function updateQuest() {
     badAnswer1: maybeBadA1 ? maybeBadA1 : null,
     badAnswer2: maybeBadA2 ? maybeBadA2 : null,
     badAnswer3: maybeBadA3 ? maybeBadA3 : null,
+    badAnswer4: maybeBadA4 ? maybeBadA4 : null,
+    badAnswer5: maybeBadA5 ? maybeBadA5 : null,
     correctAnswer: maybeA ? maybeA : null,
   }));
   document.querySelector(`#module-edit-list-question li[data-id='${id}'] > a > span`).innerText = maybeName ? maybeName : `unnamed #${id}`;
-  unSelect('Question');
-  clearPane();
-  return toggleQuest(id);
+  // unSelect('Question');
+  // clearPane();
+  // await toggleQuest(id);
+  return hideModal();
 }
 
 /**
@@ -728,12 +696,17 @@ function destroyAttach(id, lessonId) {
  */
 document.getElementById('module-edit-btn-module-create').onclick = async function createMod(e) {
   e.preventDefault();
+  lockBtns();
+  showSpinner('Module');
   try {
-    return appendMod(await create('Module'));
+    appendMod(await create('Module'));
   } catch (e) {
     console.error(e);
     alert('Your session expired.');
     location.pathname = '/';
+  } finally {
+    unlockBtns();
+    return hideSpinner('Module');
   }
 };
 
@@ -746,12 +719,17 @@ document.getElementById('module-edit-btn-lesson-create').onclick = async functio
   e.preventDefault();
   const moduleId = getSelId('Module');
   if (!moduleId) return alert('Module must be selected.');
+  showSpinner('Lesson');
+  lockBtns();
   try {
-    return appendLess(await create('Lesson', JSON.stringify({moduleId} )));
+    await appendLess(await create('Lesson', JSON.stringify({moduleId} )));
   } catch (e) {
     console.error(e);
     alert('Your session expired.');
     location.pathname = '/';
+  } finally {
+    unlockBtns();
+    return hideSpinner('Lesson');
   }
 };
 
@@ -764,12 +742,17 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
   e.preventDefault();
   const moduleId = getSelId('Module');
   if (!moduleId) return alert('Module must be selected.');
+  showSpinner('Question');
+  lockBtns();
   try {
-    return appendQuest(await create('Question', JSON.stringify({moduleId})));
+    await appendQuest(await create('Question', JSON.stringify({moduleId})));
   } catch (e) {
     console.error(e);
     alert('Your session expired.');
     location.pathname = '/';
+  } finally {
+    unlockBtns();
+    return hideSpinner('Question');
   }
 };
 
@@ -781,17 +764,19 @@ document.getElementById('module-edit-btn-question-create').onclick = async funct
 (async function initModEditPage() {
   try {
     showSpinner('Module');
+    showModal('Loading');
     await get('Module', {authorId: USER_ID}).then(ms => Promise.all(ms.sort((m1, m2) => {
       if (!m1.name && m2.name) return -1;
       else if (m1.name && !m2.name) return 1;
       else if (!m1.name && !m2.name) return 0;
       else return m1.name.localeCompare(m2.name);
     }).map(m => appendMod(m))));
-    return hideSpinner('Module');
+    hideSpinner('Module');
   } catch(e) {
-    const msg = e.msg || e.message || e.toString();
     console.error(e);
-    alert(msg);
+    alert(e);
     location.pathname = '/user/home';
+  } finally {
+    return hideModal();
   }
 })();

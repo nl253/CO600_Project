@@ -6,7 +6,8 @@ if (location.pathname.includes('/user/register')) {
 (function initLogInBtn() {
   let btn = document.getElementById('layout-btn-log-in');
   if (!btn) return;
-  btn.onclick = async (event) => {
+  btn.onclick = async function logIn(event) {
+    showModal('Logging in');
 
     // don't send the HTML form
     event.preventDefault();
@@ -22,33 +23,27 @@ if (location.pathname.includes('/user/register')) {
     });
 
     if (logInRes.status >= 400) {
+      hideModal();
       try {
         const err = await logInRes.json();
         const msg = err.msg || err.message || err.toString();
         console.error(msg);
-        return alert(msg);
+        alert(msg);
       } catch (e) {
         const msg = 'could not log in';
         console.error(msg);
         console.error(e);
         alert(msg);
-        sessionStorage.clear();
-        location.pathname = location.pathname;
       }
+      return;
     }
 
     try {
-      const user = (await logInRes.json()).result;
-      sessionStorage.setItem('loggedIn', JSON.stringify(user));
-      setCookie('token', user.token);
-      location.pathname = location.pathname.includes('/register')
-        ? '/user/home'
-        : location.pathname;
+      sessionStorage.setItem('loggedIn', JSON.stringify((await logInRes.json()).result));
+      return setTimeout(() => location.pathname = location.pathname, 200);
     } catch (e) {
       console.error(e);
       alert(e.message);
-      sessionStorage.clear();
-      location.pathname = location.pathname;
     }
   };
 })();

@@ -62,7 +62,7 @@ router.get(['/', '/search'],
   validCols(Module, 'query', []),
   async (req, res, next) => {
     try {
-      for (const attr of ['name', 'topic', 'summary', 'badAnswer2', 'badAnswer3']) {
+      for (const attr of ['name', 'topic', 'summary']) {
         if (req.query[attr]) {
           req.query[attr] = {[Sequelize.Op.like]: `%${req.query[attr]}%`};
         }
@@ -70,6 +70,11 @@ router.get(['/', '/search'],
       for (const dateAttr of ['createdAt', 'updatedAt']) {
         if (req.query[dateAttr]) {
           req.query[dateAttr] = {[Sequelize.Op.gte]: new Date(Date.parse(req.query[dateAttr]))};
+        }
+      }
+      for (const attr in req.query) {
+        if (req.query[attr] === '') {
+          delete req.query[attr];
         }
       }
       const modules = await Module.findAll({

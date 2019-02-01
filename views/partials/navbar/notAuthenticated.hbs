@@ -46,7 +46,7 @@
         </div>
       </div>
 
-      <div class="navbar-end">
+      <form class="navbar-end" onsubmit="e.preventDefault()" disabled="true">
         <div class="navbar-item">
           <div class="control has-icons-left">
             <input type="email" name="email" id="layout-input-email" class="input"
@@ -59,26 +59,24 @@
         </div>
         <div class="navbar-item">
           <div class="control has-icons-left">
-            <input type="password" name="password" id="layout-input-password" class="input"
-                   placeholder="password" pattern=".{6,}" required>
+            <input type="password" name="password" id="layout-input-password" class="input" minlength="6"
+                   placeholder="password" required>
             <span class="icon is-small is-left">
       <i class="fa fa-lock"></i>
     </span>
           </div>
         </div>
         <div class="navbar-item">
-          <input type="submit" value="Log In" id="layout-btn-log-in" class="button is-warning" style="opacity: 1;">
+          <input autofocus type="submit" value="Log In" id="layout-btn-log-in" class="button is-warning" style="opacity: 1;" onsubmit="e.preventDefault()">
           <a href="/user/register"
              id="layout-btn-register-redirect"
+             onsubmit="e.preventDefault()"
              class="button is-link"
              style="margin-left: 10px;">
             Register
           </a>
         </div>
-      </div>
+      </form>
     </div>
   </nav>
 </header>
-
-
-<script async src="/javascripts/notAuthenticated.js"></script>

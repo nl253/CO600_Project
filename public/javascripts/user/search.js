@@ -3,6 +3,7 @@
   if (!searchBtn) return;
 
   searchBtn.onclick = async (e) => {
+    showModal('Searching');
     e.target.setAttribute('disabled', 'true');
     e.target.style.pointerEvents = 'none';
     document.getElementById('user-search-results').innerHTML = '';
@@ -40,6 +41,8 @@
     } catch (e) {
       console.error(e);
       alert(e);
+    } finally {
+      hideModal();
     }
   };
 })();

@@ -6,7 +6,7 @@ require('./env')();
 
 const {User, Session, Sequelize} = require('./database');
 const {decrypt} = require('./routes/lib');
-const log = require('./lib').createLogger({label: 'APP', fileLvl: 'debug', lvl: 'debug'});
+const log = require('./lib').createLogger({label: 'APP', fileLvl: 'debug', lvl: process.env.LOGGING_APP});
 const babel = require('babel-core');
 const express = require('express');
 const app = express();
@@ -52,15 +52,22 @@ let requestCount = 0;
 function cleanupSess() {
   if (requestCount > 100) {
     requestCount = 0;
-    Session.findOne({where: {updatedAt: {[Sequelize.Op.lt]: new Date()}}}).then(s => s.destroy());
+    log.warn('session clean-up');
+    Session.findAll({where: {updatedAt: {[Sequelize.Op.lt]: new Date(Date.now() - parseInt(process.env.SESSION_TIME))}}})
+      .then(ss => ss.forEach(s => s.destroy()));
   }
 }
 
 app.use(async (req, res, next) => {
+  if (req.originalUrl.match(/^\/(javascript|stylesheet|image)s\//)) {
+    return next();
+  }
   requestCount++;
   if (!req.cookies.token) {
-    log.debug(`token not sent in cookies`);
-    cleanupSess();
+    if (!req.originalUrl.match(/^\/api\//)) {
+      log.debug(`token not sent in cookies`);
+      cleanupSess();
+    }
     return next();
   }
   try {
@@ -70,24 +77,28 @@ app.use(async (req, res, next) => {
       token = decrypt(decodeURIComponent(req.cookies.token));
     } catch (e) {
       log.debug(`token sent could not be decrypted`);
+      res.set('Set-Cookie', `token=; HttpOnly; Max-Age=0; SameSite=Strict; Path=/`);
       return next();
     }
     try {
       sess = await Session.findOne({where: {token}});
     } catch (e) {
       log.debug(`token sent could not be decrypted`);
+      res.set('Set-Cookie', `token=; HttpOnly; Max-Age=0; SameSite=Strict; Path=/`);
       return next();
     }
     if (sess === null) {
       log.debug(`token sent does not correspond to a session`);
+      res.set('Set-Cookie', `token=; HttpOnly; Max-Age=0; SameSite=Strict; Path=/`);
       return next();
-    } else if ((Date.now() - sess.updatedAt) >= parseInt(process.env.SESSION_TIME)) {
+    } else if (sess.updatedAt <= new Date((Date.now() - parseInt(process.env.SESSION_TIME)))) {
       log.debug(`token sent is stale, destroying associated session`);
       sess.destroy();
+      res.set('Set-Cookie', `token=; HttpOnly; Max-Age=0; SameSite=Strict; Path=/`);
       return next();
     }
-    log.debug(`valid token sent, refreshing it`);
-    sess.update({email: sess.email});
+    // log.debug(`valid token sent, refreshing it`);
+    // sess.update({email: sess.email});
     res.locals.loggedIn = await User.findOne({
       where: {email: sess.email},
       attributes: {exclude: ['password']},

@@ -11,7 +11,7 @@
         crossorigin="anonymous">
   <link rel="stylesheet" href="/stylesheets/style.css"/>
   <!--Must be loaded synchronously, defines functions to be called later-->
-  <script src="/javascripts/babel-polyfill.min.js"></script>
+  <script src="/javascripts/polyfill.min.js"></script>
   <script src="/javascripts/lib.js"></script>
 </head>
 
@@ -37,6 +37,16 @@
     </div>
   </footer>
 {{/unless}}
+
+<div id="popup-msg" class="modal">
+  <div class="modal-background"></div>
+  <div class="modal-content">
+    <div class="card has-background-white is-rounded" style="padding: 50px;">
+      <h3 class="title has-text-centered" id="popup-msg-info">Loading</h3>
+      <p class="has-text-centered subtitle"><i class="fas fa-hourglass-half" style="margin-right: 7px;"></i>Wait</p>
+    </div>
+  </div>
+</div>
 
 <script async src="/javascripts/{{#if loggedIn}}authenticated{{else}}notAuthenticated{{/if}}.js"></script>
 
