@@ -37,9 +37,9 @@ function createLogger(cfg = {}) {
       winston.format.prettyPrint(),
       winston.format.printf(info =>
         `${info.level && info.level.trim() !== ''
-          ? ('[' + info.level.toUpperCase() + ']').padEnd(10)
+          ? ('[' + info.level.toUpperCase() + '] ')
           : ''}${info.label
-          ? (info.label + ' ::').padEnd(12)
+          ? (info.label + ' :: ')
           : ''}${info.message}`),
     ),
     transports,

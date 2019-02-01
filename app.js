@@ -6,7 +6,7 @@ require('./env')();
 
 const {User, Session, Sequelize} = require('./database');
 const {decrypt} = require('./routes/lib');
-const log = require('./lib').createLogger({label: 'APP', fileLvl: 'debug', lvl: 'debug'});
+const log = require('./lib').createLogger({label: 'APP', fileLvl: 'debug', lvl: process.env.LOGGING_APP});
 const babel = require('babel-core');
 const express = require('express');
 const app = express();

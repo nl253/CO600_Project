@@ -290,7 +290,7 @@ function checkAns() {
  *
  * @param {{id: !Number, moduleId: !Number, correctAnswer: ?String, badAnswer1: ?String, badAnswer2: ?String, badAnswer3: ?String}} question
  */
-async function showQuest({id, name, moduleId, correctAnswer, badAnswer1, badAnswer2, badAnswer3}) {
+async function showQuest({id, name, moduleId, correctAnswer, badAnswer1, badAnswer2, badAnswer3, badAnswer4, badAnswer5}) {
   function makeAns(ans = '', isCorrect = false) {
     const el = document.createElement('div');
     el.classList.add('field');
@@ -302,19 +302,17 @@ async function showQuest({id, name, moduleId, correctAnswer, badAnswer1, badAnsw
     return el;
   }
 
-  const answers = shuffle([
-    makeAns(correctAnswer, true),
-    makeAns(badAnswer1),
-    makeAns(badAnswer2),
-    makeAns(badAnswer3),
-  ]);
-
   PANE.innerHTML = `
     <h2 class="title is-3" style="margin-bottom: 30px;">
       ${name ? name : `unnamed #${id}`}
     </h2>`;
 
-  for (const a of answers) PANE.appendChild(a);
+  const answers = [makeAns(correctAnswer, true)];
+  for (const ans of [badAnswer1, badAnswer2, badAnswer3, badAnswer4, badAnswer5]){
+    if (ans && ans.trim() !== '') answers.push(makeAns(ans))
+  }
+  shuffle(answers);
+  for (const answer of answers) PANE.appendChild(answer);
 
   PANE.innerHTML += `
     <button type="submit" onclick="checkAns()"  class="button is-success is-block" style="margin: 7px auto;">

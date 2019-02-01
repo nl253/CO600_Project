@@ -45,7 +45,7 @@ router.post(['/login', '/authenticate'],
       }).spread((s, created) =>
         created
         ? s
-        : s.update({token: newToken}));
+        : s.update({token: newToken, updatedAt: Date.now()}));
       console.log(sess.dataValues);
       delete user.dataValues.password;
       delete user.dataValues.info;

@@ -22,19 +22,19 @@
                 <div class="field">
                   <label class="label">First Name</label>
                   <div class="control">
-                    <input id="reg-first-name" class="input" type="text" placeholder="e.g. Amy">
+                    <input id="reg-first-name" class="input" type="text" placeholder="e.g. Amy" spellcheck="true" autocomplete="on">
                   </div>
                 </div>
                 <div class="field">
                   <label class="label">Last Name</label>
                   <div class="control">
-                    <input id="reg-last-name" class="input" type="text" placeholder="e.g. Adams">
+                    <input id="reg-last-name" class="input" type="text" placeholder="e.g. Adams" autocomplete="on" spellcheck="true">
                   </div>
                 </div>
                 <div class="field">
                   <label class="label">Email</label>
                   <div class="control has-icons-left">
-                    <input id="reg-email" class="input" type="email" pattern=".{2,}@.{2,}\..{2,}"
+                    <input id="reg-email" class="input" type="email" pattern=".{2,}@.{2,}\..{2,}" minlength="2"
                            placeholder="example@email.com" autocomplete="on" required>
                     <span class="icon is-small is-left">
                       <i class="fa fa-envelope"></i>
@@ -44,7 +44,7 @@
                 <div class="field">
                   <label class="label">Confirm Email</label>
                   <div class="control has-icons-left">
-                    <input class="input" type="email" pattern=".{2,}@.{2,}\..{2,}" placeholder="example@email.com"
+                    <input class="input" type="email" pattern=".{2,}@.{2,}\..{2,}" placeholder="example@email.com" minlength="2"
                            autocomplete="on" required>
                     <span class="icon is-small is-left">
                       <i class="fa fa-envelope"></i>
@@ -54,7 +54,7 @@
                 <div class="field">
                   <label class="label">Password</label>
                   <div class="control has-icons-left">
-                    <input id="reg-password" class="input" type="password" pattern=".{6,}" required>
+                    <input id="reg-password" class="input" type="password" required minlength="6">
                     <span class="icon is-small is-left">
                       <i class="fa fa-lock"></i>
                     </span>
@@ -63,7 +63,7 @@
                 <div class="field">
                   <label class="label">Confirm Password</label>
                   <div class="control has-icons-left">
-                    <input id="reg-password-2" class="input" type="password" pattern=".{6,}" required>
+                    <input id="reg-password-2" class="input" type="password" required minlength="6">
                     <span class="icon is-small is-left">
                       <i class="fa fa-lock"></i>
                     </span>
