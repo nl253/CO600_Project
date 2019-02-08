@@ -579,28 +579,26 @@ async function updateLess() {
     formData.append('summary', form.querySelector('textarea[name=summary]').value.trim());
     // DO NOT SET CONTENT-TYPE
     await update('Lesson', id, formData, null);
-    if (hasLessCont) setLessContent(id);
-    await Promise.all(Array
-      .from(attachments)
-      .sort((a1, a2) => {
-        if (!a1.name && a2.name) return -1;
-        else if (a1.name && !a2.name) return 1;
-        else if (!a1.name && !a2.name) return 0;
-        else return a1.name.localeCompare(a2.name);
-      }).map(f => appendAttachment({id: f.id, name: f.name, lessonId: id})));
+    // if (hasLessCont) setLessContent(id);
+    // await Promise.all(Array
+    //   .from(attachments)
+    //   .sort((a1, a2) => {
+    //     if (!a1.name && a2.name) return -1;
+    //     else if (a1.name && !a2.name) return 1;
+    //     else if (!a1.name && !a2.name) return 0;
+    //     else return a1.name.localeCompare(a2.name);
+    //   }).map(f => appendAttachment({id: f.id, name: f.name, lessonId: id})));
     maybeName = form.querySelector('input[name=name]').value.trim();
     // a way to clear files
-    form.querySelector('input[type=file][multiple]').outerHTML = `
-      <input type="file" name="attachments" class="is-paddingless" multiple style="display: block">`;
+    // form.querySelector('input[type=file][multiple]').outerHTML = `
+    //   <input type="file" name="attachments" class="is-paddingless" multiple style="display: block">`;
     document.querySelector(`#module-edit-list-lesson li[data-id='${id}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${id}`;
-    unSelect('Lesson');
-    clearPane();
-    await toggleLess(id);
   } catch (e) {
     alert(e.msg || e.message || e.toString());
   } finally {
     unlockBtns();
     clearPane();
+    unSelect('Lesson');
     await toggleLess(id);
     return hideModal();
   }

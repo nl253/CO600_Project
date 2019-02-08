@@ -13,6 +13,7 @@ const DAY = 24 * HOUR;
 const WEEK = 7 * DAY;
 const MONTH = 30 * DAY;
 const YEAR = 365 * DAY;
+const NO_STARS = 5;
 
 BTN_CREATED.onclick = function activateDateCreated() {
   BTN_UPDATED.classList.remove('is-active');
@@ -35,14 +36,18 @@ for (const btn of document.querySelectorAll(
   };
 }
 
-for (const starBtn of document.querySelectorAll(
-  '.panel .button.is-small.is-block')) {
+for (let i = 1; i <= NO_STARS; i++) {
+  const starBtn = document.querySelector(`.panel .button.is-small.is-block:nth-of-type(${i})`);
   starBtn.onclick = function toggleStar() {
-    for (const otherStar of document.querySelectorAll(
-      '.panel .button.is-small.is-block.is-warning')) {
-      otherStar.classList.remove('is-warning');
+    for (let j = i + 1; j <= NO_STARS; j++) {
+      const otherStarBtn = document.querySelector(`.panel .button.is-small.is-block:nth-of-type(${j})`);
+      otherStarBtn.classList.remove('is-warning');
     }
     starBtn.classList.add('is-warning');
+    for (let j = i - 1; j >= 1; j--) {
+      const otherStarBtn = document.querySelector(`.panel .button.is-small.is-block:nth-of-type(${j})`);
+      otherStarBtn.classList.add('is-warning');
+    }
   };
 }
 
@@ -62,40 +67,48 @@ document.querySelector(
   FIRST_STAR.dispatchEvent(new MouseEvent('click'));
 };
 
-function appendMod({id, name, summary, avg}) {
+function appendMod({id, name, topic, summary, avg}) {
   const newEl = document.createElement('div');
   newEl.classList.add('box');
   newEl.onclick = () => location.href = `/module/${id}`;
-  let str = `<div class="media-content">  
+  let str = `<div class="media-content"> 
                <div class="content">
                  <p class="is-size-6">
-                   <a href="/module/${id}"><strong>${name ?
-    name :
-    'Unnamed #' + id.toString()}</strong></a>`;
+                   <a href="/module/${id}"><strong>${name ? name : 'Unnamed #' + id.toString()}</strong></a>`;
+  if (topic) str += `<br><strong class="h6">${topic}</strong><br>`;
+  if (avg) str += `<br> ${Array(Math.round(avg)).fill(0).map(_ => `<i class="fas fa-star"></i>`).join(' ')}<br>`;
   if (summary) str += `
                    <br>${summary}`;
   str += `       </p>
                </div>
              </div>`;
-  if (avg) str += `
-             <br><i class="fas fa-star">${avg}`;
   newEl.innerHTML = str;
   LIST_MODS.appendChild(newEl);
 }
 
 async function getRating(moduleId) {
   const ratings = await get('Rating', {moduleId});
-  if (ratings.length === 0) {
-    return null;
-  }
+  if (ratings.length === 0) return null;
   let n = 0;
   let total = 0;
   for (const r of ratings) {
     n++;
     total += r.stars;
   }
-  const avg = Math.round(total / n);
-  return avg;
+  return Math.round(total / n);
+}
+
+/**
+ * @returns {!Number} stars
+ */
+function getLitStars() {
+  for (let i = 5; i >= 1; i--) {
+    const starBtn = document.querySelector( `.panel .button.is-small.is-block.is-light:nth-of-type(${i})`);
+    if (starBtn.classList.contains('is-warning')) {
+      return i;
+    }
+  }
+  return 1;
 }
 
 document.querySelector(
@@ -108,15 +121,7 @@ document.querySelector(
     const dateScheme = BTN_CREATED.classList.contains('is-active')
       ? 'createdAt'
       : 'updatedAt';
-    let stars = 1;
-    for (let i = 1; i <= 5; i++) {
-      const starBtn = document.querySelector(
-        `.panel .button.is-small.is-block.is-light:nth-of-type(${i})`);
-      if (starBtn.classList.contains('is-warning')) {
-        stars = i;
-        break;
-      }
-    }
+    let stars = getLitStars();
     let date = new Date(0);
 
     const dateBtnSel = document.querySelector(
@@ -145,7 +150,10 @@ document.querySelector(
       [dateScheme]: date.toISOString(),
     }).then(modules => Promise.all(
       modules.map(m => getRating(m.id).then(avg => {
-        if (avg === null || avg >= stars) appendMod(m);
+        if (avg >= stars || (stars === 1 && avg === null)) {
+          m.avg = avg;
+          appendMod(m);
+        }
       }))));
   } catch (e) {
     console.error(e);

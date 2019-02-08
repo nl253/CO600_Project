@@ -52,7 +52,7 @@ let requestCount = 0;
 function cleanupSess() {
   if (requestCount > 100) {
     requestCount = 0;
-    log.warn('session clean-up');
+    log.debug('session clean-up');
     Session.findAll({where: {updatedAt: {[Sequelize.Op.lt]: new Date(Date.now() - parseInt(process.env.SESSION_TIME))}}})
       .then(ss => ss.forEach(s => s.destroy()));
   }
@@ -138,11 +138,15 @@ app.use(
 app.get(/\/javascripts\/.*\.js$/, async (req, res, next) => {
   res.set('Content-Type', 'application/javascript');
   res.set('X-SourceMap', `${req.originalUrl}.map`);
-  if (req.originalUrl.match(/\.min\.js$/)) return next();
+  if (req.originalUrl.match(/\.min\.js$/)) {
+    // log.debug(`request for minified *.js file, serving directly`);
+    return next();
+  }
   const jsPath = path.join(process.env.ROOT, 'public', req.originalUrl.slice(1));
   const jsPathMap = `${jsPath}.map`;
   const jsPathMin = jsPath.replace(/\.js$/, '.min.js');
   if (process.env.NODE_ENV === 'development' || !fs.existsSync(jsPathMin)) {
+    log.debug(`transpiling ${jsPath}`);
     const {code, map} = await babel.transformFileAsync(jsPath);
     const writeJSMinP = new Promise((res, rej) => res(fs.writeFileSync(jsPathMin, code)));
     const writeJSMapP = new Promise((res, rej) => res(fs.writeFileSync(jsPathMap, JSON.stringify(map))));
