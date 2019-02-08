@@ -111,7 +111,7 @@ function getSelId(what) {
 async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology']) {
   try {
     return PANE.innerHTML = `
-      <form onsubmit="e.preventDefault(); disabled="true"">
+      <form onsubmit="e.preventDefault();" disabled="true">
           
         <h2 class="title" style="margin-bottom: 10px;">
           Name

@@ -9,7 +9,7 @@
       <div class="column is-two-thirds">
         <div class="field">
           <div class="control has-icons-left">
-            <input class="input has-background-white" id="module-searchBar" type="search">
+            <input class="input has-background-white" id="module-searchBar" type="search" autocomplete="on" spellcheck="true">
             <span class="icon is-left">
                 <i class="fas fa-search"></i>
               </span>
@@ -18,10 +18,8 @@
       </div>
       <div class="column">
         <button type="submit" class="button is-link has-text-white is-block"
-                id="module-searchBtn"
-                style="margin-left: auto; margin-right: auto;">
-          Search
-        </button>
+               onsubmit="e ? e.preventDefault() : null"
+                style="margin-left: auto; margin-right: auto;">Search</button>
       </div>
     </div>
   </div>
