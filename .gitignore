@@ -26,16 +26,21 @@ package-lock.json
 # Source Maps & Minified (Trapspiled) files
 public/javascripts/authenticated.js.map
 public/javascripts/authenticated.min.js
+public/javascripts/fetch.min.js
 public/javascripts/lib.js.map
 public/javascripts/lib.min.js
 public/javascripts/module/edit.js.map
 public/javascripts/module/edit.min.js
 public/javascripts/module/learn.js.map
 public/javascripts/module/learn.min.js
+public/javascripts/module/search.js.map
+public/javascripts/module/search.min.js
 public/javascripts/module/view.js.map
 public/javascripts/module/view.min.js
 public/javascripts/notAuthenticated.js.map
 public/javascripts/notAuthenticated.min.js
+public/javascripts/object-polyfill.min.js
+public/javascripts/polyfill.min.js
 public/javascripts/scripts.js.map
 public/javascripts/scripts.min.js
 public/javascripts/user/register.js.map
@@ -46,7 +51,3 @@ public/javascripts/user/settings.js.map
 public/javascripts/user/settings.min.js
 public/stylesheets/bulma.css.map
 public/stylesheets/style.css.map
-public/javascripts/module/search.js.map
-public/javascripts/polyfill.min.js
-public/javascripts/fetch.min.js
-public/javascripts/object-fetch.min.js
