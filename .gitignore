@@ -47,4 +47,6 @@ public/javascripts/user/settings.min.js
 public/stylesheets/bulma.css.map
 public/stylesheets/style.css.map
 public/javascripts/module/search.js.map
-public/javascripts/module/search.min.js
+public/javascripts/polyfill.min.js
+public/javascripts/fetch.min.js
+public/javascripts/object-fetch.min.js
