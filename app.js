@@ -61,12 +61,12 @@ function cleanupSess() {
   }
 }
 
-if (process.env.NODE_ENV === 'production') {
-  app.use((req, res, next) => req.secure
-    ? next()
-    : res.redirect(['https://', req.get('Host'), req.url].join(''))
-  );
-}
+// if (process.env.NODE_ENV === 'production') {
+//   app.use((req, res, next) => req.secure
+//     ? next()
+//     : res.redirect(['https://', req.get('Host'), req.url].join(''))
+//   );
+// }
 
 app.use(async (req, res, next) => {
   if (req.originalUrl.match(/^\/(javascript|stylesheet|image)s\//)) {
