@@ -100,4 +100,75 @@ document.getElementById('user-btn-modify-details').onclick = async (event) => {
     return hideModal();
   }
 };
+document.getElementById('user-btn-delete-account').onclick = async (event) => {
+  const modal = document.getElementById('settings-modal-delete-account');
+  const html = document.querySelector('html');
+  modal.classList.add('is-active');
+  html.classList.add('is-clipped');
 
+  modal.querySelector('.modal-background').onclick = e => {
+    e.preventDefault();
+    modal.classList.remove('is-active');
+    html.classList.remove('is-clipped');
+  };
+
+  document.getElementById('settings-modalbtn-cancel').onclick = e => {
+    e.preventDefault();
+    modal.classList.remove('is-active');
+    html.classList.remove('is-clipped');
+  };
+
+  document.getElementById('settings-modalbtn-delete').onclick = async (e) => {
+    e.preventDefault();
+
+    try {
+      const delRes = await fetch(`/api/user`, {
+        method: 'delete',
+        redirect: 'follow',
+        cache: 'no-cache',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+
+      if (delRes.status >= 400) {
+        hideModal();
+        console.error(delRes);
+        const err = await delRes.json();
+        const msg = err.msg || err.message || err.toString();
+        console.error(msg);
+        document.querySelector('.modal.is-active').classList.add('is-clipped');
+        document.querySelector('.modal.is-active').classList.remove('is-active');
+        return alert(msg);
+      }
+    } catch (err) {
+      const msg = err.msg || err.message || err.toString();
+      console.error(err);
+      alert(msg);
+      modal.classList.remove('is-active');
+      html.classList.remove('is-clipped');
+    }
+  };
+}
+document.getElementById('user-btn-download-account').onclick = async (event) => {
+  e.preventDefault();
+
+  try {
+    const delRes = await fetch(`/api/user`, {
+      method: 'POST',
+      redirect: 'follow',
+      cache: 'no-cache',
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+  } catch (err) {
+    const msg = err.msg || err.message || err.toString();
+    console.error(err);
+    alert(msg);
+    modal.classList.remove('is-active');
+    html.classList.remove('is-clipped');
+  }
+}
