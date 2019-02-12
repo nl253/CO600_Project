@@ -377,8 +377,9 @@ async function toggleLess(id) {
   showSpinner('Pane');
   unSelect(focusedLessId === null ? 'Question' : 'Lesson');
   select('Lesson', id);
+  const files = await get('File', {lessonId: id});
   const lesson = (await get('Lesson', {id, moduleId: getSelId('Module')}))[0];
-  await showLess(lesson, await get('File', {lessonId: lesson.id}));
+  await showLess(lesson, files);
   return unlockBtns();
 }
 
@@ -574,7 +575,7 @@ async function updateLess() {
       }
       formData.append(f.name, f);
     }
-    let maybeName = form.querySelector('input[name=name]').value.trim();
+    const maybeName = form.querySelector('input[name=name]').value.trim();
     formData.append('name', maybeName);
     formData.append('summary', form.querySelector('textarea[name=summary]').value.trim());
     // DO NOT SET CONTENT-TYPE
@@ -588,18 +589,17 @@ async function updateLess() {
     //     else if (!a1.name && !a2.name) return 0;
     //     else return a1.name.localeCompare(a2.name);
     //   }).map(f => appendAttachment({id: f.id, name: f.name, lessonId: id})));
-    maybeName = form.querySelector('input[name=name]').value.trim();
     // a way to clear files
     // form.querySelector('input[type=file][multiple]').outerHTML = `
     //   <input type="file" name="attachments" class="is-paddingless" multiple style="display: block">`;
-    document.querySelector(`#module-edit-list-lesson li[data-id='${id}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${id}`;
+    document.querySelector(`#module-edit-list-lesson li[data-id='${id}'] > a > span`).innerText = maybeName ? maybeName : `unnamed #${id}`;
   } catch (e) {
     alert(e.msg || e.message || e.toString());
   } finally {
-    unlockBtns();
-    clearPane();
+    // clearPane();
     unSelect('Lesson');
     await toggleLess(id);
+    unlockBtns();
     return hideModal();
   }
 }

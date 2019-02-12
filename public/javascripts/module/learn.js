@@ -394,6 +394,13 @@ async function toggleLess(id) {
   unSelect(focusedLessId === null ? 'Question' : 'Lesson');
   select('Lesson', id);
   await showLess((await get('Lesson', {id, moduleId: getSelId('Module')}, false, true))[0]);
+  document.querySelectorAll(`img[src], source[src]`).forEach(async el => {
+    if (!el.getAttribute('src').match(/^(\.\/|\/|\w+:\/\/)/)) {
+      const name = el.getAttribute('src');
+      const fileId = (await get('File', {lessonId: id, name}))[0].id;
+      el.setAttribute('src', `/file/${fileId}`);
+    }
+  });
   unlockBtns();
 }
 

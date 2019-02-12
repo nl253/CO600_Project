@@ -105,13 +105,7 @@ async function create(model, postData = '') {
       body: postData,
       cache: 'no-cache',
     });
-    if (document.cache !== undefined)  {
-      for (const m of Object.keys(document.cache)) {
-        if (m.toLowerCase().startsWith(model.toLowerCase())) {
-          delete document.cache[m];
-        }
-      }
-    }
+    document.cache = {};
     return (await res.json()).result;
   } catch (e) {
     console.error(e);
@@ -140,13 +134,7 @@ async function update(model, id, postData, contentType = 'application/json') {
       body: postData,
       cache: 'no-cache',
     });
-    if (document.cache !== undefined)  {
-      for (const m of Object.keys(document.cache)) {
-        if (m.toLowerCase().startsWith(model.toLowerCase())) {
-          delete document.cache[m];
-        }
-      }
-    }
+    document.cache = {};
     if (res.status >= 400) {
       return Promise.reject((await res.json()).msg);
     } else return (await res.json()).msg;
@@ -172,13 +160,7 @@ async function destroy(model, id) {
       redirect: 'follow',
       cache: 'no-cache',
     });
-    if (document.cache !== undefined)  {
-      for (const m of Object.keys(document.cache)) {
-        if (m.toLowerCase().startsWith(model.toLowerCase())) {
-          delete document.cache[m];
-        }
-      }
-    }
+    document.cache = {};
     return (await res.json()).msg;
   } catch (e) {
     console.error(e);
