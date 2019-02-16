@@ -135,7 +135,14 @@ async function update(model, id, postData, contentType = 'application/json') {
       cache: 'no-cache',
     });
     document.cache = {};
-    if (res.status >= 400) {
+    if (res.status === 403) {
+      showModal('Your session expired');
+      setTimeout(() => {
+        hideModal();
+        return location.pathname = '/user/register';
+      }, 1500);
+      return;
+    } else if (res.status >= 400) {
       return Promise.reject((await res.json()).msg);
     } else return (await res.json()).msg;
   } catch (e) {
@@ -161,7 +168,16 @@ async function destroy(model, id) {
       cache: 'no-cache',
     });
     document.cache = {};
-    return (await res.json()).msg;
+    if (res.status === 403) {
+      showModal('Your session expired');
+      setTimeout(() => {
+        hideModal();
+        return location.pathname = '/user/register';
+      }, 1500);
+      return;
+    } else if (res.status >= 400) {
+      return Promise.reject((await res.json()).msg);
+    } else return (await res.json()).msg;
   } catch (e) {
     console.error(e);
     return alert(e.msg || e.message || e.toString());

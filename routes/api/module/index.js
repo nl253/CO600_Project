@@ -1,6 +1,5 @@
 const NoSuchRecord = require('../../errors').NoSuchRecordErr;
-const validCols = require('../../lib').validCols;
-const isLoggedIn = require('../../lib').isLoggedIn;
+const {validCols, isLoggedIn} = require('../../lib');
 const {Module, Sequelize, sequelize} = require('../../../database');
 const router = require('express').Router();
 
