@@ -19,20 +19,20 @@ function shuffle(array = []) {
   return array;
 }
 
-const PANE = document.getElementById('module-edit-pane');
-const SPINNER_MOD = document.getElementById('module-edit-spinner-list-module');
-const SPINNER_LESS = document.getElementById('module-edit-spinner-list-lesson');
-const SPINNER_QUEST = document.getElementById('module-edit-spinner-list-question');
-const LIST_MOD = document.getElementById('module-edit-list-module');
-const LIST_LESS = document.getElementById('module-edit-list-lesson');
-const LIST_QUEST = document.getElementById('module-edit-list-question');
+const PANE = document.getElementById('module-learn-pane');
+const SPINNER_MOD = document.getElementById('module-learn-spinner-list-module');
+const SPINNER_LESS = document.getElementById('module-learn-spinner-list-lesson');
+const SPINNER_QUEST = document.getElementById('module-learn-spinner-list-question');
+const LIST_MOD = document.getElementById('module-learn-list-module');
+const LIST_LESS = document.getElementById('module-learn-list-lesson');
+const LIST_QUEST = document.getElementById('module-learn-list-question');
 const USER_ID = JSON.parse(sessionStorage.getItem('loggedIn')).id;
 
 /**
  * Disables all buttons while a fetch response is awaited.
  */
 function lockBtns() {
-  for (const btn of document.querySelectorAll('#module-edit-list-module li[data-id] > [onclick]:not([disabled]), #module-edit-list-lesson li[data-id] > [onclick]:not([disabled]), #module-edit-list-question li[data-id] > [onclick]:not([disabled])')) {
+  for (const btn of document.querySelectorAll('#module-learn-list-module li[data-id] > [onclick]:not([disabled]), #module-learn-list-lesson li[data-id] > [onclick]:not([disabled]), #module-learn-list-question li[data-id] > [onclick]:not([disabled])')) {
     btn.setAttribute('disabled', 'true');
     btn.style.pointerEvents = 'none';
   }
@@ -42,7 +42,7 @@ function lockBtns() {
  * Enables all buttons after a fetch response is awaited.
  */
 function unlockBtns() {
-  for (const btn of document.querySelectorAll('#module-edit-list-module li[data-id] > [onclick][disabled], #module-edit-list-lesson li[data-id] > [onclick][disabled], #module-edit-list-question li[data-id] > [onclick][disabled]')) {
+  for (const btn of document.querySelectorAll('#module-learn-list-module li[data-id] > [onclick][disabled], #module-learn-list-lesson li[data-id] > [onclick][disabled], #module-learn-list-question li[data-id] > [onclick][disabled]')) {
     btn.removeAttribute('disabled');
     btn.style.pointerEvents = 'initial';
   }
@@ -55,7 +55,7 @@ function unlockBtns() {
  * @param {!Number} id
  */
 function select(what, id) {
-  return document.querySelector(`#module-edit-list-${what.toLowerCase()} li[data-id='${id}']`).classList.add('has-background-light');
+  return document.querySelector(`#module-learn-list-${what.toLowerCase()} li[data-id='${id}']`).classList.add('has-background-light');
 }
 
 /**
@@ -64,7 +64,7 @@ function select(what, id) {
  * @param {'Module'|'Lesson'|'Question'} what
  */
 function unSelect(what) {
-  const maybe = document.querySelector(`#module-edit-list-${what.toLowerCase()} li[class*=has-background-light]`);
+  const maybe = document.querySelector(`#module-learn-list-${what.toLowerCase()} li[class*=has-background-light]`);
   if (maybe) maybe.classList.remove('has-background-light');
 }
 
@@ -74,7 +74,7 @@ function unSelect(what) {
  * @param {'Module'|'Lesson'|'Question'} what
  */
 function clearList(what) {
-  return document.getElementById(`module-edit-list-${what.toLowerCase()}`).innerHTML = '';
+  return document.getElementById(`module-learn-list-${what.toLowerCase()}`).innerHTML = '';
 }
 
 /**
@@ -84,7 +84,7 @@ function clearList(what) {
  * @return {?Number}
  */
 function getSelId(what) {
-  const maybe = document.querySelector(`#module-edit-list-${what.toLowerCase()} li[class*=has-background-light]`);
+  const maybe = document.querySelector(`#module-learn-list-${what.toLowerCase()} li[class*=has-background-light]`);
   return maybe ? eval(maybe.getAttribute('data-id')) : null;
 }
 
@@ -159,7 +159,7 @@ function lightStars(fromNo = 5) {
  * @param {!Array<!String>} topics
  * @return {Promise<void>}
  */
-async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology']) {
+async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'Anthropology', 'Archaeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology']) {
   try {
     lockBtns();
     const myRatingP = get('Rating', {
@@ -188,12 +188,12 @@ async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'A
         </a>
         <br>
         <strong>Rating</strong> 
-        <span id="module-edit-rating">${await avgRating}/5
+        <span id="module-learn-rating">${await avgRating}/5
         </span>
       </section>
       <section class="is-medium" style="margin-bottom: 20px;">
         <h3 class="subtitle">Summary</h3>
-        <div id="module-edit-summary" style="min-width: 100%; word-wrap: break-word;">
+        <div id="module-learn-summary" style="min-width: 100%; word-wrap: break-word;">
           ${summary ? summary : ''}
         </div>
       </section>
@@ -244,7 +244,7 @@ async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'A
  */
 async function showLess({name, content}) {
   PANE.innerHTML = `<h2 class="title" style="margin-bottom: 10px;">${name ? name : 'Lesson'}</h2>`;
-  PANE.innerHTML += content;
+  PANE.innerHTML += content ? content : '<p>this lesson has no content</p>';
 }
 
 /**
@@ -253,7 +253,7 @@ async function showLess({name, content}) {
  * @param {Event} event
  */
 function selAns({target}) {
-  const ans = document.querySelector('#module-edit-pane .field [onclick][class*=\'is-warning\']');
+  const ans = document.querySelector('#module-learn-pane .field [onclick][class*=\'is-warning\']');
   if (ans) {
     ans.classList.remove('is-warning');
     ans.classList.add('is-light');
@@ -266,19 +266,19 @@ function selAns({target}) {
  * Checks answer to quiz question.
  */
 function checkAns() {
-  const ans = document.querySelector('#module-edit-pane .field [onclick][class*=\'is-warning\']');
+  const ans = document.querySelector('#module-learn-pane .field [onclick][class*=\'is-warning\']');
   if (!ans) return;
   ans.classList.remove('is-warning');
   if (ans.getAttribute('data-is-correct')) {
     ans.classList.add('is-success');
   } else {
     ans.classList.add('is-danger');
-    const correctEl = document.querySelector('#module-edit-pane .field [onclick][data-is-correct]');
+    const correctEl = document.querySelector('#module-learn-pane .field [onclick][data-is-correct]');
     correctEl.classList.add('is-success');
     correctEl.classList.remove('is-light');
   }
   for (const btn of document.querySelectorAll(
-    '#module-edit-pane .field [onclick]')) {
+    '#module-learn-pane .field [onclick]')) {
     btn.setAttribute('disabled', 'true');
     btn.onclick = undefined;
   }
@@ -322,7 +322,7 @@ async function showQuest({id, name, moduleId, correctAnswer, badAnswer1, badAnsw
 }
 
 /**
- * Toggle module. Run when a module is pressed. Shows the module-edit pane.
+ * Toggle module. Run when a module is pressed. Shows the module-learn pane.
  *
  * @param {!Number} id
  * @return {Promise<void>}
@@ -376,7 +376,7 @@ async function toggleMod(id) {
 }
 
 /**
- * Toggle module. Run when a module is pressed. Shows the module-edit pane.
+ * Toggle module. Run when a module is pressed. Shows the module-learn pane.
  *
  * @param {!Number} id
  * @return {Promise<void>}

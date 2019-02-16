@@ -11,27 +11,23 @@
     e.preventDefault();
     const query = document.getElementById('user-search-bar').value;
     try {
-      const users = new Set();
-      for (const u of await get('User', {email: query}, false, true)) {
-        users.add(u);
-      }
-      for (const u of await get('User', {lastName: query}, false, true)) {
-        users.add(u);
-      }
-      history.pushState(null, 'FreeLearn - User Query',
-        `/user/search?q=${query}`);
-      for (const u of users) {
+      const users = {};
+      const fromEmail = get('User', {email: query});
+      const fromLastName = get('User', {lastName: query});
+      for (const u of await fromEmail) users[u.id] = u;
+      for (const u of await fromLastName) users[u.id] = u;
+      history.pushState(
+        null, 'FreeLearn - User Query', `/user/search?q=${query}`);
+      for (const u of Object.values(users)) {
         document.getElementById('user-search-results').innerHTML +=
           `<div class="box" onclick="location.pathname = '/user/${u.id}'">
               <div class="media-content">
                 <div class="content">
                   <p class="is-size-6">
-                    ${u.firstName && u.lastName
-            ?
-            `<a href="/user/${u.id}"><strong>${u.firstName} ${u.lastName}</strong></a><br><br>`
-            :
-            ''
-            }
+                    ${u.firstName && u.lastName 
+                      ? `<a href="/user/${u.id}"><strong>${u.firstName} ${u.lastName}</strong></a><br><br>`
+                      : ''
+                     }
                     ${u.info ? `<span>${u.info}</span><br><br>` : ''}
                     <a href="/user/${u.id}"><strong>${u.email}</strong></a>
                     <br>

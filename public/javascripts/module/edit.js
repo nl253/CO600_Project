@@ -158,7 +158,7 @@ async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'A
             </button>
           </div>
           <div class="is-block column is-6-fullhd is-6-desktop is-6-tablet is-12-mobile">
-            <button onsubmit="e.preventDefault()" onclick="e.preventDefault(); if (confirm('Delete module?')) destroyMod(${id})" 
+            <button type="button" onsubmit="e.preventDefault()" onclick="if (confirm('Delete module?')) destroyMod(${id})" 
                     class="button is-danger is-block" style="margin: 7px auto; max-width: 120px;">
               <i class="fas fa-times" style="position: relative; top: 4px; left: 2px;"></i>
               <span>Delete</span>
