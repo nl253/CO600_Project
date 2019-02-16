@@ -15,7 +15,7 @@ document.getElementById('navbar-auth-btn-log-out').onclick = async function init
   } catch (e) {
     console.error(e);
   } finally {
-    showModal('Your session expired');
+    showModal('Logging Out');
     return setTimeout(() => {
       hideModal();
       return location.pathname = '/user/register';
