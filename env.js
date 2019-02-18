@@ -1,8 +1,13 @@
 const {join, resolve} = require('path');
 const {existsSync, mkdirSync} = require('fs');
+const createLogger = require('./lib').createLogger;
+const log = createLogger({label: 'ENV', lvl: 'warn'});
 
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
+const BYTE = 1;
+const KILOBYTE = BYTE * 1024;
+const MEGABYTE = KILOBYTE * 1024;
 
 const APP_ENV = {
   NODE_ENV: 'development',
@@ -10,12 +15,12 @@ const APP_ENV = {
   MAX_RESULTS: '100',
   PORT: '3000',
   ENCRYPTION_ALGORITHM: 'aes192',
-  LOGGING_APP: 'debug',
+  LOGGING_APP: 'info',
   LOGGING_API: 'info',
   LOGGING_ROUTING: 'info',
   LOGGING_MOCKS: 'warn',
   LOG_TO_FILE: '0',
-  MAX_FILE_SIZE: (1000 * 10).toString(),
+  MAX_FILE_SIZE: (MEGABYTE * 50).toString(),
   LOGGING_DB: 'warn',
   NO_MOCKS: '20',
   TOKEN_LEN: '18',
@@ -41,10 +46,10 @@ function printEnv(env = process.env) {
       .reduce((prev, curr) => curr.length >= prev ? curr.length : prev, 0);
   const padEndLen = Object.values(env)
       .reduce((prev, curr) => curr.length >= prev ? curr.length : prev, 0);
-  console.info(`APPLICATION ENVIRONMENT\n${'-'.repeat(Math.min(80, padStartLen + padEndLen + 3))}`);
+  log.info(`APPLICATION ENVIRONMENT\n${'-'.repeat(Math.min(80, padStartLen + padEndLen + 3))}`);
   for (const pair of Object.entries(env).filter((pair) => pair[0].match(/^[-_A-Z0-9]+$/))) {
     const [k, v] = pair;
-    console.info(`${k.padEnd(padStartLen)} ${v.length > 60 ? `${v.slice(0, 60) } ...` : v}`);
+    log.info(`${k.padEnd(padStartLen)} ${v.length > 60 ? `${v.slice(0, 60) } ...` : v}`);
   }
 }
 

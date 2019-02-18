@@ -111,7 +111,7 @@ function getSelId(what) {
 async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'Anthropology', 'Archeology', 'Architecture', 'Arts', 'Biology', 'Chemistry', 'Computer Science', 'Design', 'Drama', 'Economics', 'Engineering', 'Geography', 'History', 'Humanities', 'Languages', 'Law', 'Linguistics', 'Literature', 'Mathematics', 'Medicine', 'Philosophy', 'Physics', 'Political Science', 'Psychology', 'Sciences', 'Social Sciences', 'Sociology', 'Theology']) {
   try {
     return PANE.innerHTML = `
-      <form onsubmit="e.preventDefault(); disabled="true"">
+      <form onsubmit="e.preventDefault();" disabled="true">
           
         <h2 class="title" style="margin-bottom: 10px;">
           Name
@@ -158,7 +158,7 @@ async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'A
             </button>
           </div>
           <div class="is-block column is-6-fullhd is-6-desktop is-6-tablet is-12-mobile">
-            <button onsubmit="e.preventDefault()" onclick="e.preventDefault(); if (confirm('Delete module?')) destroyMod(${id})" 
+            <button type="button" onsubmit="e.preventDefault()" onclick="if (confirm('Delete module?')) destroyMod(${id})" 
                     class="button is-danger is-block" style="margin: 7px auto; max-width: 120px;">
               <i class="fas fa-times" style="position: relative; top: 4px; left: 2px;"></i>
               <span>Delete</span>
@@ -377,8 +377,9 @@ async function toggleLess(id) {
   showSpinner('Pane');
   unSelect(focusedLessId === null ? 'Question' : 'Lesson');
   select('Lesson', id);
+  const files = await get('File', {lessonId: id});
   const lesson = (await get('Lesson', {id, moduleId: getSelId('Module')}))[0];
-  await showLess(lesson, await get('File', {lessonId: lesson.id}));
+  await showLess(lesson, files);
   return unlockBtns();
 }
 
@@ -574,34 +575,31 @@ async function updateLess() {
       }
       formData.append(f.name, f);
     }
-    let maybeName = form.querySelector('input[name=name]').value.trim();
+    const maybeName = form.querySelector('input[name=name]').value.trim();
     formData.append('name', maybeName);
     formData.append('summary', form.querySelector('textarea[name=summary]').value.trim());
     // DO NOT SET CONTENT-TYPE
     await update('Lesson', id, formData, null);
-    if (hasLessCont) setLessContent(id);
-    await Promise.all(Array
-      .from(attachments)
-      .sort((a1, a2) => {
-        if (!a1.name && a2.name) return -1;
-        else if (a1.name && !a2.name) return 1;
-        else if (!a1.name && !a2.name) return 0;
-        else return a1.name.localeCompare(a2.name);
-      }).map(f => appendAttachment({id: f.id, name: f.name, lessonId: id})));
-    maybeName = form.querySelector('input[name=name]').value.trim();
+    // if (hasLessCont) setLessContent(id);
+    // await Promise.all(Array
+    //   .from(attachments)
+    //   .sort((a1, a2) => {
+    //     if (!a1.name && a2.name) return -1;
+    //     else if (a1.name && !a2.name) return 1;
+    //     else if (!a1.name && !a2.name) return 0;
+    //     else return a1.name.localeCompare(a2.name);
+    //   }).map(f => appendAttachment({id: f.id, name: f.name, lessonId: id})));
     // a way to clear files
-    form.querySelector('input[type=file][multiple]').outerHTML = `
-      <input type="file" name="attachments" class="is-paddingless" multiple style="display: block">`;
-    document.querySelector(`#module-edit-list-lesson li[data-id='${id}'] > a > span`).innerText = maybeName ? maybeName : `unnamed ${id}`;
-    unSelect('Lesson');
-    clearPane();
-    await toggleLess(id);
+    // form.querySelector('input[type=file][multiple]').outerHTML = `
+    //   <input type="file" name="attachments" class="is-paddingless" multiple style="display: block">`;
+    document.querySelector(`#module-edit-list-lesson li[data-id='${id}'] > a > span`).innerText = maybeName ? maybeName : `unnamed #${id}`;
   } catch (e) {
     alert(e.msg || e.message || e.toString());
   } finally {
-    unlockBtns();
-    clearPane();
+    // clearPane();
+    unSelect('Lesson');
     await toggleLess(id);
+    unlockBtns();
     return hideModal();
   }
 }

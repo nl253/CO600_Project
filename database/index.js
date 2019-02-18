@@ -137,8 +137,6 @@ const Session = sequelize.define('Session', {
       model: User,
       key: 'email',
     },
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
   },
 });
 

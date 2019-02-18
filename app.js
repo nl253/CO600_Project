@@ -10,11 +10,14 @@ const log = require('./lib').createLogger({label: 'APP', fileLvl: 'debug', lvl: 
 const babel = require('babel-core');
 const express = require('express');
 const app = express();
+const REGEX_JS_EXT = /\.js$/i;
+const REGEX_JS_MIN_EXT = /\.min\.js$/i;
 require('./locals')(app);
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Credentials', true);
   res.header('Access-Control-Allow-Headers', ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'].join(', '));
+  res.locals.isProduction = process.env.NODE_ENV === 'production';
   return next();
 });
 
@@ -52,11 +55,18 @@ let requestCount = 0;
 function cleanupSess() {
   if (requestCount > 100) {
     requestCount = 0;
-    log.warn('session clean-up');
+    log.debug('session clean-up');
     Session.findAll({where: {updatedAt: {[Sequelize.Op.lt]: new Date(Date.now() - parseInt(process.env.SESSION_TIME))}}})
       .then(ss => ss.forEach(s => s.destroy()));
   }
 }
+
+// if (process.env.NODE_ENV === 'production') {
+//   app.use((req, res, next) => req.secure
+//     ? next()
+//     : res.redirect(['https://', req.get('Host'), req.url].join(''))
+//   );
+// }
 
 app.use(async (req, res, next) => {
   if (req.originalUrl.match(/^\/(javascript|stylesheet|image)s\//)) {
@@ -97,8 +107,6 @@ app.use(async (req, res, next) => {
       res.set('Set-Cookie', `token=; HttpOnly; Max-Age=0; SameSite=Strict; Path=/`);
       return next();
     }
-    // log.debug(`valid token sent, refreshing it`);
-    // sess.update({email: sess.email});
     res.locals.loggedIn = await User.findOne({
       where: {email: sess.email},
       attributes: {exclude: ['password']},
@@ -109,48 +117,55 @@ app.use(async (req, res, next) => {
   }
 });
 
-app.get(/.*/, (req, res, next) => {
-  if (process.env.NODE_ENV !== 'development') {
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
     res.set({
       'Cache-Control': ['private', `max-age=${process.env.SESSION_TIME}`, 'only-if-cached', 'immutable'].join(', '),
       'Expires': new Date(
         (Date.now() + parseInt(process.env.SESSION_TIME))).toString()
         .replace(/ GMT.*/, ' GMT'),
     });
-  }
-  return next();
-});
+    return next();
+  });
+} else {
+  app.use((req, res, next) => {
+    res.set({
+      'Cache-Control': 'no-cache',
+      'Expires': new Date((Date.now() - 1000).toString().replace(/ GMT.*/, ' GMT')),
+    });
+    return next();
+  });
+}
 
 app.use(
   require('node-sass-middleware')({
     src: process.env.PUBLIC_PATH,
     dest: process.env.PUBLIC_PATH,
-    maxAge: parseInt(process.env.SESSION_TIME),
+    maxAge: process.env.NODE_ENV === 'production' ? parseInt(process.env.SESSION_TIME) : -1,
     force: process.env.NODE_ENV === 'development',
     debug: false,
-    outputStyle: 'compressed',
+    outputStyle: process.env.NODE_ENV === 'development' ? 'expanded' : 'compressed',
     // true = .sass and false = .scss
     indentedSyntax: false,
-    sourceMap: true,
+    sourceMap: process.env.NODE_ENV === 'development',
   }),
 );
 
-app.get(/\/javascripts\/.*\.js$/, async (req, res, next) => {
-  res.set('Content-Type', 'application/javascript');
-  res.set('X-SourceMap', `${req.originalUrl}.map`);
-  if (req.originalUrl.match(/\.min\.js$/)) return next();
-  const jsPath = path.join(process.env.ROOT, 'public', req.originalUrl.slice(1));
-  const jsPathMap = `${jsPath}.map`;
-  const jsPathMin = jsPath.replace(/\.js$/, '.min.js');
-  if (process.env.NODE_ENV === 'development' || !fs.existsSync(jsPathMin)) {
-    const {code, map} = await babel.transformFileAsync(jsPath);
-    const writeJSMinP = new Promise((res, rej) => res(fs.writeFileSync(jsPathMin, code)));
-    const writeJSMapP = new Promise((res, rej) => res(fs.writeFileSync(jsPathMap, JSON.stringify(map))));
-    await writeJSMinP;
-    await writeJSMapP;
-  }
-  return res.send(fs.readFileSync(jsPathMin));
-});
+if (process.env.NODE_ENV === 'production') {
+  app.get(/\/javascripts\/.*\.js$/, async (req, res, next) => {
+    res.set('Content-Type', 'application/javascript');
+    if (req.originalUrl.match(REGEX_JS_MIN_EXT)) return next();
+    const jsPath = path.join(process.env.ROOT, 'public', req.originalUrl.slice(1));
+    const jsPathMin = jsPath.replace(REGEX_JS_EXT, '.min.js');
+    if (!fs.existsSync(jsPathMin)) {
+      log.debug(`transpiling ${jsPath}`);
+      const {code} = babel.transformFileSync(jsPath);
+      fs.writeFile(jsPathMin, code, {}, err => err ? log.error(err.message) : null);
+      return res.send(code);
+    }
+    return fs.createReadStream(jsPathMin).pipe(res);
+  });
+}
 
 app.use(express.static(process.env.PUBLIC_PATH));
 

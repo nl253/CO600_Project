@@ -40,7 +40,11 @@ if (location.pathname.includes('/user/register')) {
 
     try {
       sessionStorage.setItem('loggedIn', JSON.stringify((await logInRes.json()).result));
-      return setTimeout(() => location.pathname = location.pathname, 200);
+      return setTimeout(() => {
+        location.pathname = location.pathname === '/user/register'
+          ? '/user/home'
+          : location.pathname;
+      }, 500);
     } catch (e) {
       console.error(e);
       alert(e.message);

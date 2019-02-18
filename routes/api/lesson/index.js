@@ -5,12 +5,13 @@
 // 3rd Party
 const router = require('express').Router();
 const multer = require('multer');
+const ValidationErr = require('../../errors').ValidationErr;
 const upload = multer({
   // DO NOT USE file filter
   storage: multer.memoryStorage(),
-  limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE),
-  },
+  // limits: {
+    // fileSize: parseInt(process.env.MAX_FILE_SIZE),
+  // },
 });
 
 // Project
@@ -99,9 +100,12 @@ router.post(['/:id', '/:id/update', '/:id/modify'],
         where: {lessonId: lesson.id},
         attributes: ['name'],
       }).then(ns => ns.map(n => n.dataValues.name));
-      // console.log(existingFileNames.length === 0 ? 'no existing files' : `existing files: ${existingFileNames.join(', ')}`);
-      // console.debug(req.files);
-      // console.debug(req.body);
+      const maxFileSize = parseInt(process.env.MAX_FILE_SIZE);
+      for (const f of req.files) {
+        if (f.size >= maxFileSize) {
+          throw new ValidationErr(`File ${f.filename} is too large (got ${f.size} bytes but max ${maxFileSize} bytes)`);
+        }
+      }
       const maybeLessFile = req.files.find(f => f.fieldname === 'lesson');
       if (maybeLessFile && !maybeLessFile.originalname.match(/\.x?html?$/)) {
         return next(new APIErr('Invalid lesson content file.'));
