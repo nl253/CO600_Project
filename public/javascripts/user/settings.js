@@ -131,7 +131,7 @@ document.getElementById('user-btn-delete-account').onclick = async (event) => {
           'Accept': 'application/json',
         }
       });
-
+      
       if (delRes.status >= 400) {
         hideModal();
         console.error(delRes);
@@ -142,6 +142,7 @@ document.getElementById('user-btn-delete-account').onclick = async (event) => {
         document.querySelector('.modal.is-active').classList.remove('is-active');
         return alert(msg);
       }
+      window.location.href = "register";
     } catch (err) {
       const msg = err.msg || err.message || err.toString();
       console.error(err);
@@ -155,7 +156,7 @@ document.getElementById('user-btn-download-account').onclick = async (event) => 
   e.preventDefault();
 
   try {
-    const delRes = await fetch(`/api/user`, {
+    const delRes = await fetch(`/api/user/search)id=${JSON.parse(sessionStorage.getItem('loggedIn')).id}`, {
       method: 'POST',
       redirect: 'follow',
       cache: 'no-cache',
@@ -164,11 +165,12 @@ document.getElementById('user-btn-download-account').onclick = async (event) => 
         'Accept': 'application/json',
       }
     });
+
+    
+
   } catch (err) {
     const msg = err.msg || err.message || err.toString();
     console.error(err);
     alert(msg);
-    modal.classList.remove('is-active');
-    html.classList.remove('is-clipped');
   }
 }
