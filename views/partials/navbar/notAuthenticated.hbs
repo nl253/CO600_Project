@@ -50,29 +50,23 @@
         <div class="navbar-item">
           <div class="control has-icons-left">
             <input type="email" name="email" id="layout-input-email" class="input"
-                   placeholder="email" autocomplete="on" maxlength="255" pattern=".{2,}@.{2,}\..{2,}"
-                   required>
-            <span class="icon is-small is-left">
-      <i class="fa fa-envelope"></i>
-    </span>
+                   placeholder="email" autocomplete="on" maxlength="255" pattern=".{2,}@.{2,}\..{2,}" required>
+            <span class="icon is-small is-left"><i class="fa fa-envelope"></i></span>
           </div>
         </div>
         <div class="navbar-item">
           <div class="control has-icons-left">
-            <input type="password" name="password" id="layout-input-password" class="input" minlength="6"
-                   placeholder="password" required>
-            <span class="icon is-small is-left">
-      <i class="fa fa-lock"></i>
-    </span>
+            <input type="password" name="password" id="layout-input-password"
+                   class="input" minlength="6" placeholder="password" required>
+            <span class="icon is-small is-left"><i class="fa fa-lock"></i></span>
           </div>
         </div>
         <div class="navbar-item">
-          <input autofocus type="submit" value="Log In" id="layout-btn-log-in" class="button is-warning" style="opacity: 1;" onsubmit="e.preventDefault()">
-          <a href="/user/register"
-             id="layout-btn-register-redirect"
-             onsubmit="e.preventDefault()"
-             class="button is-link"
-             style="margin-left: 10px;">
+          <input id="layout-btn-log-in" class="button is-warning"
+                 autofocus type="submit" value="Log In"
+                 style="opacity: 1;" onsubmit="e.preventDefault()">
+          <a href="/user/register" id="layout-btn-register-redirect"
+             class="button is-link" onsubmit="e.preventDefault()" style="margin-left: 10px;">
             Register
           </a>
         </div>

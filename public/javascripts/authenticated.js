@@ -1,10 +1,11 @@
-if (sessionStorage.getItem('loggedIn') === undefined) {
-  logOut().then(ok => {
-    location.pathname = '/user/register';
-  }).catch(err => {
-    console.error(err);
-    location.pathname = '/user/register';
-  });
+if (!sessionStorage.getItem('loggedIn')) {
+  logOut()
+    .then(ok => showModal('Your session expired'))
+    .catch(err => console.error(err))
+    .finally(() => setTimeout(() => {
+      hideModal();
+      location.pathname = '/user/register';
+    }, 1200));
 }
 
 document.getElementById('navbar-auth-btn-log-out').onclick = async function initLogOutBtn(event) {
@@ -14,6 +15,10 @@ document.getElementById('navbar-auth-btn-log-out').onclick = async function init
   } catch (e) {
     console.error(e);
   } finally {
-    return location.pathname = '/user/register';
+    showModal('Logging Out');
+    return setTimeout(() => {
+      hideModal();
+      return location.pathname = '/user/register';
+    }, 1200);
   }
 };

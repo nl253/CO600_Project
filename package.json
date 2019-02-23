@@ -1,5 +1,35 @@
 {
-  "author": "",
+  "contributors": [
+    {
+      "email": "if50@kent.ac.uk",
+      "name": "Imaan Fakim"
+    },
+    {
+      "name": "Nicolas Valderrabano",
+      "email": "nv55@kent.ac.uk"
+    },
+    {
+      "email": "nl253@kent.ac.uk",
+      "name": "Norbert Logiewa"
+    }
+  ],
+  "prettier": {
+    "useTabs": false,
+    "arrowParens": "avoid",
+    "bracketSpacing": false,
+    "insertPragma": false,
+    "endOfLine": "auto",
+    "tabWidth": 2,
+    "htmlWhitespaceSensitivity": "css",
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "semi": true,
+    "proseWrap": "preserve",
+    "printWidth": 120,
+    "requirePragma": false
+  },
+  "bin": "./bin/www",
+  "readme": "README.md",
   "bugs": {
     "url": "https://github.com/nl253/CO600_Project/issues"
   },
@@ -37,11 +67,14 @@
     "eslint-plugin-optimize-regex": "^1.1.6",
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-security": "^1.4.0",
-    "jest": "^23.6.0",
-    "jsdoc": "^3.5.5"
+    "jest": "^24.1.0",
+    "jsdoc": "^3.5.5",
+    "prettier": "^1.16.4",
+    "stylelint": "^9.10.1"
   },
   "engines": {
-    "node": ">=10.11.0"
+    "node": ">=10.11.0",
+    "npm": ">= 6.4.1"
   },
   "homepage": "https://github.com/nl253/CO600_Project",
   "jest": {
@@ -68,7 +101,8 @@
     "docs": "./node_modules/.bin/jsdoc -r -R ./README.md -d ./doc $(find -type f -name '*.js' -not -path '**/node_modules/**' -not -path '**/doc/**' -not -path '**/docs/**')",
     "docs-clean": "rm -I -r ./doc",
     "docs-read": "$BROWSER ./doc/index.html",
-    "lint": "./node_modules/.bin/eslint",
+    "eslint": "./node_modules/.bin/eslint",
+    "prettier": "./node_modules/.bin/prettier",
     "start": "node ./bin/www",
     "test": "./node_modules/.bin/jest",
     "test-to-JSON": "./node_modules/.bin/jest --verbose --no-color --color false --json --outputFile 'logs/tests-results.json'"

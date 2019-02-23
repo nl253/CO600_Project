@@ -42,8 +42,7 @@ router.post(['/login', '/authenticate'],
       const sess = await Session.findOrCreate({
         where: {email},
         defaults: {email, token: newToken},
-      }).spread((s, created) =>
-        created
+      }).spread((s, created) => created
         ? s
         : s.update({token: newToken, updatedAt: Date.now()}));
       console.log(sess.dataValues);

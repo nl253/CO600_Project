@@ -1,3 +1,5 @@
+const createLogger = require('./lib').createLogger;
+const log = createLogger({label: 'LOCALS INIT', lvl: 'warn'});
 const LOCALS = {
   'title': 'FreeLearn',
   'authors': [
@@ -22,10 +24,10 @@ module.exports = (app, locals = LOCALS) => {
     const [k, v] = pair;
     app.locals[k] = v;
   }
-  console.info('');
+  log.info('');
   const heading = 'APP LOCALS';
-  console.info(heading);
-  console.info('-'.repeat(Math.min(80, heading.length)));
-  console.info(app.locals);
+  log.info(heading);
+  log.info('-'.repeat(Math.min(80, heading.length)));
+  // log.info(app.locals);
   return LOCALS;
 };
