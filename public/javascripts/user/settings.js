@@ -152,11 +152,11 @@ document.getElementById('user-btn-delete-account').onclick = async (event) => {
     }
   };
 }
-document.getElementById('user-btn-download-account').onclick = async (event) => {
+document.getElementById('user-btn-download-account').onclick = async e => {
   e.preventDefault();
 
   try {
-    const delRes = await fetch(`/api/user/search)id=${JSON.parse(sessionStorage.getItem('loggedIn')).id}`, {
+    const delRes = await fetch(`/api/user/search?id=${JSON.parse(sessionStorage.getItem('loggedIn')).id}`, {
       method: 'POST',
       redirect: 'follow',
       cache: 'no-cache',
