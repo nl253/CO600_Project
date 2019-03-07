@@ -152,25 +152,8 @@ document.getElementById('user-btn-delete-account').onclick = async (event) => {
     }
   };
 }
-document.getElementById('user-btn-download-account').onclick = async e => {
-  e.preventDefault();
 
-  try {
-    const delRes = await fetch(`/api/user/search?id=${JSON.parse(sessionStorage.getItem('loggedIn')).id}`, {
-      method: 'POST',
-      redirect: 'follow',
-      cache: 'no-cache',
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-      }
-    });
-
-    
-
-  } catch (err) {
-    const msg = err.msg || err.message || err.toString();
-    console.error(err);
-    alert(msg);
-  }
-}
+(function() {
+  const userId = JSON.parse(sessionStorage.getItem("loggedIn")).id;
+  document.getElementById('user-btn-download-account').setAttribute("href", `/api/user/search?id=${userId}`)
+})();
