@@ -6,7 +6,7 @@ const PANE = document.getElementById('module-edit-pane');
 const USER_ID = JSON.parse(sessionStorage.getItem('loggedIn')).id;
 const LIST_MOD = document.getElementById('module-edit-list-module');
 const LIST_LESS = document.getElementById('module-edit-list-lesson');
-// const LIST_QUEST = document.getElementById('module-edit-list-question');
+const LIST_QUEST = document.getElementById('module-edit-list-question');
 
 /**
  * Shows a spinner for specified section.
@@ -662,6 +662,9 @@ function destroyLess(id) {
   destroy('Lesson', id);
   if (getSelId('Lesson') === id) clearPane();
   document.querySelector(`#module-edit-list-lesson li[data-id='${id}']`).remove();
+  if (LIST_MOD.querySelectorAll('li[data-id]').length === 1 && LIST_LESS.querySelectorAll('li[data-id]').length === 0 && LIST_QUEST.querySelectorAll('li[data-id]').length === 0) {
+    unSelect("Module");
+  }
 }
 
 /**
@@ -673,6 +676,9 @@ function destroyQuest(id) {
   destroy('Question', id);
   if (getSelId('Question') === id) clearPane();
   document.querySelector(`#module-edit-list-question li[data-id='${id}']`).remove();
+  if (LIST_MOD.querySelectorAll('li[data-id]').length === 1 && LIST_LESS.querySelectorAll('li[data-id]').length === 0 && LIST_QUEST.querySelectorAll('li[data-id]').length === 0) {
+    unSelect("Module");
+  }
 }
 
 /**
