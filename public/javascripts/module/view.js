@@ -4,7 +4,10 @@
  */
 async function unEnroll(moduleId) {
   try {
-    const enrollments = get('Enrollment', {moduleId});
+    const enrollments = get('Enrollment', {
+      moduleId, 
+      studentId: JSON.parse(sessionStorage.getItem('loggedIn')).id,
+    });
     const enrollBtn = document.getElementById('module-btn-enroll');
     enrollBtn.classList.remove('is-danger');
     enrollBtn.classList.add('is-light');

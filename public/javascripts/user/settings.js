@@ -38,19 +38,22 @@ document.getElementById('user-btn-modify-details').onclick = async (event) => {
     }
     const elOldPass = document.getElementById('user-password-old');
     const elEmail = document.getElementById('user-input-email');
-    if (elEmail.value === '' || elEmail.value.indexOf('@') <= 0 || elEmail.value.length <= 4) {
+    if (elEmail.value === '' || elEmail.value.indexOf('@') <= 0 ||
+      elEmail.value.length <= 4) {
       hideModal();
       return alert('bad email format, cannot change password');
     }
     const elNewPass = document.getElementById('user-password-new');
     const elNewPass2 = document.getElementById('user-password-new-2');
     // if all password fields empty
-    if ([elOldPass, elNewPass, elNewPass2].reduce((prev, cur) => cur.value === '' && prev, true)) {
+    if ([elOldPass, elNewPass, elNewPass2].reduce(
+      (prev, cur) => cur.value === '' && prev, true)) {
       return hideModal();
     }
     changedAttrs.push('password');
     // if any passwords are empty
-    if ([elOldPass, elNewPass, elNewPass2].reduce((prev, cur) => prev || cur.value === '', false)) {
+    if ([elOldPass, elNewPass, elNewPass2].reduce(
+      (prev, cur) => prev || cur.value === '', false)) {
       hideModal();
       return alert('empty password');
     }
@@ -112,26 +115,23 @@ document.getElementById('user-btn-delete-account').onclick = async (event) => {
     html.classList.remove('is-clipped');
   };
 
-  document.getElementById('settings-modalbtn-cancel').onclick = e => {
+  document.getElementById('settings-modal-btn-cancel').onclick = e => {
     e.preventDefault();
     modal.classList.remove('is-active');
     html.classList.remove('is-clipped');
   };
 
-  document.getElementById('settings-modalbtn-delete').onclick = async (e) => {
+  document.getElementById('settings-modal-btn-delete').onclick = async (e) => {
     e.preventDefault();
-
     try {
       const delRes = await fetch(`/api/user`, {
         method: 'delete',
         redirect: 'follow',
         cache: 'no-cache',
         credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-        }
+        headers: {'Accept': 'application/json'},
       });
-      
+
       if (delRes.status >= 400) {
         hideModal();
         console.error(delRes);
@@ -139,10 +139,12 @@ document.getElementById('user-btn-delete-account').onclick = async (event) => {
         const msg = err.msg || err.message || err.toString();
         console.error(msg);
         document.querySelector('.modal.is-active').classList.add('is-clipped');
-        document.querySelector('.modal.is-active').classList.remove('is-active');
+        document.querySelector('.modal.is-active')
+          .classList
+          .remove('is-active');
         return alert(msg);
       }
-      window.location.href = "register";
+      window.location.href = '/user/register';
     } catch (err) {
       const msg = err.msg || err.message || err.toString();
       console.error(err);
@@ -151,9 +153,13 @@ document.getElementById('user-btn-delete-account').onclick = async (event) => {
       html.classList.remove('is-clipped');
     }
   };
-}
+};
 
+/**
+ * Make the download btn download user's details in JSON format.
+ */
 (function() {
-  const userId = JSON.parse(sessionStorage.getItem("loggedIn")).id;
-  document.getElementById('user-btn-download-account').setAttribute("href", `/api/user/search?id=${userId}`)
+  document
+    .getElementById('user-btn-download-account')
+    .setAttribute('href', `/api/user/search?id=${JSON.parse(sessionStorage.getItem('loggedIn')).id}`);
 })();

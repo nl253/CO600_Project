@@ -1,8 +1,8 @@
 const createLogger = require('./lib').createLogger;
 const log = createLogger({label: 'LOCALS INIT', lvl: 'warn'});
 const LOCALS = {
-  'title': 'FreeLearn',
-  'authors': [
+  title: 'FreeLearn',
+  authors: [
     {
       'name': 'Norbert Logiewa',
       'email': 'nl253@kent.ac.uk',

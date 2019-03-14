@@ -188,7 +188,7 @@ async function showMod({id, name, topic, authorId, summary}, topics = [ 'AI', 'A
         </a>
         <br>
         <strong>Rating</strong> 
-        <span id="module-learn-rating">${await avgRating}/5
+        <span id="module-learn-rating">${(await avgRating).toPrecision(2)}/5
         </span>
       </section>
       <section class="is-medium" style="margin-bottom: 20px;">

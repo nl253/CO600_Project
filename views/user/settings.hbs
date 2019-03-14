@@ -76,10 +76,10 @@
           <span class="icon is-left" style="left: 10px;"><i class="fas fa-lock"></i></span>
         </div>
       </div>
-       <div class="field">
+      <div class="field">
         <label class="label">Download Profile</label>
         <div>
-          <a id="user-btn-download-account" class="button is-2" download><i class="fas fa-download"></i>Download</a>
+          <a id="user-btn-download-account" class="button is-2" download="{{title}}_my_data.json"><i class="fas fa-download"></i>Download</a>
         </div>
       </div>
       <div class="field is-grouped is-grouped-centered" style="padding: 20px;">
@@ -92,7 +92,7 @@
           <i class="fas fa-undo" style="margin-right: 7px;"></i>
           Undo
         </button>
-        
+
       </div>
     </form>
     <br>
@@ -104,7 +104,7 @@
         <button id="user-btn-delete-account" class="button is-danger is-small"><i class="fas fa-user-times"></i>Delete</button>
       </div>
     </div>
-      
+
   </div>
   <div class="column is-3-fullhd is-3-desktop is-1-tablet is-1-mobile"></div>
 </section>
@@ -120,9 +120,9 @@
       </p>
     </section>
     <footer class="modal-card-foot">
-      <button class="button is-danger" id="settings-modalbtn-delete">Delete</button>
-      <button class="button is-light" id="settings-modalbtn-cancel">Cancel</button>
+      <button class="button is-danger" id="settings-modal-btn-delete">Delete</button>
+      <button class="button is-light" id="settings-modal-btn-cancel">Cancel</button>
     </footer>
   </div>
 
-<script src="/javascripts/user/settings.js" async></script>
+  <script src="/javascripts/user/settings.js" async></script>
