@@ -61,6 +61,7 @@ function cleanupSess() {
   }
 }
 
+// THIS DOESN'T WORK ON HEROKU!
 // if (process.env.NODE_ENV === 'production') {
 //   app.use((req, res, next) => req.secure
 //     ? next()

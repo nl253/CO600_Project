@@ -54,7 +54,7 @@
       if (k === 'name' || k === 'email' || k === 'lastName' || k === 'q') {
         document.getElementById('user-search-results').innerHTML = '';
         const searchBar = document.getElementById('user-search-bar');
-        searchBar.value = v;
+        searchBar.value = decodeURIComponent(v);
         searchBtn.dispatchEvent(new MouseEvent('click'));
         break;
       }
