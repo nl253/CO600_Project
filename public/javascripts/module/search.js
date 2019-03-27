@@ -1,4 +1,5 @@
 const BTN_SEARCH = document.querySelector('.button.is-link[type=submit]');
+const BTN_APPLY_FILTERS = document.querySelector('.button.is-info[type=submit]');
 const LIST_MODS = document.getElementById('module-search-results');
 const BTN_CREATED = document.getElementById('module-search-btn-date-created');
 const BTN_UPDATED = document.getElementById('module-search-btn-date-updated');
@@ -122,7 +123,7 @@ function getLitStars() {
   return 1;
 }
 
-BTN_SEARCH.onclick = async function runSearch(e) {
+async function runSearch(e) {
   e ? e.preventDefault() : null;
   showModal('Searching For Modules');
   LIST_MODS.innerHTML = '';
